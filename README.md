@@ -197,17 +197,19 @@ make -C src historical INITIAL_CONDITION=data/earth_t21_l10.restart
 
 <p align="center"><sub><b>Forced surface warming relative to control.</b> Annual global near-surface air-temperature anomalies for two branches, their smoothed ensemble mean, and the observed estimate.</sub></p>
 
-**`1pctCO2` and `abrupt-4xCO2`** — run with a coupled
-ocean from the same equilibrated initial state. In `1pctCO2` the CO₂ rises by
-1% yr⁻¹ and reaches about 4× pre-industrial after 140 years; the model warms by
-**+5.37 K in year 140**, with a transient climate response of **TCR = 3.26 K**
-around the CO₂-doubling period. In `abrupt-4xCO2` an immediate step to 4× CO₂
-warms the model by **+5.91 K by year 150** and still leaves a top-of-atmosphere
-imbalance of about 4.8 W m⁻². A Gregory
-regression gives an effective 4× forcing of **8.95 W m⁻²**, a feedback parameter
-of **λ = −0.77 W m⁻² K⁻¹**, and an effective equilibrium climate sensitivity of
-**ECS = 5.79 K** (R² = 0.89) — slightly above the CMIP6 sample maxima (TCR
-1.31–3.06 K from 31 models; effective ECS 1.83–5.62 K from 30).
+**`1pctCO2` and `abrupt-4xCO2`** — run with a coupled ocean from the same
+equilibrated initial state. In `1pctCO2`, spatially uniform CO₂ rises by 1% yr⁻¹,
+compounded monthly, for 140 years and reaches approximately 4× its initial
+concentration; the model warms by **+5.37 K in year 140**. The transient climate
+response is **TCR = 3.29 K**, defined as the 20-year mean temperature anomaly
+over protocol years 61–80 (calendar years 1910–1929). In `abrupt-4xCO2`, CO₂ is
+stepped immediately to about 1,137 ppm (4×) and held for 150 years; the model
+warms by **+5.91 K in year 150**. A Gregory regression over the 149 annual means
+from 1851–1999 gives an effective 4× forcing of **9.27 W m⁻²**, a feedback
+parameter of **λ = −0.829 W m⁻² K⁻¹**, and an effective equilibrium climate
+sensitivity of **ECS = 5.59 K** (R² = 0.884). PlaSiC's TCR is above the CMIP6
+sample range of 1.305–3.058 K (31 models), while its effective ECS is just below
+the 1.831–5.616 K range (30 models).
 
 → [Chapter 6.3, Idealized CO₂ experiments](https://sunmoumou1.github.io/PlaSiC/tutorial/6-experiments/6.3-idealized-co2-experiments-tcr-ecs/)
 
