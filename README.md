@@ -57,7 +57,7 @@ The project exists for two audiences:
 | **Resolution** | T21 / T31 / T42 / T85 (64 × 32 → 256 × 128 Gaussian grids), user-defined σ levels |
 | **Physics** | Radiation, clouds, moist convection and precipitation, surface fluxes, horizontal and vertical diffusion |
 | **Coupled surfaces** | Land surface, thermodynamic sea ice, slab ocean, user-defined three-dimensional ocean |
-| **Parallelism** | MPI; 4 processes are the practical optimum on m5 macbook 32G memory) (up to ~3× faster than 1) |
+| **Parallelism** | MPI; 4 processes are the practical optimum on m5 macbook (32G memory) (up to ~3× faster than 1) |
 | **Interfaces** | `plasic.x` command-line model · PlaSiC Studio (PySide6) desktop front end |
 | **Experiments** | CMIP6-style `historical`, `1pctCO2`, `abrupt-4xCO2` — all reproducible from this repository |
 | **Documentation** | 400+ page tutorial: [read online](https://sunmoumou1.github.io/PlaSiC/tutorial/) or [download the PDF](https://drive.usercontent.google.com/download?id=1PaMNy_Bc8rSRLUIjQizExJ17wFgWT9Ag&export=download&confirm=t) |
@@ -197,13 +197,13 @@ make -C src historical INITIAL_CONDITION=data/earth_t21_l10.restart
 
 <p align="center"><sub><b>Forced surface warming relative to control.</b> Annual global near-surface air-temperature anomalies for two branches, their smoothed ensemble mean, and the observed estimate.</sub></p>
 
-**`1pctCO2` and `abrupt-4xCO2`** — the CMIP6 DECK experiments, run with a coupled
+**`1pctCO2` and `abrupt-4xCO2`** — run with a coupled
 ocean from the same equilibrated initial state. In `1pctCO2` the CO₂ rises by
 1% yr⁻¹ and reaches about 4× pre-industrial after 140 years; the model warms by
 **+5.37 K in year 140**, with a transient climate response of **TCR = 3.26 K**
 around the CO₂-doubling period. In `abrupt-4xCO2` an immediate step to 4× CO₂
 warms the model by **+5.91 K by year 150** and still leaves a top-of-atmosphere
-imbalance of about 4.8 W m⁻², so the run has not reached equilibrium. A Gregory
+imbalance of about 4.8 W m⁻². A Gregory
 regression gives an effective 4× forcing of **8.95 W m⁻²**, a feedback parameter
 of **λ = −0.77 W m⁻² K⁻¹**, and an effective equilibrium climate sensitivity of
 **ECS = 5.79 K** (R² = 0.89) — slightly above the CMIP6 sample maxima (TCR
@@ -244,7 +244,6 @@ processes. The full study — speed-up, parallel efficiency and a memory model �
 <tr>
 <td width="530"><img src="docs-site/docs/pdf1.png" width="500" alt="Cover of the PlaSiC tutorial book"></td>
 <td>
-<b>A GCM model made to be understood.</b><br>
 The PlaSiC tutorial is a complete, self-contained textbook: 400+ pages across
 eight chapters and six appendices.<br><br>
 <a href="https://sunmoumou1.github.io/PlaSiC/tutorial/">Read online</a> &nbsp;·&nbsp;
@@ -284,8 +283,7 @@ python3 -m venv .venv
 > [desktop app](https://sunmoumou1.github.io/PlaSiC/software.html) are all under
 > rapid development, and I will keep maintaining them for years to come.**
 >
-> **Come back to this repository often** — fixes, new physics, new experiments,
-> new chapters and new app features all land here first.
+> **Come back to this repository often** — new features all land here first.
 
 <p align="center">
   <a href="https://github.com/sunmoumou1/PlaSiC/commits/main"><img src="https://img.shields.io/github/last-commit/sunmoumou1/PlaSiC?style=for-the-badge&amp;label=last%20update&amp;color=0f766e" alt="Latest update"></a>
@@ -314,8 +312,6 @@ PlaSiC is an open project and contributions of every size are useful:
   [GitHub issue](https://github.com/sunmoumou1/PlaSiC/issues). For problems that
   concern running the model, attach `progress.txt`, your build configuration and
   the relevant part of the log so the issue can be diagnosed.
-- **Improve the material** — corrections, clarifications and new exercises for the
-  tutorial are very welcome as pull requests.
 - **Contribute code** — new parameterizations, diagnostics, analysis scripts and
   performance work are all in scope; the [roadmap](#roadmap) lists the largest
   opportunities.
@@ -394,7 +390,7 @@ disciplines.<br><br>
 </table>
 
 <p align="center">
-  <img src="docs-site/docs/tutorial/assets/images/my_research_interest_plain.png" width="360" alt="Research interests spanning data assimilation, weather forecasting, and subseasonal-to-seasonal and climate prediction">
+  <img src="docs-site/docs/tutorial/assets/images/my_research_interest_plain.png" width="880" alt="Research interests spanning data assimilation, weather forecasting, and subseasonal-to-seasonal and climate prediction">
 </p>
 
 > *"Good educational models — models that come with complete source code and a
