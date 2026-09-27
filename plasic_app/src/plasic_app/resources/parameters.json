@@ -1,0 +1,409 @@
+{
+  "schema_version": 1,
+  "parameters": [
+    {
+      "name": "resolution",
+      "label": "Horizontal resolution",
+      "type": "enum",
+      "default": "T42",
+      "choices": [
+        "T21",
+        "T31",
+        "T42",
+        "T85"
+      ],
+      "section": "Build",
+      "phase": "compile",
+      "component": "dynamics",
+      "description": "Spectral truncation and Gaussian grid: T21=64×32, T31=96×48, T42=128×64, T85=256×128."
+    },
+    {
+      "name": "atmosphere_levels",
+      "label": "Atmospheric levels",
+      "type": "integer",
+      "default": 10,
+      "minimum": 5,
+      "maximum": 50,
+      "unit": "layers",
+      "section": "Build",
+      "phase": "compile",
+      "component": "dynamics",
+      "warning": "Requires a restart with exactly matching dimensions. End-to-end release tests currently use 10 levels."
+    },
+    {
+      "name": "mpi_enabled",
+      "label": "Enable MPI",
+      "type": "boolean",
+      "default": false,
+      "section": "Build",
+      "phase": "compile",
+      "component": "mpi"
+    },
+    {
+      "name": "mpi_processes",
+      "label": "MPI processes",
+      "type": "integer",
+      "default": 2,
+      "minimum": 2,
+      "maximum": 128,
+      "unit": "ranks",
+      "section": "Build",
+      "phase": "compile",
+      "component": "mpi",
+      "depends_on": {
+        "mpi_enabled": true
+      },
+      "warning": "The process count must divide the latitude rows. Spectral rows are distributed with a padded last block, so they no longer constrain the process count: T85 (128 latitude rows) now supports 4 processes. T21/T31/T42 have been validated with 2 processes."
+    },
+    {
+      "name": "c_compiler",
+      "label": "C compiler",
+      "type": "string",
+      "default": "cc",
+      "section": "Build",
+      "phase": "compile",
+      "component": "build",
+      "advanced": true
+    },
+    {
+      "name": "mpi_compiler",
+      "label": "MPI C wrapper",
+      "type": "string",
+      "default": "mpicc",
+      "section": "Build",
+      "phase": "compile",
+      "component": "build",
+      "depends_on": {
+        "mpi_enabled": true
+      },
+      "advanced": true
+    },
+    {
+      "name": "mpi_launcher",
+      "label": "MPI launcher",
+      "type": "string",
+      "default": "mpirun",
+      "section": "Build",
+      "phase": "launch",
+      "component": "mpi",
+      "depends_on": {
+        "mpi_enabled": true
+      },
+      "advanced": true
+    },
+    {
+      "name": "steps",
+      "label": "Integration steps",
+      "type": "integer",
+      "default": 32,
+      "minimum": 1,
+      "maximum": 2147483647,
+      "unit": "steps",
+      "section": "Integration",
+      "phase": "runtime",
+      "component": "calendar"
+    },
+    {
+      "name": "calendar",
+      "label": "Calendar",
+      "type": "enum",
+      "default": "gregorian",
+      "choices": ["gregorian", "360day"],
+      "choice_labels": {
+        "gregorian": "Gregorian (365/366 days)",
+        "360day": "12 x 30-day (360 days)"
+      },
+      "section": "Initial Data",
+      "phase": "runtime",
+      "component": "calendar",
+      "description": "Cold-start calendar. A warm start always uses the calendar stored in the restart file."
+    },
+    {
+      "name": "start_year",
+      "label": "Calendar start year",
+      "type": "integer",
+      "default": 0,
+      "minimum": 0,
+      "maximum": 2014,
+      "unit": "year",
+      "section": "Initial Data",
+      "phase": "runtime",
+      "component": "calendar"
+    },
+    {
+      "name": "start_yday",
+      "label": "Cold-start day of year",
+      "type": "integer",
+      "default": 1,
+      "minimum": 1,
+      "maximum": 366,
+      "unit": "day",
+      "section": "Initial Data",
+      "phase": "runtime",
+      "component": "calendar",
+      "description": "1-based day of year; the model rejects values beyond the length of the selected calendar year."
+    },
+    {
+      "name": "start_hour",
+      "label": "Cold-start hour",
+      "type": "integer",
+      "default": 0,
+      "minimum": 0,
+      "maximum": 23,
+      "unit": "hour",
+      "section": "Initial Data",
+      "phase": "runtime",
+      "component": "calendar"
+    },
+    {
+      "name": "start_minute",
+      "label": "Cold-start minute",
+      "type": "integer",
+      "default": 0,
+      "minimum": 0,
+      "maximum": 59,
+      "unit": "minute",
+      "section": "Initial Data",
+      "phase": "runtime",
+      "component": "calendar",
+      "description": "The start time must fall exactly on a time-step boundary."
+    },
+    {
+      "name": "reset_nstep",
+      "label": "Reset restart nstep",
+      "type": "integer",
+      "default": -1,
+      "minimum": -1,
+      "maximum": 2147483647,
+      "unit": "step",
+      "section": "Initial Data",
+      "phase": "runtime",
+      "component": "calendar",
+      "description": "Warm start only: replace the nstep read from the restart with this value (-1 keeps it) and print the new model date."
+    },
+    {
+      "name": "co2_forcing",
+      "label": "Monthly CO2 forcing",
+      "type": "path",
+      "default": "data/forcing/CO2/mole-fraction-of-carbon-dioxide-in-air_input4MIPs_GHGConcentrations_CMIP_UoM-CMIP-1-2-0_gn-15x360deg_000001-201412.csv",
+      "section": "Atmospheric Physics",
+      "phase": "runtime",
+      "component": "radiation",
+      "description": "CSV containing one externally prescribed CO2 value for each month and 15-degree latitude band."
+    },
+    {
+      "name": "restart",
+      "label": "Initial restart",
+      "type": "path",
+      "default": "",
+      "section": "Initial Data",
+      "phase": "runtime",
+      "component": "restart"
+    },
+    {
+      "name": "data_dir",
+      "label": "Surface data directory",
+      "type": "directory",
+      "default": "data/surface",
+      "section": "Initial Data",
+      "phase": "runtime",
+      "component": "surface"
+    },
+    {
+      "name": "dynamics_only",
+      "label": "Dynamics only",
+      "type": "boolean",
+      "default": false,
+      "section": "Integration",
+      "phase": "runtime",
+      "component": "dynamics",
+      "advanced": true,
+      "warning": "For diagnostics only. Do not enable for normal climate simulations."
+    },
+    {
+      "name": "frame_interval",
+      "label": "Live frame interval",
+      "type": "integer",
+      "default": 4,
+      "minimum": 1,
+      "maximum": 1000000,
+      "unit": "steps",
+      "section": "Output",
+      "phase": "runtime",
+      "component": "stream"
+    },
+    {
+      "name": "progress_interval",
+      "label": "Progress interval",
+      "type": "integer",
+      "default": 1,
+      "minimum": 1,
+      "maximum": 1000000,
+      "unit": "steps",
+      "section": "Output",
+      "phase": "runtime",
+      "component": "stream"
+    },
+    {
+      "name": "buffer_frames",
+      "label": "Buffered frame groups",
+      "type": "integer",
+      "default": 32,
+      "minimum": 2,
+      "maximum": 512,
+      "unit": "frame groups",
+      "section": "Visualization",
+      "phase": "visualization",
+      "component": "ui"
+    },
+    {
+      "name": "auto_levels",
+      "label": "Dynamic color range",
+      "type": "boolean",
+      "default": true,
+      "section": "Visualization",
+      "phase": "visualization",
+      "component": "ui",
+      "status": "toolbar_managed"
+    },
+    {
+      "name": "view_mode",
+      "label": "Earth view",
+      "type": "enum",
+      "default": "map",
+      "choices": [
+        "map",
+        "globe"
+      ],
+      "choice_labels": {
+        "map": "2D Map",
+        "globe": "Interactive Globe"
+      },
+      "section": "Visualization",
+      "phase": "visualization",
+      "component": "ui",
+      "status": "toolbar_managed",
+      "description": "Switch between a rectangular longitude-latitude map and an orthographic globe with mouse rotation and wheel zoom."
+    },
+    {
+      "name": "moisture_fixer",
+      "label": "Global moisture fixer",
+      "type": "boolean",
+      "default": true,
+      "section": "Atmospheric Physics",
+      "phase": "internal",
+      "component": "misc",
+      "advanced": true,
+      "status": "catalogued_not_exposed"
+    },
+    {
+      "name": "large_scale_precipitation",
+      "label": "Large-scale precipitation",
+      "type": "boolean",
+      "default": true,
+      "section": "Atmospheric Physics",
+      "phase": "internal",
+      "component": "rain",
+      "advanced": true,
+      "status": "catalogued_not_exposed"
+    },
+    {
+      "name": "convective_precipitation",
+      "label": "Convective precipitation",
+      "type": "boolean",
+      "default": true,
+      "section": "Atmospheric Physics",
+      "phase": "internal",
+      "component": "rain",
+      "advanced": true,
+      "status": "catalogued_not_exposed"
+    },
+    {
+      "name": "shallow_convection",
+      "label": "Shallow convection",
+      "type": "boolean",
+      "default": true,
+      "section": "Atmospheric Physics",
+      "phase": "internal",
+      "component": "rain",
+      "advanced": true,
+      "status": "catalogued_not_exposed"
+    },
+    {
+      "name": "vertical_diffusion",
+      "label": "Vertical diffusion",
+      "type": "boolean",
+      "default": true,
+      "section": "Atmospheric Physics",
+      "phase": "internal",
+      "component": "flux",
+      "advanced": true,
+      "status": "catalogued_not_exposed"
+    },
+    {
+      "name": "minimum_wind_speed",
+      "label": "Minimum near-surface wind",
+      "type": "number",
+      "default": 1.0,
+      "minimum": 0.0,
+      "maximum": 20.0,
+      "unit": "m s-1",
+      "section": "Atmospheric Physics",
+      "phase": "internal",
+      "component": "flux",
+      "advanced": true,
+      "status": "catalogued_not_exposed"
+    },
+    {
+      "name": "mixing_length",
+      "label": "Mixing length",
+      "type": "number",
+      "default": 160.0,
+      "minimum": 1.0,
+      "maximum": 1000.0,
+      "unit": "m",
+      "section": "Atmospheric Physics",
+      "phase": "internal",
+      "component": "flux",
+      "advanced": true,
+      "status": "catalogued_not_exposed"
+    },
+    {
+      "name": "prognostic_sea_ice",
+      "label": "Prognostic sea ice",
+      "type": "boolean",
+      "default": true,
+      "section": "Ocean and Sea Ice",
+      "phase": "internal",
+      "component": "ice",
+      "advanced": true,
+      "status": "catalogued_not_exposed"
+    },
+    {
+      "name": "prognostic_ocean",
+      "label": "Prognostic ocean",
+      "type": "boolean",
+      "default": true,
+      "section": "Ocean and Sea Ice",
+      "phase": "internal",
+      "component": "ocean",
+      "advanced": true,
+      "status": "catalogued_not_exposed"
+    },
+    {
+      "name": "timesteps_per_day",
+      "label": "Timesteps per day",
+      "type": "integer",
+      "default": 32,
+      "minimum": 8,
+      "maximum": 288,
+      "unit": "steps day-1",
+      "section": "Integration",
+      "phase": "internal",
+      "component": "dynamics",
+      "advanced": true,
+      "status": "derived_not_exposed",
+      "warning": "Currently derived from resolution and the stable timestep; it cannot be changed independently."
+    }
+  ]
+}

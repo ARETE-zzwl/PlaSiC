@@ -1,0 +1,471 @@
+{
+  "schema_version": 1,
+  "protocol_version": 1,
+  "grid": {
+    "type": "gaussian_latitude_regular_longitude",
+    "longitude_periodic": true,
+    "longitude_storage": "0 <= longitude < 360 degrees east",
+    "vertical_coordinate": "sigma model-level index; dimensionless; 0 at model top; values are not serialized in pstream",
+    "time_coordinate": "model calendar fields and absolute step from each pstream frame header"
+  },
+  "variables": [
+    {
+      "id": 1,
+      "name": "air_temperature",
+      "label": "Air temperature",
+      "unit": "K",
+      "dimensions": [
+        "level",
+        "latitude",
+        "longitude"
+      ],
+      "component": "atmosphere",
+      "colormap": "CET-L4"
+    },
+    {
+      "id": 2,
+      "name": "specific_humidity",
+      "label": "Specific humidity",
+      "unit": "kg kg-1",
+      "dimensions": [
+        "level",
+        "latitude",
+        "longitude"
+      ],
+      "component": "atmosphere",
+      "colormap": "CET-L7"
+    },
+    {
+      "id": 40,
+      "name": "relative_humidity",
+      "label": "Relative humidity",
+      "unit": "1",
+      "dimensions": [
+        "level",
+        "latitude",
+        "longitude"
+      ],
+      "component": "atmosphere",
+      "colormap": "CET-L7"
+    },
+    {
+      "id": 41,
+      "name": "geopotential_height",
+      "label": "Geopotential height",
+      "unit": "m",
+      "dimensions": [
+        "level",
+        "latitude",
+        "longitude"
+      ],
+      "component": "atmosphere",
+      "colormap": "CET-L4"
+    },
+    {
+      "id": 3,
+      "name": "cloud_cover",
+      "label": "Cloud cover (per level)",
+      "unit": "1",
+      "dimensions": [
+        "level",
+        "latitude",
+        "longitude"
+      ],
+      "component": "atmosphere",
+      "colormap": "CET-L1"
+    },
+    {
+      "id": 38,
+      "name": "liquid_water",
+      "label": "Cloud liquid water",
+      "unit": "kg kg-1",
+      "dimensions": [
+        "level",
+        "latitude",
+        "longitude"
+      ],
+      "component": "atmosphere",
+      "colormap": "CET-L7"
+    },
+    {
+      "id": 15,
+      "name": "zonal_wind",
+      "label": "Zonal wind",
+      "unit": "m s-1",
+      "dimensions": [
+        "level",
+        "latitude",
+        "longitude"
+      ],
+      "component": "atmosphere",
+      "colormap": "CET-D1"
+    },
+    {
+      "id": 16,
+      "name": "meridional_wind",
+      "label": "Meridional wind",
+      "unit": "m s-1",
+      "dimensions": [
+        "level",
+        "latitude",
+        "longitude"
+      ],
+      "component": "atmosphere",
+      "colormap": "CET-D1"
+    },
+    {
+      "id": 20,
+      "name": "wind_speed",
+      "label": "Wind speed",
+      "unit": "m s-1",
+      "dimensions": [
+        "level",
+        "latitude",
+        "longitude"
+      ],
+      "component": "atmosphere",
+      "colormap": "CET-L4"
+    },
+    {
+      "id": 17,
+      "name": "pressure_velocity",
+      "label": "Pressure velocity diagnostic",
+      "unit": "Pa s-1",
+      "dimensions": [
+        "level",
+        "latitude",
+        "longitude"
+      ],
+      "component": "atmosphere",
+      "colormap": "CET-D1"
+    },
+    {
+      "id": 18,
+      "name": "relative_vorticity",
+      "label": "Relative vorticity",
+      "unit": "s-1",
+      "dimensions": [
+        "level",
+        "latitude",
+        "longitude"
+      ],
+      "component": "atmosphere",
+      "colormap": "CET-D1"
+    },
+    {
+      "id": 19,
+      "name": "divergence",
+      "label": "Divergence",
+      "unit": "s-1",
+      "dimensions": [
+        "level",
+        "latitude",
+        "longitude"
+      ],
+      "component": "atmosphere",
+      "colormap": "CET-D1"
+    },
+    {
+      "id": 21,
+      "name": "surface_pressure",
+      "label": "Surface pressure",
+      "unit": "Pa",
+      "dimensions": [
+        "latitude",
+        "longitude"
+      ],
+      "component": "atmosphere",
+      "colormap": "CET-L4"
+    },
+    {
+      "id": 4,
+      "name": "surface_temperature",
+      "label": "Surface temperature",
+      "unit": "K",
+      "dimensions": [
+        "latitude",
+        "longitude"
+      ],
+      "component": "surface",
+      "colormap": "CET-D1"
+    },
+    {
+      "id": 22,
+      "name": "surface_air_temperature",
+      "label": "Near-surface air temperature",
+      "unit": "K",
+      "dimensions": [
+        "latitude",
+        "longitude"
+      ],
+      "component": "surface",
+      "colormap": "CET-D1"
+    },
+    {
+      "id": 23,
+      "name": "surface_relative_humidity",
+      "label": "Surface relative humidity",
+      "unit": "1",
+      "dimensions": [
+        "latitude",
+        "longitude"
+      ],
+      "component": "surface",
+      "colormap": "CET-L7"
+    },
+    {
+      "id": 27,
+      "name": "albedo",
+      "label": "Surface albedo",
+      "unit": "1",
+      "dimensions": [
+        "latitude",
+        "longitude"
+      ],
+      "component": "surface",
+      "colormap": "CET-L1"
+    },
+    {
+      "id": 28,
+      "name": "snow_water_equivalent",
+      "label": "Snow water equivalent",
+      "unit": "m",
+      "dimensions": [
+        "latitude",
+        "longitude"
+      ],
+      "component": "surface",
+      "colormap": "CET-L8"
+    },
+    {
+      "id": 30,
+      "name": "soil_temperature",
+      "label": "Soil temperature",
+      "unit": "K",
+      "dimensions": [
+        "latitude",
+        "longitude"
+      ],
+      "component": "surface",
+      "colormap": "CET-D1"
+    },
+    {
+      "id": 8,
+      "name": "soil_water",
+      "label": "Soil water",
+      "unit": "m",
+      "dimensions": [
+        "latitude",
+        "longitude"
+      ],
+      "component": "surface",
+      "colormap": "CET-L8"
+    },
+    {
+      "id": 36,
+      "name": "land_mask",
+      "label": "Land mask",
+      "unit": "1",
+      "dimensions": [
+        "latitude",
+        "longitude"
+      ],
+      "component": "surface",
+      "colormap": "CET-L1"
+    },
+    {
+      "id": 5,
+      "name": "precipitation",
+      "label": "Total precipitation flux",
+      "unit": "mm/hr",
+      "dimensions": [
+        "latitude",
+        "longitude"
+      ],
+      "component": "rain",
+      "colormap": "CET-L6"
+    },
+    {
+      "id": 31,
+      "name": "convective_precipitation",
+      "label": "Convective precipitation",
+      "unit": "mm/hr",
+      "dimensions": [
+        "latitude",
+        "longitude"
+      ],
+      "component": "rain",
+      "colormap": "CET-L6"
+    },
+    {
+      "id": 32,
+      "name": "large_scale_precipitation",
+      "label": "Large-scale precipitation",
+      "unit": "mm/hr",
+      "dimensions": [
+        "latitude",
+        "longitude"
+      ],
+      "component": "rain",
+      "colormap": "CET-L6"
+    },
+    {
+      "id": 33,
+      "name": "snowfall",
+      "label": "Snowfall",
+      "unit": "mm/hr",
+      "dimensions": [
+        "latitude",
+        "longitude"
+      ],
+      "component": "rain",
+      "colormap": "CET-L6"
+    },
+    {
+      "id": 24,
+      "name": "evaporation",
+      "label": "Evaporation",
+      "unit": "m s-1",
+      "dimensions": [
+        "latitude",
+        "longitude"
+      ],
+      "component": "flux",
+      "colormap": "CET-L6"
+    },
+    {
+      "id": 25,
+      "name": "sensible_heat_flux",
+      "label": "Sensible heat flux",
+      "unit": "W m-2",
+      "dimensions": [
+        "latitude",
+        "longitude"
+      ],
+      "component": "flux",
+      "colormap": "CET-D1"
+    },
+    {
+      "id": 26,
+      "name": "latent_heat_flux",
+      "label": "Latent heat flux",
+      "unit": "W m-2",
+      "dimensions": [
+        "latitude",
+        "longitude"
+      ],
+      "component": "flux",
+      "colormap": "CET-D1"
+    },
+    {
+      "id": 34,
+      "name": "zonal_wind_stress",
+      "label": "Zonal wind stress",
+      "unit": "N m-2",
+      "dimensions": [
+        "latitude",
+        "longitude"
+      ],
+      "component": "flux",
+      "colormap": "CET-D1"
+    },
+    {
+      "id": 35,
+      "name": "meridional_wind_stress",
+      "label": "Meridional wind stress",
+      "unit": "N m-2",
+      "dimensions": [
+        "latitude",
+        "longitude"
+      ],
+      "component": "flux",
+      "colormap": "CET-D1"
+    },
+    {
+      "id": 6,
+      "name": "sea_ice_fraction",
+      "label": "Sea-ice fraction",
+      "unit": "1",
+      "dimensions": [
+        "latitude",
+        "longitude"
+      ],
+      "component": "ice",
+      "colormap": "CET-L1"
+    },
+    {
+      "id": 7,
+      "name": "sea_ice_thickness",
+      "label": "Sea-ice thickness",
+      "unit": "m",
+      "dimensions": [
+        "latitude",
+        "longitude"
+      ],
+      "component": "ice",
+      "colormap": "CET-L8"
+    },
+    {
+      "id": 10,
+      "name": "sea_surface_temperature",
+      "label": "Sea-surface temperature",
+      "unit": "K",
+      "dimensions": [
+        "latitude",
+        "longitude"
+      ],
+      "component": "ocean",
+      "colormap": "CET-D1"
+    },
+    {
+      "id": 37,
+      "name": "mixed_layer_depth",
+      "label": "Ocean mixed-layer depth",
+      "unit": "m",
+      "dimensions": [
+        "latitude",
+        "longitude"
+      ],
+      "component": "ocean",
+      "colormap": "CET-L8"
+    },
+    {
+      "id": 42,
+      "name": "deep_ocean_temperature",
+      "label": "Deep ocean temperature",
+      "unit": "K",
+      "dimensions": [
+        "level",
+        "latitude",
+        "longitude"
+      ],
+      "component": "ocean",
+      "colormap": "CET-D1"
+    },
+    {
+      "id": 43,
+      "name": "deep_ocean_salinity",
+      "label": "Deep ocean salinity",
+      "unit": "g kg-1",
+      "dimensions": [
+        "level",
+        "latitude",
+        "longitude"
+      ],
+      "component": "ocean",
+      "colormap": "CET-L6"
+    },
+    {
+      "id": 39,
+      "name": "total_cloud_cover",
+      "label": "Total cloud cover",
+      "unit": "1",
+      "dimensions": [
+        "latitude",
+        "longitude"
+      ],
+      "component": "atmosphere",
+      "colormap": "CET-L1"
+    }
+  ]
+}
