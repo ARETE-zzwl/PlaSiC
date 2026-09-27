@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<meta name="description" content="Explore the modern PlaSiC graphical interface and watch a short walkthrough of a climate experiment.">
+<meta name="theme-color" content="#e9f3fb">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3CradialGradient id='g' cx='35%25' cy='28%25'%3E%3Cstop stop-color='%23dffaff'/%3E%3Cstop offset='.48' stop-color='%237fe0f2'/%3E%3Cstop offset='1' stop-color='%231d5d7c'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='32' cy='32' r='25' fill='url(%23g)'/%3E%3Cpath d='M12 34c13-9 27-11 40-4' fill='none' stroke='%23fff' stroke-opacity='.7' stroke-width='2'/%3E%3C/svg%3E">
+<title>PlaSiC — Modern graphical UI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&amp;family=STIX+Two+Text:ital,wght@0,400;0,500;1,400&amp;display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#14325a;
+  --ink-deep:#0e2948;
+  --muted:#607e9c;
+  --faint:#7d96ac;
+  --blue:#4d8fbd;
+  --blue-dark:#205081;
+  --cyan:#69c8d8;
+  --line:rgba(29,77,112,.17);
+  --line-soft:rgba(29,77,112,.1);
+  --glass:rgba(252,255,255,.68);
+  --font-elegant:'Newsreader','Bodoni 72','Didot','Baskerville','Times New Roman',serif;
+  --font-body:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif,'PingFang SC','Microsoft YaHei';
+  --font-mono:'SF Mono',SFMono-Regular,ui-monospace,Menlo,Consolas,'Liberation Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  min-height:100svh;overflow-x:hidden;color:var(--ink);font-family:var(--font-body);
+  background:
+    radial-gradient(48% 70% at 93% 8%,rgba(121,195,231,.4),transparent 70%),
+    radial-gradient(40% 60% at 4% 78%,rgba(185,225,237,.38),transparent 72%),
+    linear-gradient(135deg,#f9fdff 0%,#eff7fc 48%,#d6eaf7 100%);
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.4;background-image:linear-gradient(rgba(34,91,128,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(34,91,128,.07) 1px,transparent 1px);background-size:88px 88px;-webkit-mask-image:linear-gradient(145deg,#000,transparent 76%);mask-image:linear-gradient(145deg,#000,transparent 76%)}
+body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(120% 100% at 50% 36%,transparent 55%,rgba(35,90,124,.1) 100%)}
+a{color:inherit;text-decoration:none}
+button{font:inherit}
+:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(77,143,189,.25),0 0 0 1px var(--blue-dark);border-radius:10px}
+
+.topbar{position:fixed;z-index:10;top:clamp(1rem,2.4vh,1.5rem);left:clamp(1rem,3vw,2.5rem);right:clamp(1rem,3vw,2.5rem);display:flex;align-items:center;justify-content:space-between;gap:1rem;pointer-events:none}
+.topbar>*{pointer-events:auto}
+.brand{display:inline-flex;align-items:center;gap:.58rem;padding:.45rem .82rem .45rem .55rem;border:1px solid rgba(39,98,136,.18);border-radius:999px;background:rgba(252,255,255,.65);backdrop-filter:blur(16px);box-shadow:0 12px 30px rgba(36,86,120,.12),inset 0 1px 0 rgba(255,255,255,.9);font:500 1.05rem var(--font-elegant);letter-spacing:.04em;color:#0d3568;transition:transform .25s ease,background .25s ease}
+.brand:hover{transform:translateY(-1px);background:rgba(255,255,255,.9)}
+.brand-mark{width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff 0%,#91e1ee 35%,#438eb1 72%,transparent 78%);box-shadow:0 0 18px rgba(90,164,191,.34)}
+.brand-sub{margin-left:.22rem;padding-left:.7rem;border-left:1px solid rgba(39,98,136,.18);font:500 .57rem var(--font-mono);letter-spacing:.11em;text-transform:uppercase;color:rgba(13,53,104,.58)}
+.back-link{display:inline-flex;align-items:center;gap:.55rem;padding:.63rem .95rem;border:1px solid rgba(28,78,113,.2);border-radius:999px;background:rgba(255,255,255,.52);backdrop-filter:blur(14px);font:.72rem var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:#2c5d82;transition:transform .25s ease,background .25s ease,border-color .25s ease}
+.back-link span{font-size:1rem;line-height:0;transition:transform .25s ease}
+.back-link:hover,.back-link:focus-visible{transform:translateY(-1px);border-color:rgba(32,80,129,.42);background:rgba(255,255,255,.86)}
+.back-link:hover span{transform:translateX(-3px)}
+
+.page{width:min(100%,1680px);margin:0 auto;padding:clamp(7rem,13vh,10rem) clamp(1.25rem,5vw,5.7rem) clamp(2.4rem,5vw,5rem)}
+.hero{display:grid;grid-template-columns:minmax(260px,.7fr) minmax(520px,1.3fr);align-items:center;gap:clamp(2.6rem,6vw,7.5rem);min-height:min(78svh,820px)}
+.eyebrow{display:flex;align-items:center;gap:.75rem;margin-bottom:clamp(1rem,2.4vh,1.75rem);font:500 .72rem var(--font-mono);letter-spacing:.25em;text-transform:uppercase;color:#4c86a8}
+.eyebrow::before{content:"";width:2.2rem;height:1px;background:#65aec6;box-shadow:0 0 0 4px rgba(101,174,198,.1)}
+h1{max-width:11.5ch;font:400 clamp(4.4rem,8vw,9.8rem)/.76 var(--font-elegant);letter-spacing:-.065em;color:var(--ink-deep);text-wrap:balance}
+h1 em{font-style:italic;color:var(--blue)}
+.lede{max-width:38ch;margin-top:clamp(1.5rem,3.8vh,2.7rem);font-size:clamp(1.1rem,1.35vw,1.42rem);line-height:1.58;color:var(--muted);text-wrap:pretty}
+.lede strong{color:var(--ink);font-weight:600}
+.actions{display:flex;flex-wrap:wrap;gap:.75rem;margin-top:clamp(1.55rem,3.8vh,2.6rem)}
+.action{display:inline-flex;align-items:center;gap:.6rem;padding:.76rem 1rem;border-radius:999px;font:500 .7rem var(--font-mono);letter-spacing:.13em;text-transform:uppercase;transition:transform .25s ease,box-shadow .25s ease,background .25s ease}
+.action.primary{color:#f7fcff;background:linear-gradient(135deg,#24567f,#3b85ab);box-shadow:0 16px 30px -15px rgba(28,79,118,.8)}
+.action.secondary{border:1px solid rgba(36,88,124,.24);color:#2a638b;background:rgba(255,255,255,.43)}
+.action:hover,.action:focus-visible{transform:translateY(-2px)}
+.action.primary:hover{box-shadow:0 22px 36px -15px rgba(28,79,118,.95);background:linear-gradient(135deg,#1d496f,#347a9e)}
+.action.secondary:hover{background:rgba(255,255,255,.86);border-color:rgba(36,88,124,.42)}
+.action i{font-style:normal;font-size:1rem;line-height:0}
+
+.video-card{position:relative;border:1px solid rgba(30,78,113,.28);border-radius:26px;background:linear-gradient(145deg,rgba(12,36,61,.96),rgba(14,49,77,.9));box-shadow:0 36px 76px -32px rgba(26,77,111,.58),inset 0 1px 0 rgba(255,255,255,.15);overflow:hidden;transform:rotate(1.25deg);transition:transform .45s cubic-bezier(.2,.8,.2,1),box-shadow .45s ease}
+.video-card:hover{transform:rotate(0) translateY(-5px);box-shadow:0 46px 90px -32px rgba(26,77,111,.7),inset 0 1px 0 rgba(255,255,255,.17)}
+.video-card::before{content:"";position:absolute;z-index:0;inset:-25% -10% auto;height:75%;pointer-events:none;background:radial-gradient(ellipse at 50% 0%,rgba(102,219,230,.33),transparent 68%);mix-blend-mode:screen}
+.video-head{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.05rem;border-bottom:1px solid rgba(187,228,238,.14);font:500 .63rem var(--font-mono);letter-spacing:.16em;text-transform:uppercase;color:#b3cfde}
+.video-head-left{display:flex;align-items:center;gap:.5rem}.video-head-left::before{content:"";width:7px;height:7px;border-radius:50%;background:#7fe0f2;box-shadow:0 0 0 5px rgba(127,224,242,.12),0 0 16px rgba(127,224,242,.7)}
+.video-head small{font-size:.58rem;letter-spacing:.1em;color:#7095aa}
+.video-frame{position:relative;z-index:1;aspect-ratio:16 / 9;background:#061827}
+.video-frame iframe{display:block;width:100%;height:100%;border:0}
+.video-caption{position:relative;z-index:1;display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;padding:1rem 1.15rem 1.15rem;color:#d9ecf3}
+.video-caption strong{display:block;font:400 1.55rem var(--font-elegant);letter-spacing:-.02em}.video-caption span{display:block;margin-top:.28rem;font-size:.78rem;line-height:1.4;color:#83a9ba}
+.video-out{display:inline-flex;align-items:center;gap:.35rem;padding:.45rem .62rem;border:1px solid rgba(170,221,234,.22);border-radius:999px;font:500 .58rem var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:#a9d8e5;white-space:nowrap;transition:background .25s ease,border-color .25s ease}
+.video-out:hover{background:rgba(127,224,242,.14);border-color:rgba(170,221,234,.48)}
+
+.footer{display:flex;justify-content:space-between;gap:1rem;padding-top:clamp(2.5rem,5vh,4rem);font:500 .65rem var(--font-mono);letter-spacing:.18em;text-transform:uppercase;color:#7794a8}.footer a{color:#2f6b91;transition:color .2s ease}.footer a:hover{color:#163e61}
+
+@media(max-width:980px){.hero{grid-template-columns:1fr;gap:3rem;min-height:0}.hero-copy{max-width:46rem}h1{max-width:9ch}.video-card{max-width:860px;margin:0 auto;transform:none}.video-card:hover{transform:translateY(-3px)}}
+@media(max-width:680px){.topbar{align-items:flex-start}.brand-sub{display:none}.back-link{padding:.56rem .75rem;font-size:.62rem}.page{padding:6.8rem 1.1rem 2rem}.hero{gap:2rem}.eyebrow{font-size:.62rem;letter-spacing:.18em}h1{font-size:clamp(4rem,18vw,6.3rem)}.lede{font-size:1.02rem}.actions{gap:.55rem}.action{font-size:.62rem;padding:.7rem .82rem}.video-card{border-radius:18px}.video-head{padding:.75rem .82rem;font-size:.54rem}.video-head small{font-size:.48rem}.video-caption{display:block;padding:.85rem .9rem 1rem}.video-caption strong{font-size:1.35rem}.video-out{margin-top:.8rem}.footer{display:block;line-height:1.8}.footer a{display:block;margin-top:.4rem}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html#s4" aria-label="Back to PlaSiC overview">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span>PlaSiC</span>
+      <span class="brand-sub">Planet Simulator in C</span>
+    </a>
+    <a class="back-link" href="index.html#s4"><span aria-hidden="true">←</span> Overview</a>
+  </header>
+
+  <main class="page">
+    <section class="hero" aria-labelledby="software-title">
+      <div class="hero-copy">
+        <p class="eyebrow">03 / Software</p>
+        <h1 id="software-title">Modern <em>graphical UI.</em></h1>
+        <p class="lede"><strong>PlaSiC comes with a modern GUI</strong> that turns a climate experiment into a clear, visual workflow. Set the model configuration, then watch the atmosphere evolve as results update in real time.</p>
+        <div class="actions">
+          <a class="action secondary" href="index.html#s4">Back to overview <i aria-hidden="true">↗</i></a>
+        </div>
+      </div>
+
+      <figure class="video-card" id="video" aria-labelledby="video-title">
+        <div class="video-head"><span class="video-head-left">PlaSiC / interface walkthrough</span><small>BILIBILI · PLAY IN PAGE</small></div>
+        <div class="video-frame">
+          <iframe src="https://player.bilibili.com/player.html?bvid=BV1Q4h26FELk&amp;page=1&amp;high_quality=1&amp;danmaku=0&amp;autoplay=0" title="PlaSiC graphical interface walkthrough on Bilibili" allowfullscreen allow="fullscreen; autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+        </div>
+        <figcaption class="video-caption">
+          <div><strong id="video-title">Run it from day one.</strong><span>See how a model setup becomes a live, inspectable experiment.</span></div>
+          <a class="video-out" href="https://www.bilibili.com/video/BV1Q4h26FELk/?vd_source=dc9541b01ceb0c792766dbb80b069cd4" target="_blank" rel="noopener">Open on Bilibili ↗</a>
+        </figcaption>
+      </figure>
+    </section>
+
+    <footer class="footer"><span>PlaSiC · Learn the equations · Run the climate</span><a href="index.html#s4">Return to the overview ↑</a></footer>
+  </main>
+</body>
+</html>

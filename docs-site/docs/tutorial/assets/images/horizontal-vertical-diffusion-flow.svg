@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="1600" viewBox="0 0 1180 1600" role="img" aria-labelledby="title desc">
+  <title id="title">Horizontal spectral diffusion and vertical turbulent diffusion</title>
+  <desc id="desc">The flow splits from the prognostic state into two parallel paths. The horizontal path selects high total wavenumbers, assigns a per-variable damping rate, and damps each spectral mode implicitly. The vertical path builds virtual potential temperature and shear, forms the gradient Richardson number, applies a Blackadar mixing length, diagnoses momentum and scalar diffusivities, and solves each column with a tridiagonal (Thomas) solver. The two tendencies are then merged and the state is advanced.</desc>
+
+  <defs>
+    <marker id="arrow" markerWidth="14" markerHeight="14" refX="13.5" refY="7" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L14,7 L0,14 Z" fill="#94a3b8"/>
+    </marker>
+    <marker id="arrowBlue" markerWidth="14" markerHeight="14" refX="13.5" refY="7" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L14,7 L0,14 Z" fill="#60a5fa"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="14" markerHeight="14" refX="13.5" refY="7" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L14,7 L0,14 Z" fill="#4ade80"/>
+    </marker>
+    <filter id="shadow" x="-8%" y="-8%" width="116%" height="124%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.05"/>
+    </filter>
+    <style>
+      .title{font:700 29px Arial, 'Helvetica Neue', Helvetica, sans-serif;fill:#0f172a}
+      .subtitle{font:400 16px Arial, 'Helvetica Neue', Helvetica, sans-serif;fill:#64748b}
+      .cardTitle{font:700 19.5px Arial, 'Helvetica Neue', Helvetica, sans-serif;fill:#0f172a}
+      .badge{font:700 19px Arial, 'Helvetica Neue', Helvetica, sans-serif;fill:#fff}
+      .tag{font:700 11.5px Arial, 'Helvetica Neue', Helvetica, sans-serif;letter-spacing:1.4px}
+      .laneTitle{font:700 20px Arial, 'Helvetica Neue', Helvetica, sans-serif}
+      .laneSub{font:400 15px Arial, 'Helvetica Neue', Helvetica, sans-serif;fill:#64748b}
+      .subLabel{font:700 15.5px Arial, 'Helvetica Neue', Helvetica, sans-serif}
+      .formula{font:500 19px Arial, 'Cambria Math', 'STIX Two Math', 'Times New Roman', serif;fill:#1e293b}
+      .formulaHero{font:700 20px Arial, 'Cambria Math', 'STIX Two Math', 'Times New Roman', serif;fill:#0f172a}
+      .formulaSm{font:500 17px Arial, 'Cambria Math', 'STIX Two Math', 'Times New Roman', serif;fill:#1e293b}
+      .tableText{font:600 17px Arial, 'Cambria Math', 'STIX Two Math', 'Times New Roman', serif;fill:#1e293b}
+      .note{font:400 15px Arial, 'Helvetica Neue', Helvetica, sans-serif;fill:#64748b}
+      .arrowLine{fill:none;stroke:#94a3b8;stroke-width:3;marker-end:url(#arrow)}
+      .arrowBlue{fill:none;stroke:#60a5fa;stroke-width:3;marker-end:url(#arrowBlue)}
+      .arrowGreen{fill:none;stroke:#4ade80;stroke-width:3;marker-end:url(#arrowGreen)}
+      .joinBlue{fill:none;stroke:#93c5fd;stroke-width:3}
+      .joinSlate{fill:none;stroke:#94a3b8;stroke-width:3}
+      .joinGreen{fill:none;stroke:#86efac;stroke-width:3}
+    </style>
+  </defs>
+
+  <rect x="1" y="1" width="1178" height="1598" rx="26" fill="#f8fafc" stroke="#e8edf4" stroke-width="1.5"/>
+
+  <text x="590" y="56" text-anchor="middle" class="title">Two different questions, two different diffusion paths</text>
+  <text x="590" y="88" text-anchor="middle" class="subtitle">Left: clean up the spectral tail by horizontal scale · Right: mix adjacent model layers by stratification and shear</text>
+  <line x1="60" y1="108" x2="1120" y2="108" stroke="#e2e8f0" stroke-width="1.4"/>
+
+  <!-- shared starting point -->
+  <g filter="url(#shadow)"><rect x="60" y="122" width="1060" height="160" rx="18" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.6"/></g>
+  <circle cx="100" cy="160" r="20" fill="#2563eb"/>
+  <text x="100" y="167" text-anchor="middle" class="badge">1</text>
+  <text x="136" y="167" class="cardTitle">Prognostic state already advanced by the other physics</text>
+  <text x="1098" y="166" text-anchor="end" class="tag" fill="#2563eb">STARTING POINT</text>
+  <line x1="82" y1="184" x2="1098" y2="184" stroke="#bfdbfe" stroke-width="1.4"/>
+  <text x="590" y="224" text-anchor="middle" class="formula" xml:space="preserve">horizontal spectral coefficients: D̂, ζ̂, T̂′, χ̂    ·    vertical columns on the grid: u, v, q, T</text>
+  <text x="590" y="260" text-anchor="middle" class="note">Surface fluxes have already entered the lowest level; each path now contributes its own tendency</text>
+
+  <path d="M590 282 V300" class="joinSlate"/>
+  <path d="M590 300 H315 V318" class="arrowBlue"/>
+  <path d="M590 300 H865 V318" class="arrowGreen"/>
+
+  <!-- lane A: horizontal spectral diffusion -->
+  <rect x="60" y="318" width="510" height="964" rx="20" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.8"/>
+  <text x="315" y="362" text-anchor="middle" class="laneTitle" fill="#1d4ed8">Horizontal spectral diffusion</text>
+  <text x="315" y="388" text-anchor="middle" class="laneSub">Which scales sit near the spectral truncation?</text>
+
+  <rect x="92" y="414" width="446" height="150" rx="12" fill="#fff" stroke="#bfdbfe" stroke-width="1.4"/>
+  <text x="116" y="446" class="subLabel" fill="#1d4ed8">H1 · Scale selector</text>
+  <text x="315" y="486" text-anchor="middle" class="formula">Lₙ = 0    (n ≤ n*)</text>
+  <text x="315" y="518" text-anchor="middle" class="formula">Lₙ = [(n − n*)/(N − n*)]<tspan baseline-shift="super" font-size="13">α</tspan></text>
+  <text x="315" y="546" text-anchor="middle" class="note">long waves pass; Lₙ → 1 as n → N</text>
+
+  <path d="M315 564 V600" class="arrowLine"/>
+
+  <rect x="92" y="600" width="446" height="150" rx="12" fill="#fff" stroke="#bfdbfe" stroke-width="1.4"/>
+  <text x="116" y="632" class="subLabel" fill="#1d4ed8">H2 · Per-variable damping rate</text>
+  <text x="315" y="674" text-anchor="middle" class="formulaHero">r<tspan baseline-shift="sub" font-size="14">X,n</tspan><tspan baseline-shift="baseline"> = Lₙ / τ</tspan><tspan baseline-shift="sub" font-size="14">X</tspan></text>
+  <text x="315" y="706" text-anchor="middle" class="note">q and D usually decay faster than T</text>
+  <text x="315" y="732" text-anchor="middle" class="note">τ<tspan baseline-shift="sub" font-size="11">X</tspan><tspan baseline-shift="baseline">: damping time of the shortest resolved wave</tspan></text>
+
+  <path d="M315 750 V786" class="arrowLine"/>
+
+  <rect x="92" y="786" width="446" height="130" rx="12" fill="#fff" stroke="#bfdbfe" stroke-width="1.4"/>
+  <text x="116" y="818" class="subLabel" fill="#1d4ed8">H3 · Implicit decay of every mode</text>
+  <text x="315" y="860" text-anchor="middle" class="formula">X̂⁺<tspan baseline-shift="sub" font-size="13">n,m</tspan><tspan baseline-shift="baseline"> = X̂⁻</tspan><tspan baseline-shift="sub" font-size="13">n,m</tspan><tspan baseline-shift="baseline"> / (1 + Δt* Lₙ/τ</tspan><tspan baseline-shift="sub" font-size="13">X</tspan><tspan baseline-shift="baseline">)</tspan></text>
+  <text x="315" y="890" text-anchor="middle" class="note">backward Euler: unconditionally stable</text>
+
+  <path d="M315 916 V952" class="arrowLine"/>
+
+  <rect x="92" y="952" width="446" height="112" rx="12" fill="#fff" stroke="#bfdbfe" stroke-width="1.4"/>
+  <text x="116" y="982" class="subLabel" fill="#1d4ed8">Default damping times τ<tspan baseline-shift="sub" font-size="11.5">X</tspan></text>
+  <text x="315" y="1017" text-anchor="middle" class="tableText" xml:space="preserve">D  0.20 d            ζ  1.10 d</text>
+  <text x="315" y="1046" text-anchor="middle" class="tableText" xml:space="preserve">T′  5.60 d            χ  0.10 d</text>
+
+  <rect x="92" y="1088" width="446" height="164" rx="12" fill="#fff" stroke="#93c5fd" stroke-width="1.4" stroke-dasharray="7 5"/>
+  <text x="116" y="1122" class="subLabel" fill="#1d4ed8">What this path really is</text>
+  <text x="116" y="1154" class="note">Scale-selective numerical dissipation —</text>
+  <text x="116" y="1178" class="note">not molecular diffusion or boundary-layer turbulence.</text>
+  <text x="116" y="1206" class="note">n*: where damping starts · α: how concentrated it is</text>
+  <text x="116" y="1230" class="note">τ<tspan baseline-shift="sub" font-size="11">X</tspan><tspan baseline-shift="baseline">: how quickly the spectral tail is cleaned up.</tspan></text>
+
+  <!-- lane B: vertical turbulent diffusion -->
+  <rect x="610" y="318" width="510" height="964" rx="20" fill="#f0fdf4" stroke="#a7f3d0" stroke-width="1.8"/>
+  <text x="865" y="362" text-anchor="middle" class="laneTitle" fill="#047857">Vertical turbulent diffusion</text>
+  <text x="865" y="388" text-anchor="middle" class="laneSub">Which layer interfaces will mix strongly?</text>
+
+  <rect x="642" y="414" width="446" height="164" rx="12" fill="#fff" stroke="#a7f3d0" stroke-width="1.4"/>
+  <text x="666" y="446" class="subLabel" fill="#047857">V1 · Stability and shear between layers</text>
+  <text x="865" y="486" text-anchor="middle" class="formula">θᵥ = T[1 + (Rᵥ/R<tspan baseline-shift="sub" font-size="13">d</tspan><tspan baseline-shift="baseline"> − 1)q]σ⁻ᵏ</tspan></text>
+  <text x="865" y="522" text-anchor="middle" class="formulaHero">Ri<tspan baseline-shift="sub" font-size="14">g</tspan><tspan baseline-shift="baseline"> = [(g/θ)∂</tspan><tspan baseline-shift="sub" font-size="14">z</tspan><tspan baseline-shift="baseline">θᵥ] / |∂</tspan><tspan baseline-shift="sub" font-size="14">z</tspan><tspan baseline-shift="baseline">V|²</tspan></text>
+  <text x="865" y="556" text-anchor="middle" class="note">Ri<tspan baseline-shift="sub" font-size="11">g</tspan><tspan baseline-shift="baseline"> &lt; 0 enhances turbulence; Ri</tspan><tspan baseline-shift="sub" font-size="11">g</tspan><tspan baseline-shift="baseline"> &gt; 0 suppresses it</tspan></text>
+
+  <path d="M865 578 V614" class="arrowLine"/>
+
+  <rect x="642" y="614" width="446" height="164" rx="12" fill="#fff" stroke="#a7f3d0" stroke-width="1.4"/>
+  <text x="666" y="646" class="subLabel" fill="#047857">V2 · Limit the eddy size</text>
+  <text x="865" y="690" text-anchor="middle" class="formulaHero">l<tspan baseline-shift="sub" font-size="14">x</tspan><tspan baseline-shift="baseline"> = λ</tspan><tspan baseline-shift="sub" font-size="14">x</tspan><tspan baseline-shift="baseline"> kz/(λ</tspan><tspan baseline-shift="sub" font-size="14">x</tspan><tspan baseline-shift="baseline"> + kz),   x ∈ {m, h}</tspan></text>
+  <text x="865" y="728" text-anchor="middle" class="note">λ<tspan baseline-shift="sub" font-size="11">x</tspan><tspan baseline-shift="baseline">: asymptotic cap on the mixing length</tspan></text>
+  <text x="865" y="756" text-anchor="middle" class="note">k ≈ 0.4 (von Kármán); z: height above ground</text>
+
+  <path d="M865 778 V814" class="arrowLine"/>
+
+  <rect x="642" y="814" width="446" height="164" rx="12" fill="#fff" stroke="#a7f3d0" stroke-width="1.4"/>
+  <text x="666" y="846" class="subLabel" fill="#047857">V3 · Diagnose the diffusivities</text>
+  <text x="865" y="886" text-anchor="middle" class="formula">K<tspan baseline-shift="sub" font-size="13">m</tspan><tspan baseline-shift="baseline"> = l</tspan><tspan baseline-shift="sub" font-size="13">m</tspan><tspan baseline-shift="super" font-size="13">2</tspan><tspan baseline-shift="baseline"> S f</tspan><tspan baseline-shift="sub" font-size="13">m</tspan><tspan baseline-shift="baseline">(Ri</tspan><tspan baseline-shift="sub" font-size="13">g</tspan><tspan baseline-shift="baseline">)</tspan></text>
+  <text x="865" y="922" text-anchor="middle" class="formula">K<tspan baseline-shift="sub" font-size="13">h</tspan><tspan baseline-shift="baseline"> = l</tspan><tspan baseline-shift="sub" font-size="13">h</tspan><tspan baseline-shift="super" font-size="13">2</tspan><tspan baseline-shift="baseline"> S f</tspan><tspan baseline-shift="sub" font-size="13">h</tspan><tspan baseline-shift="baseline">(Ri</tspan><tspan baseline-shift="sub" font-size="13">g</tspan><tspan baseline-shift="baseline">)</tspan></text>
+  <text x="865" y="956" text-anchor="middle" class="note">S: shear magnitude · f<tspan baseline-shift="sub" font-size="11">m</tspan><tspan baseline-shift="baseline">, f<tspan baseline-shift="sub" font-size="11">h</tspan><tspan baseline-shift="baseline">: stability functions</tspan></tspan></text>
+
+  <path d="M865 978 V1014" class="arrowLine"/>
+
+  <rect x="642" y="1014" width="446" height="238" rx="12" fill="#fff" stroke="#a7f3d0" stroke-width="1.4"/>
+  <text x="666" y="1046" class="subLabel" fill="#047857">V4 · Solve each column implicitly</text>
+  <text x="865" y="1092" text-anchor="middle" class="formulaSm">−A<tspan baseline-shift="sub" font-size="11.5">k−½</tspan><tspan baseline-shift="baseline"> X⁺</tspan><tspan baseline-shift="sub" font-size="11.5">k−1</tspan><tspan baseline-shift="baseline"> + (Δσ</tspan><tspan baseline-shift="sub" font-size="11.5">k</tspan><tspan baseline-shift="baseline"> + A</tspan><tspan baseline-shift="sub" font-size="11.5">k−½</tspan><tspan baseline-shift="baseline"> + A</tspan><tspan baseline-shift="sub" font-size="11.5">k+½</tspan><tspan baseline-shift="baseline">) X⁺</tspan><tspan baseline-shift="sub" font-size="11.5">k</tspan></text>
+  <text x="865" y="1124" text-anchor="middle" class="formulaSm">− A<tspan baseline-shift="sub" font-size="11.5">k+½</tspan><tspan baseline-shift="baseline"> X⁺</tspan><tspan baseline-shift="sub" font-size="11.5">k+1</tspan><tspan baseline-shift="baseline"> = Δσ</tspan><tspan baseline-shift="sub" font-size="11.5">k</tspan><tspan baseline-shift="baseline"> X⁻</tspan><tspan baseline-shift="sub" font-size="11.5">k</tspan></text>
+  <text x="865" y="1162" text-anchor="middle" class="note">Thomas algorithm: eliminate top-down, then substitute back</text>
+  <text x="865" y="1190" text-anchor="middle" class="note">u and v use K<tspan baseline-shift="sub" font-size="11">m</tspan><tspan baseline-shift="baseline">; q and θ use K</tspan><tspan baseline-shift="sub" font-size="11">h</tspan></text>
+  <text x="865" y="1218" text-anchor="middle" class="note">zero flux at the model top and bottom</text>
+
+  <!-- merge -->
+  <path d="M315 1282 V1316 H590" class="joinBlue"/>
+  <path d="M865 1282 V1316 H590" class="joinGreen"/>
+  <path d="M590 1316 V1354" class="arrowLine"/>
+
+  <g filter="url(#shadow)"><rect x="60" y="1354" width="1060" height="196" rx="18" fill="#fffbeb" stroke="#fde68a" stroke-width="1.6"/></g>
+  <circle cx="100" cy="1392" r="20" fill="#d97706"/>
+  <text x="100" y="1399" text-anchor="middle" class="badge">2</text>
+  <text x="136" y="1399" class="cardTitle">Combine the two tendencies and advance the state</text>
+  <text x="1098" y="1398" text-anchor="end" class="tag" fill="#b45309">MERGE</text>
+  <line x1="82" y1="1416" x2="1098" y2="1416" stroke="#fde68a" stroke-width="1.4"/>
+  <text x="590" y="1458" text-anchor="middle" class="formulaHero">∂X/∂t = (∂X/∂t)<tspan baseline-shift="sub" font-size="14">H</tspan><tspan baseline-shift="baseline"> + (∂X/∂t)</tspan><tspan baseline-shift="sub" font-size="14">V</tspan></text>
+  <text x="590" y="1494" text-anchor="middle" class="note">Horizontal: removes variance near the truncation scale · Vertical: redistributes momentum, heat and moisture in the column</text>
+  <text x="590" y="1526" text-anchor="middle" class="note">Optional: the irreversible loss of vertical-shear kinetic energy is returned as heat, improving the total-energy closure</text>
+</svg>

@@ -1,0 +1,173 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 960" role="img" aria-labelledby="title desc">
+  <title id="title">PlaSiC surface and sea-ice–ocean coupling</title>
+  <desc id="desc">Atmospheric fluxes drive the land surface and the sea interface separately. The land updates its surface boundary without producing runoff. The sea interface averages atmospheric forcing at ocean points over the coupling window and hands it to the sea ice; the sea ice returns surface temperature, sea surface temperature, mixed-layer depth and ice/snow state. The sea ice and the mixed-layer ocean exchange heat, freshwater, stress and ocean state.</desc>
+  <defs>
+    <marker id="arrow-orange" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L7.5,3 z" fill="#d97706"/>
+    </marker>
+    <marker id="arrow-blue" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L7.5,3 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-purple" markerWidth="9" markerHeight="9" refX="7.5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L7.5,3 z" fill="#7c3aed"/>
+    </marker>
+    <filter id="shadow" x="-8%" y="-12%" width="116%" height="128%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+    <filter id="cardShadow" x="-10%" y="-14%" width="120%" height="132%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+    <style>
+      .bg{fill:#f7f9fc}
+      .panel{stroke-width:1.6;filter:url(#shadow)}
+      .atm{fill:#eef5ff;stroke:#3b82f6}
+      .land{fill:#eefbf1;stroke:#16a34a}
+      .sea{fill:#e8fbff;stroke:#0891b2}
+      .ice{fill:#f5f1ff;stroke:#7c3aed}
+      .ocean{fill:#eef1ff;stroke:#4f46e5}
+      .card{fill:#ffffff;stroke:#dbe3ee;stroke-width:1.2;filter:url(#cardShadow)}
+      .divider{stroke:#d8e0ea;stroke-width:1.2}
+      .title{font:700 30px Arial,'Helvetica Neue',Helvetica,sans-serif;fill:#0f172a}
+      .subtitle{font:400 14.5px Arial,'Helvetica Neue',Helvetica,sans-serif;fill:#64748b}
+      .head{font:700 21px Arial,'Helvetica Neue',Helvetica,sans-serif;fill:#0f172a}
+      .code{font:600 12.5px ui-monospace,'SF Mono',Menlo,Consolas,monospace}
+      .code-atm{fill:#1d4ed8}.code-land{fill:#15803d}.code-sea{fill:#0e7490}.code-ice{fill:#6d28d9}.code-ocean{fill:#4338ca}
+      .pill-atm{fill:#dbeafe}.pill-land{fill:#dcfce7}.pill-sea{fill:#cffafe}.pill-ice{fill:#ede9fe}.pill-ocean{fill:#e0e7ff}
+      .body{font:400 13px Arial,'Helvetica Neue',Helvetica,sans-serif;fill:#334155}
+      .card-title{font:700 14.5px Arial,'Helvetica Neue',Helvetica,sans-serif;fill:#0f172a}
+      .card-line{font:400 12.2px Arial,'Helvetica Neue',Helvetica,sans-serif;fill:#475569}
+      .note{font:400 12px Arial,'Helvetica Neue',Helvetica,sans-serif}
+      .note-land{fill:#166534}.note-sea{fill:#155e75}.note-ice{fill:#5b21b6}
+      .note-box-land{fill:#dcfce7;stroke:#86efac;stroke-width:1.1}
+      .note-box-sea{fill:#cffafe;stroke:#67e8f9;stroke-width:1.1}
+      .note-box-ice{fill:#ede9fe;stroke:#c4b5fd;stroke-width:1.1}
+      .down{fill:#c2410c}.up{fill:#1d4ed8}.internal{fill:#6d28d9}
+      .forcing{fill:none;stroke:#d97706;stroke-width:2.8;marker-end:url(#arrow-orange)}
+      .feedback{fill:none;stroke:#2563eb;stroke-width:2.8;marker-end:url(#arrow-blue)}
+      .exchange{fill:none;stroke:#7c3aed;stroke-width:2.8;marker-end:url(#arrow-purple)}
+      .legend{font:400 13px Arial,'Helvetica Neue',Helvetica,sans-serif;fill:#475569}
+      @media (prefers-color-scheme:dark){
+        .bg{fill:#0b1220}
+        .atm{fill:#12233f;stroke:#60a5fa}.land{fill:#0c2a18;stroke:#4ade80}.sea{fill:#082b36;stroke:#22d3ee}.ice{fill:#241246;stroke:#a78bfa}.ocean{fill:#191f4b;stroke:#818cf8}
+        .card{fill:#16202f;stroke:#334155}
+        .divider{stroke:#334155}
+        .title,.head,.card-title{fill:#f1f5f9}
+        .subtitle,.body,.card-line,.legend{fill:#cbd5e1}
+        .code-atm{fill:#93c5fd}.code-land{fill:#86efac}.code-sea{fill:#67e8f9}.code-ice{fill:#c4b5fd}.code-ocean{fill:#a5b4fc}
+        .pill-atm{fill:#1e3a5f}.pill-land{fill:#14532d}.pill-sea{fill:#164e63}.pill-ice{fill:#3b1d6e}.pill-ocean{fill:#2a3170}
+        .note-land{fill:#bbf7d0}.note-sea{fill:#a5f3fc}.note-ice{fill:#ddd6fe}
+        .note-box-land{fill:#14532d;stroke:#22c55e}.note-box-sea{fill:#164e63;stroke:#06b6d4}.note-box-ice{fill:#3b1d6e;stroke:#8b5cf6}
+        .down{fill:#fdba74}.up{fill:#93c5fd}.internal{fill:#c4b5fd}
+      }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1500" height="960" rx="20"/>
+  <text class="title" x="750" y="50" text-anchor="middle">PlaSiC Surface and Sea-Ice–Ocean Coupling</text>
+  <text class="subtitle" x="750" y="79" text-anchor="middle">One shared grid; the physics_step() call order is the coupling order, and slow components receive window-mean forcing at coupling instants</text>
+
+  <!-- Atmosphere -->
+  <rect class="panel atm" x="420" y="100" width="660" height="120" rx="18"/>
+  <text class="head" x="750" y="140" text-anchor="middle">Atmosphere</text>
+  <rect x="726" y="151" width="48" height="3" rx="1.5" fill="#3b82f6"/>
+  <text class="body" x="750" y="178" text-anchor="middle">Lowest model level: T, q, u, v and surface pressure p&#8347;</text>
+  <text class="body" x="750" y="203" text-anchor="middle">Surface fluxes build T, q and momentum tendencies; new boundaries act from the next step</text>
+
+  <!-- Land -->
+  <rect class="panel land" x="40" y="400" width="340" height="250" rx="18"/>
+  <text class="head" x="210" y="438" text-anchor="middle">Land</text>
+  <rect x="186" y="449" width="48" height="3" rx="1.5" fill="#16a34a"/>
+  <rect class="pill-land" x="154" y="460" width="112" height="25" rx="12.5"/>
+  <text class="code code-land" x="210" y="477" text-anchor="middle">land_step()</text>
+  <line class="divider" x1="64" y1="497" x2="356" y2="497"/>
+  <text class="body" x="210" y="525" text-anchor="middle">State: Ts, soil temperature, soil water, snow</text>
+  <text class="body" x="210" y="551" text-anchor="middle">Budgets: surface energy, snow and soil water</text>
+  <text class="body" x="210" y="577" text-anchor="middle">Returns: Ts, qs, &#945;, z&#8320;, surface wetness</text>
+  <rect class="note-box-land" x="64" y="597" width="292" height="38" rx="10"/>
+  <text class="note note-land" x="210" y="621" text-anchor="middle">Excess bucket water leaves the system (no runoff)</text>
+
+  <!-- Sea interface -->
+  <rect class="panel sea" x="440" y="380" width="420" height="280" rx="18"/>
+  <text class="head" x="650" y="418" text-anchor="middle">Sea Interface</text>
+  <rect x="626" y="429" width="48" height="3" rx="1.5" fill="#0891b2"/>
+  <rect class="pill-sea" x="594" y="440" width="112" height="25" rx="12.5"/>
+  <text class="code code-sea" x="650" y="457" text-anchor="middle">sea_step()</text>
+  <line class="divider" x1="464" y1="477" x2="836" y2="477"/>
+  <text class="body" x="650" y="505" text-anchor="middle">Every step: accumulate fluxes at ocean points</text>
+  <text class="body" x="650" y="531" text-anchor="middle">Coupling instant: window mean &#8594; ice_step()</text>
+  <text class="body" x="650" y="557" text-anchor="middle">Return: Ts, SST, MLD, ice and snow</text>
+  <text class="body" x="650" y="583" text-anchor="middle">Build the next-step boundary qs, &#945;, z&#8320;</text>
+  <rect class="note-box-sea" x="464" y="601" width="372" height="44" rx="10"/>
+  <text class="note note-sea" x="650" y="620" text-anchor="middle">No runoff input: P&#8722;E is precipitation minus evaporation</text>
+  <text class="note note-sea" x="650" y="638" text-anchor="middle">SH/LH and their derivatives; SW/LW also accumulated</text>
+
+  <!-- Sea ice -->
+  <rect class="panel ice" x="1100" y="380" width="340" height="280" rx="18"/>
+  <text class="head" x="1270" y="418" text-anchor="middle">Thermodynamic Sea Ice</text>
+  <rect x="1246" y="429" width="48" height="3" rx="1.5" fill="#7c3aed"/>
+  <rect class="pill-ice" x="1214" y="440" width="112" height="25" rx="12.5"/>
+  <text class="code code-ice" x="1270" y="457" text-anchor="middle">ice_step()</text>
+  <line class="divider" x1="1124" y1="477" x2="1416" y2="477"/>
+  <text class="body" x="1270" y="505" text-anchor="middle">Ice surface temperature and conduction</text>
+  <text class="body" x="1270" y="531" text-anchor="middle">Ice thickness, ice cover, snow on ice</text>
+  <text class="body" x="1270" y="557" text-anchor="middle">Freezing, ice melt, snow melt, snow-to-ice</text>
+  <text class="body" x="1270" y="583" text-anchor="middle">Carries two levels of coupling:</text>
+  <rect class="note-box-ice" x="1124" y="601" width="292" height="44" rx="10"/>
+  <text class="note note-ice" x="1270" y="620" text-anchor="middle">Atmosphere &#8596; sea ice (via sea interface)</text>
+  <text class="note note-ice" x="1270" y="638" text-anchor="middle">Sea ice &#8596; mixed-layer ocean</text>
+
+  <!-- Mixed-layer ocean -->
+  <rect class="panel ocean" x="1100" y="720" width="340" height="140" rx="18"/>
+  <text class="head" x="1270" y="758" text-anchor="middle">Mixed-Layer Ocean</text>
+  <rect x="1246" y="769" width="48" height="3" rx="1.5" fill="#4f46e5"/>
+  <rect class="pill-ocean" x="1214" y="780" width="112" height="25" rx="12.5"/>
+  <text class="code code-ocean" x="1270" y="797" text-anchor="middle">ocean_step()</text>
+  <line class="divider" x1="1124" y1="817" x2="1416" y2="817"/>
+  <text class="body" x="1270" y="844" text-anchor="middle">Updates SST and the ocean-side ice heat flux</text>
+  <text class="body" x="1270" y="870" text-anchor="middle">Returns SST, MLD and ocean heat flux</text>
+
+  <!-- Atmosphere to land -->
+  <path class="forcing" d="M440 220 C405 280 370 340 310 398"/>
+  <path class="feedback" d="M360 400 C410 340 445 280 490 220"/>
+  <rect class="card" x="40" y="250" width="270" height="124" rx="12"/>
+  <text class="card-title" x="175" y="278" text-anchor="middle">Atmosphere &#8596; Land</text>
+  <text class="card-line down" x="60" y="306">&#8595; sensible &#183; latent &#183; net radiation</text>
+  <text class="card-line down" x="60" y="328">&#8595; rain &#183; snow &#183; evaporation</text>
+  <text class="card-line up" x="60" y="352">&#8593; Ts &#183; qs &#183; &#945; &#183; z&#8320; &#183; wetness</text>
+
+  <!-- Atmosphere to sea interface -->
+  <path class="forcing" d="M540 220 L540 378"/>
+  <path class="feedback" d="M840 380 L840 220"/>
+  <rect class="card" x="560" y="250" width="260" height="124" rx="12"/>
+  <text class="card-title" x="690" y="278" text-anchor="middle">Atmosphere &#8596; Sea Interface</text>
+  <text class="card-line down" x="578" y="306">&#8595; total heat: SH + LH + SW + LW</text>
+  <text class="card-line down" x="578" y="328">&#8595; P&#8722;E &#183; snow &#183; &#964;x/&#964;y &#183; u*&#179;</text>
+  <text class="card-line up" x="578" y="352">&#8593; Ts &#183; qs &#183; &#945; &#183; z&#8320; (ice-blended)</text>
+
+  <!-- Sea interface and sea ice -->
+  <path class="exchange" d="M860 418 L1096 418"/>
+  <path class="exchange" d="M1096 632 L864 632"/>
+  <rect class="card" x="866" y="452" width="228" height="148" rx="12"/>
+  <text class="card-title" x="980" y="480" text-anchor="middle">Interface &#8596; Sea Ice</text>
+  <text class="card-line internal" x="884" y="506">&#8594; window-mean heat &#183; P&#8722;E</text>
+  <text class="card-line internal" x="884" y="528">&#8594; snow &#183; &#964;x/&#964;y &#183; u*&#179;</text>
+  <text class="card-line internal" x="884" y="552">&#8592; Ts &#183; SST &#183; MLD</text>
+  <text class="card-line internal" x="884" y="574">&#8592; ice cover &#183; thickness &#183; snow</text>
+
+  <!-- Sea ice and ocean -->
+  <path class="exchange" d="M1180 660 L1180 718"/>
+  <path class="exchange" d="M1330 718 L1330 660"/>
+  <rect class="card" x="800" y="672" width="280" height="134" rx="12"/>
+  <text class="card-title" x="940" y="700" text-anchor="middle">Sea Ice &#8596; Ocean</text>
+  <text class="card-line internal" x="818" y="726">&#8595; ice cover &#183; thickness &#183; conduction</text>
+  <text class="card-line internal" x="818" y="748">&#8595; freshwater &#183; &#964;x/&#964;y &#183; u*&#179;</text>
+  <text class="card-line internal" x="818" y="772">&#8593; SST &#183; MLD &#183; ocean heat flux</text>
+
+  <!-- Legend -->
+  <line x1="50" y1="918" x2="94" y2="918" stroke="#d97706" stroke-width="3.5"/>
+  <text class="legend" x="106" y="923">Atmospheric surface forcing</text>
+  <line x1="430" y1="918" x2="474" y2="918" stroke="#2563eb" stroke-width="3.5"/>
+  <text class="legend" x="486" y="923">Boundary returned to the atmosphere</text>
+  <line x1="900" y1="918" x2="944" y2="918" stroke="#7c3aed" stroke-width="3.5"/>
+  <text class="legend" x="956" y="923">Two-way coupling of the slow components</text>
+</svg>

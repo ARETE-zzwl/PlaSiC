@@ -1,0 +1,66 @@
+# 构建 MkDocs 教材站并部署到 GitHub Pages。
+#
+# 站点结构：
+#   /            -> docs-site/docs/ 下的项目落地页（index.html、source.html 等静态文件）
+#   /tutorial/   -> docs-site/docs/tutorial/ 下的 MkDocs 教材
+name: docs
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "docs-site/**"
+      - ".github/workflows/docs.yml"
+  workflow_dispatch:
+
+# 使用 GitHub Pages 官方部署流程所需的权限。
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同一时间只允许一个 Pages 部署；不取消正在进行的部署。
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  # 构建静态站点并上传 Pages artifact。
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: docs-site/requirements.txt
+
+      - name: Install dependencies
+        working-directory: docs-site
+        run: pip install -r requirements.txt
+
+      # --strict：任何链接/资源告警都会让构建失败，避免把坏链发布上线。
+      - name: Build site
+        working-directory: docs-site
+        run: mkdocs build --strict --site-dir ../site
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
+  # 部署到 GitHub Pages。
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

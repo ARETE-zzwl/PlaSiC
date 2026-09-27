@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<meta name="description" content="The complete PlaSiC source tree, file by file: about 20,000 lines of C, entirely open source and small enough to read from the first line to the last.">
+<meta name="theme-color" content="#f8fcff">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3CradialGradient id='g' cx='35%25' cy='28%25'%3E%3Cstop stop-color='%23dffaff'/%3E%3Cstop offset='.48' stop-color='%237fe0f2'/%3E%3Cstop offset='1' stop-color='%231d5d7c'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='32' cy='32' r='25' fill='url(%23g)'/%3E%3Cpath d='M12 34c13-9 27-11 40-4' fill='none' stroke='%23fff' stroke-opacity='.7' stroke-width='2'/%3E%3C/svg%3E">
+<title>PlaSiC — The Source Tree</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&amp;display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   1. TOKENS + RESET
+   The palette is the ice-blue closing page of index.html,
+   pushed a little further towards a workbench: same navy ink,
+   same #6ba0d4 accent, hairline rules, one monospace grid.
+   ============================================================ */
+:root{
+  --ink:#14325a;
+  --soft:#647f9c;
+  --soft-2:#52708f;
+  --faint:#7b93ab;
+
+  --blue:#6ba0d4;
+  --blue-deep:#205081;
+  --link:#3d6f9d;
+
+  --line:rgba(28,64,102,.16);
+  --line-soft:rgba(28,64,102,.12);
+  --line-strong:rgba(28,64,102,.22);
+
+  --glass:rgba(248,253,255,.66);
+  --glass-line:rgba(35,91,130,.16);
+
+  --navy:#133a5e;
+  --navy-deep:#0f2c49;
+
+  --font-elegant:'Newsreader','Bodoni 72','Didot','Baskerville','Times New Roman',serif;
+  --font-display:'Bodoni 72','Didot','Bodoni MT',var(--font-elegant);
+  --font-body:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif,'PingFang SC','Microsoft YaHei';
+  --font-mono:'SF Mono',SFMono-Regular,ui-monospace,Menlo,Consolas,'Liberation Mono',monospace;
+
+  --shadow-plate:
+    0 1px 2px rgba(20,50,90,.14),
+    0 16px 34px -12px rgba(20,50,90,.26),
+    0 52px 96px -38px rgba(20,50,90,.34);
+  --shadow-plate-hover:
+    0 2px 3px rgba(20,50,90,.16),
+    0 26px 50px -14px rgba(20,50,90,.30),
+    0 76px 128px -44px rgba(20,50,90,.40);
+  --focus-ring:
+    0 0 0 3px rgba(107,160,212,.3),
+    0 0 0 1px rgba(35,91,130,.8);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:6rem}
+body{
+  font-family:var(--font-body);
+  color:var(--ink);
+  background:
+    radial-gradient(54% 86% at 92% 26%, rgba(105,165,220,.28), transparent 66%),
+    linear-gradient(112deg, #f8fcff 0%, #f1f8fd 53%, #d5e9f8 100%);
+  background-attachment:fixed;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  overflow-x:hidden;
+  min-height:100svh;
+  animation:pageIn .55s ease both;
+}
+@keyframes pageIn{from{opacity:0}}
+a{color:inherit;text-decoration:none}
+img{display:block}
+button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit}
+::selection{background:rgba(107,160,212,.32);color:#0f2846}
+:focus-visible{outline:none;box-shadow:var(--focus-ring);border-radius:10px}
+
+/* ============================================================
+   2. BACKGROUND — ice sweep, the book's graticule, dot grain,
+      and a workbench grid that fades away down the page
+   ============================================================ */
+.bg{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(140% 120% at 55% 45%, transparent 70%, rgba(54,115,177,.09) 100%);
+}
+.bg .graticule{
+  position:absolute;right:-16vw;top:-20vh;width:min(74vw,980px);
+  opacity:.38;transform:rotate(9deg);
+}
+.bg .graticule svg{display:block;width:100%;height:auto}
+.bg::before{
+  content:"";position:absolute;inset:0;opacity:.5;
+  background-image:
+    linear-gradient(rgba(28,64,102,.05) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(28,64,102,.05) 1px,transparent 1px);
+  background-size:96px 96px;
+  -webkit-mask-image:linear-gradient(180deg,#000 12%,transparent 92%);
+  mask-image:linear-gradient(180deg,#000 12%,transparent 92%);
+}
+.bg::after{
+  content:"";position:absolute;inset:0;opacity:.55;mix-blend-mode:multiply;
+  background-image:
+    radial-gradient(circle at 12% 21%, rgba(23,58,92,.08) 0 .45px, transparent .7px),
+    radial-gradient(circle at 73% 61%, rgba(23,58,92,.06) 0 .45px, transparent .7px);
+  background-size:5px 5px,7px 7px;
+}
+
+/* ============================================================
+   3. FIXED CHROME — the glass pills of index.html
+   ============================================================ */
+.topbar{
+  position:fixed;z-index:30;
+  top:clamp(1rem,2.4vh,1.5rem);
+  left:clamp(1.1rem,2.5vw,2rem);right:clamp(1.1rem,2.5vw,2rem);
+  display:flex;justify-content:space-between;align-items:center;gap:1rem;
+  pointer-events:none;
+}
+.topbar > *{pointer-events:auto}
+.brand{
+  display:flex;align-items:center;gap:.55rem;
+  padding:.46rem .82rem .46rem .56rem;
+  border:1px solid var(--glass-line);border-radius:999px;
+  background:var(--glass);
+  -webkit-backdrop-filter:blur(16px) saturate(125%);
+  backdrop-filter:blur(16px) saturate(125%);
+  box-shadow:0 12px 28px rgba(32,78,112,.12),inset 0 1px 0 rgba(255,255,255,.86);
+  font-family:var(--font-elegant);font-size:1.05rem;font-weight:500;letter-spacing:.04em;
+  color:#0d3568;
+  transition:transform .3s ease,border-color .3s ease,background .3s ease;
+}
+.brand:hover{transform:translateY(-1px);border-color:rgba(35,91,130,.3);background:rgba(255,255,255,.88)}
+.brand .mark{
+  width:26px;height:26px;border-radius:50%;flex:none;
+  background:linear-gradient(130deg,#8fc2ea,#eaf4fb 56%,#6ea6d4);
+  opacity:.9;
+}
+.brand .crumb{
+  margin-left:.25rem;padding-left:.7rem;border-left:1px solid var(--glass-line);
+  font-family:var(--font-mono);font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;
+  color:rgba(13,53,104,.62);
+}
+.edition{
+  display:flex;align-items:center;gap:.85rem;
+  padding:.68rem 1.2rem;border:1px solid rgba(255,255,255,.18);border-radius:99px;
+  background:rgba(19,58,94,.9);color:#f5f7f9;
+  box-shadow:0 12px 28px rgba(28,73,112,.2),inset 0 1px 0 rgba(255,255,255,.16);
+  font-family:var(--font-mono);font-size:.86rem;letter-spacing:.16em;text-transform:uppercase;
+  white-space:nowrap;
+}
+.edition::before{
+  content:"";width:6px;height:6px;border-radius:50%;flex:none;
+  background:#b8d4ec;box-shadow:0 0 0 6px rgba(184,212,236,.14);
+}
+
+/* ============================================================
+   4. HERO — the argument for a source tree that is readable
+   ============================================================ */
+.hero{
+  position:relative;z-index:2;
+  max-width:1500px;margin:0 auto;
+  display:grid;grid-template-columns:1fr;
+  align-items:center;
+  padding:clamp(7rem,14vh,10rem) clamp(3rem,7vw,7rem) clamp(2rem,4.5vh,3.2rem);
+}
+.kicker{
+  font-family:var(--font-mono);font-size:.72rem;font-weight:500;
+  letter-spacing:.26em;text-transform:uppercase;color:var(--faint);
+}
+.kicker b{color:var(--blue);font-weight:500;margin-right:.2rem}
+.hero h1{
+  margin-top:clamp(1rem,2.2vh,1.7rem);
+  font-family:var(--font-display);
+  font-size:clamp(3.6rem,6.2vw,7.4rem);font-weight:400;
+  line-height:.86;letter-spacing:-.055em;color:var(--ink);
+  text-shadow:0 10px 34px rgba(44,93,142,.12);
+  text-wrap:balance;
+}
+.hero h1 em{font-style:italic;color:var(--blue)}
+.lede{
+  margin-top:clamp(1.2rem,2.8vh,2.2rem);
+  max-width:48ch;
+  font-size:clamp(1.15rem,1.45vw,1.55rem);line-height:1.6;color:var(--soft-2);
+  text-wrap:pretty;
+}
+.lede strong{color:var(--ink);font-weight:600}
+
+.dots{display:inline-flex;gap:.42rem;flex:none}
+.dots i{width:9px;height:9px;border-radius:50%;background:#d9e7f3;opacity:.5}
+.dots i:nth-child(1){background:#e08b84;opacity:.85}
+.dots i:nth-child(2){background:#e7c489;opacity:.85}
+.dots i:nth-child(3){background:#9ecf9b;opacity:.85}
+
+/* ============================================================
+   5. THE TREE — a terminal window holding the whole src/ map
+   ============================================================ */
+.map{
+  position:relative;z-index:2;
+  padding:clamp(1.2rem,3vh,2.4rem) clamp(1.2rem,4vw,4.4rem) clamp(2.4rem,6vh,4rem);
+}
+.term{
+  max-width:1500px;margin:0 auto;
+  border:1px solid var(--line-strong);border-radius:22px;overflow:hidden;
+  background:rgba(252,254,255,.74);
+  -webkit-backdrop-filter:blur(14px) saturate(120%);
+  backdrop-filter:blur(14px) saturate(120%);
+  box-shadow:var(--shadow-plate);
+}
+.term-bar{
+  display:flex;align-items:center;gap:1rem;flex-wrap:wrap;
+  padding:.85rem clamp(1rem,2.2vw,1.6rem);
+  background:linear-gradient(180deg,var(--navy),var(--navy-deep));
+  color:#e6f1fa;
+}
+.term-path{
+  font-family:var(--font-mono);font-size:.8rem;letter-spacing:.08em;color:#cfe3f3;
+}
+.term-path b{font-weight:500;color:#fff}
+.term-meta{
+  margin-left:auto;
+  font-family:var(--font-mono);font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;
+  color:rgba(207,227,243,.7);
+}
+.term-body{
+  padding:clamp(1.1rem,2.6vh,1.8rem) clamp(1.1rem,2.4vw,2.2rem) clamp(1.6rem,3.4vh,2.4rem);
+  background-image:linear-gradient(rgba(28,64,102,.035) 1px,transparent 1px);
+  background-size:100% 2.9rem;
+  background-position:0 1px;
+}
+
+/* ---- prompt + composition + module index ---- */
+.prompt{
+  font-family:var(--font-mono);font-size:.86rem;color:var(--soft-2);
+  display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;
+}
+.prompt .p-user{color:var(--blue-deep)}
+.prompt .p-cmd{color:var(--ink)}
+.caret{
+  display:inline-block;width:.6ch;height:1.05em;transform:translateY(.14em);
+  background:var(--blue);animation:blink 1.15s steps(1,end) infinite;
+}
+@keyframes blink{50%{opacity:0}}
+.composition{
+  display:flex;align-items:stretch;gap:2px;
+  height:12px;margin-top:1.05rem;
+  border-radius:99px;overflow:hidden;background:rgba(28,64,102,.08);
+}
+.composition span{
+  display:block;flex-basis:0;min-width:3px;
+  background:var(--c);
+  transition:filter .3s ease;
+}
+.composition span:hover{filter:brightness(.82)}
+.term-index{
+  display:flex;flex-wrap:wrap;gap:.4rem;
+  margin-top:1.1rem;padding-bottom:1.15rem;
+  border-bottom:1px solid var(--line-soft);
+}
+.chip{
+  display:inline-flex;align-items:center;gap:.45rem;
+  padding:.32rem .68rem .32rem .5rem;
+  border:1px solid var(--line);border-radius:999px;
+  background:rgba(255,255,255,.6);
+  font-family:var(--font-mono);font-size:.7rem;letter-spacing:.08em;color:var(--soft-2);
+  transition:border-color .25s ease,background .25s ease,color .25s ease,transform .25s ease;
+}
+.chip i{width:8px;height:8px;border-radius:2px;background:var(--c);flex:none}
+.chip b{font-weight:500;color:var(--faint)}
+.chip:hover{border-color:rgba(37,92,140,.45);background:#fff;color:var(--ink);transform:translateY(-1px)}
+
+/* ---- one module ---- */
+.mod{margin-top:clamp(1.6rem,3.4vh,2.4rem)}
+.mod-head{display:flex;align-items:baseline;gap:.9rem;flex-wrap:wrap}
+.mod-num{
+  font-family:var(--font-mono);font-size:.68rem;letter-spacing:.2em;color:#fff;
+  background:var(--c);padding:.14rem .46rem;border-radius:5px;
+  align-self:center;
+}
+.mod-dir{
+  font-family:var(--font-mono);font-size:clamp(1.05rem,1.35vw,1.32rem);font-weight:500;
+  letter-spacing:.01em;color:var(--ink);
+}
+.mod-rule{
+  flex:1 1 3rem;height:1px;min-width:2rem;align-self:center;
+  background:linear-gradient(90deg,var(--c),rgba(28,64,102,.08));
+}
+.mod-meta{
+  font-family:var(--font-mono);font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--faint);white-space:nowrap;
+}
+.mod-note{
+  margin-top:.5rem;max-width:78ch;
+  font-size:clamp(.98rem,1.02vw,1.1rem);line-height:1.6;color:var(--soft-2);
+  text-wrap:pretty;
+}
+.files{list-style:none;margin-top:.85rem}
+.f{
+  display:grid;
+  grid-template-columns:1.75rem minmax(0,1fr);
+  align-items:baseline;column-gap:.75rem;
+  padding:.3rem .6rem .34rem;
+  border-radius:8px;
+  transition:background .22s ease;
+}
+.f:hover{background:rgba(255,255,255,.75)}
+.br{font-family:var(--font-mono);font-size:.8rem;color:rgba(28,64,102,.3);user-select:none}
+.fhead{display:flex;align-items:baseline;gap:.55rem;min-width:0}
+.fn{
+  font-family:var(--font-mono);font-size:.82rem;letter-spacing:-.01em;
+  color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.fn.h{color:var(--soft);font-size:.79rem}
+.lead{
+  flex:1 1 auto;min-width:.6rem;height:1px;
+  background-image:radial-gradient(circle,rgba(28,64,102,.42) 0 .5px,transparent .5px);
+  background-size:5px 1px;background-repeat:repeat-x;background-position:0 100%;
+  transform:translateY(-.26em);
+}
+.fl{
+  font-family:var(--font-mono);font-size:.74rem;text-align:right;
+  color:var(--faint);font-variant-numeric:tabular-nums;flex:none;
+}
+/* ============================================================
+   6. FOOTER
+   ============================================================ */
+.site-foot{
+  position:relative;z-index:2;
+  max-width:1500px;margin:0 auto;
+  display:flex;justify-content:space-between;align-items:center;gap:1.5rem;flex-wrap:wrap;
+  padding:1.4rem clamp(2.4rem,5vw,5rem) 2.2rem;
+  border-top:1px solid var(--line-soft);
+  font-family:var(--font-mono);font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--faint);
+}
+.site-foot a{
+  display:inline-flex;align-items:center;gap:.5rem;color:var(--link);
+  transition:color .25s ease;
+}
+.site-foot a i{font-style:normal;transition:transform .3s ease}
+.site-foot a:hover{color:var(--ink)}
+.site-foot a:hover i{transform:translateX(-4px)}
+
+/* ============================================================
+   7. REVEAL + MOTION PREFERENCES
+   ============================================================ */
+.reveal{
+  opacity:0;transform:translateY(26px);
+  transition:opacity .9s ease var(--d,0s),transform 1s cubic-bezier(.16,.8,.28,1) var(--d,0s);
+}
+body.in .reveal{opacity:1;transform:none}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+}
+
+/* ============================================================
+   8. RESPONSIVE
+   ============================================================ */
+@media (max-width:1180px){
+  .hero{align-items:start;padding-top:7.6rem}
+  .hero-copy{max-width:760px}
+}
+@media (max-width:900px){
+  .f{grid-template-columns:1.5rem minmax(0,1fr);row-gap:.1rem}
+}
+@media (max-width:700px){
+  .brand .crumb{display:none}
+  .edition{font-size:.6rem;letter-spacing:.14em;padding:.56rem .85rem;gap:.6rem}
+  .edition::before{box-shadow:0 0 0 5px rgba(184,212,236,.14)}
+  .hero{padding:6.8rem 1.8rem 2rem;gap:2.2rem}
+  .map{padding-left:1rem;padding-right:1rem}
+  .term-meta{display:none}
+  .term-body{background-size:100% 3.4rem}
+  .site-foot{padding-left:1.4rem;padding-right:1.4rem}
+}
+@media (max-width:430px){
+  .hero h1{font-size:clamp(2.8rem,12vw,3.5rem)}
+  .f{grid-template-columns:1.35rem minmax(0,1fr);padding-left:0;padding-right:0}
+}
+
+/* Reading-size adjustments: keep the existing visual hierarchy while making
+   the source tree's supporting text easier to read at normal zoom. */
+.brand{font-size:1.12rem}
+.brand .crumb{font-size:.7rem}
+.edition{font-size:.92rem}
+.kicker{font-size:.82rem}
+.lede{font-size:clamp(1.22rem,1.55vw,1.68rem)}
+.term-path{font-size:.9rem}
+.term-meta{font-size:.78rem}
+.prompt{font-size:.94rem}
+.chip{font-size:.8rem}
+.mod-num{font-size:.76rem}
+.mod-dir{font-size:clamp(1.15rem,1.45vw,1.45rem)}
+.mod-meta{font-size:.78rem}
+.mod-note{font-size:clamp(1.05rem,1.1vw,1.18rem)}
+.br{font-size:.9rem}
+.fn{font-size:.92rem}
+.fn.h{font-size:.88rem}
+.fl{font-size:.84rem}
+.site-foot{font-size:.78rem}
+
+@media (max-width:700px){
+  .edition{font-size:.68rem}
+}
+</style>
+</head>
+<body>
+
+<!-- background layers -->
+<div class="bg" aria-hidden="true">
+  <div class="graticule" aria-hidden="true">
+    <svg viewBox="0 0 800 800" fill="none" stroke="#2f6fae" stroke-width="1">
+      <g stroke-opacity=".3">
+        <circle cx="400" cy="400" r="356"/>
+        <ellipse cx="400" cy="400" rx="356" ry="288"/>
+        <ellipse cx="400" cy="400" rx="356" ry="216"/>
+        <ellipse cx="400" cy="400" rx="356" ry="132"/>
+        <ellipse cx="400" cy="400" rx="356" ry="52"/>
+        <ellipse cx="400" cy="400" rx="288" ry="356"/>
+        <ellipse cx="400" cy="400" rx="216" ry="356"/>
+        <ellipse cx="400" cy="400" rx="132" ry="356"/>
+        <ellipse cx="400" cy="400" rx="52" ry="356"/>
+        <line x1="44" y1="400" x2="756" y2="400"/>
+        <line x1="400" y1="44" x2="400" y2="756"/>
+      </g>
+    </svg>
+  </div>
+</div>
+
+<!-- fixed chrome -->
+<header class="topbar">
+  <a class="brand" href="index.html">
+    <span class="mark" aria-hidden="true"></span>
+    <span>PlaSiC</span>
+    <span class="crumb">← Back to the model</span>
+  </a>
+  <span class="edition">Source tree · 75 files</span>
+</header>
+
+<main>
+  <!-- ============ HERO : the claim ============ -->
+  <section class="hero">
+    <div class="hero-copy">
+      <p class="kicker reveal" style="--d:.05s"><b>01</b> · Source — the code tree</p>
+      <h1 class="reveal" style="--d:.12s">Small enough<br><em>to read through.</em></h1>
+      <p class="lede reveal" style="--d:.2s">
+        PlaSiC is <strong>about 20,000 lines of C</strong>,
+        every part of the model released as open-source code, so a
+        reader can follow the complete GCM from the first line to the last.
+      </p>
+    </div>
+
+  </section>
+
+  <!-- ============ THE TREE ============ -->
+  <section class="map">
+    <div class="term reveal" style="--d:.1s">
+      <div class="term-bar">
+        <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="term-path"><b>PlaSiC</b>/src</span>
+        <span class="term-meta">10 modules · 75 files · 27,068 lines</span>
+      </div>
+
+      <div class="term-body">
+        <p class="prompt" aria-hidden="true"><span class="p-user">plasic@planet</span><span>:</span><span>~/src$</span><span class="p-cmd">tree src/ --annotated --sort=name</span><span class="caret"></span></p>
+
+        <div class="composition" role="img" aria-label="Share of the source lines held by each module">
+        <span style="--c:#d7e5f0;flex-grow:303" title="src/ 303 lines"></span>
+        <span style="--c:#c3d9ea;flex-grow:660" title="app/ 660 lines"></span>
+        <span style="--c:#6ba0d4;flex-grow:4014" title="runtime/ 4,014 lines"></span>
+        <span style="--c:#aecbe2;flex-grow:769" title="state/ 769 lines"></span>
+        <span style="--c:#2f6fae;flex-grow:1953" title="dynamical_core/ 1,953 lines"></span>
+        <span style="--c:#8ab4d8;flex-grow:2108" title="math_tools/ 2,108 lines"></span>
+        <span style="--c:#1f4e7e;flex-grow:9044" title="physics/ 9,044 lines"></span>
+        <span style="--c:#7fa9cc;flex-grow:751" title="land/ 751 lines"></span>
+        <span style="--c:#37bddb;flex-grow:3059" title="sea/ 3,059 lines"></span>
+        <span style="--c:#5f8fbd;flex-grow:1412" title="mpi/ 1,412 lines"></span>
+        <span style="--c:#9dc0dc;flex-grow:2995" title="tools/ 2,995 lines"></span>
+        </div>
+
+        <nav class="term-index" aria-label="Modules">
+        <a class="chip" href="#mod-root"><i style="--c:#d7e5f0" aria-hidden="true"></i><b>00</b>src/</a>
+        <a class="chip" href="#mod-app"><i style="--c:#c3d9ea" aria-hidden="true"></i><b>01</b>app/</a>
+        <a class="chip" href="#mod-runtime"><i style="--c:#6ba0d4" aria-hidden="true"></i><b>02</b>runtime/</a>
+        <a class="chip" href="#mod-state"><i style="--c:#aecbe2" aria-hidden="true"></i><b>03</b>state/</a>
+        <a class="chip" href="#mod-dynamical_core"><i style="--c:#2f6fae" aria-hidden="true"></i><b>04</b>dynamical_core/</a>
+        <a class="chip" href="#mod-math_tools"><i style="--c:#8ab4d8" aria-hidden="true"></i><b>05</b>math_tools/</a>
+        <a class="chip" href="#mod-physics"><i style="--c:#1f4e7e" aria-hidden="true"></i><b>06</b>physics/</a>
+        <a class="chip" href="#mod-land"><i style="--c:#7fa9cc" aria-hidden="true"></i><b>07</b>land/</a>
+        <a class="chip" href="#mod-sea"><i style="--c:#37bddb" aria-hidden="true"></i><b>08</b>sea/</a>
+        <a class="chip" href="#mod-mpi"><i style="--c:#5f8fbd" aria-hidden="true"></i><b>09</b>mpi/</a>
+        <a class="chip" href="#mod-tools"><i style="--c:#9dc0dc" aria-hidden="true"></i><b>10</b>tools/</a>
+        </nav>
+
+      <article class="mod" id="mod-root" style="--c:#d7e5f0">
+        <header class="mod-head">
+          <span class="mod-num">00</span>
+          <h2 class="mod-dir">src/</h2>
+          <span class="mod-rule" aria-hidden="true"></span>
+          <span class="mod-meta">4 files · 303 lines</span>
+        </header>
+        <p class="mod-note">Shared public interfaces for runtime options, JSON configuration, and status codes.</p>
+        <ul class="files">
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">plasic_config.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">219</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn h">plasic_config.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">28</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn h">plasic_runtime.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">41</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">└──</span>
+          <span class="fhead">
+            <code class="fn h">plasic_status.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">15</span>
+          </span>
+        </li>
+        </ul>
+      </article>
+      <article class="mod" id="mod-app" style="--c:#c3d9ea">
+        <header class="mod-head">
+          <span class="mod-num">01</span>
+          <h2 class="mod-dir">app/</h2>
+          <span class="mod-rule" aria-hidden="true"></span>
+          <span class="mod-meta">3 files · 660 lines</span>
+        </header>
+        <p class="mod-note">Command-line entry point: parse CLI/JSON options, run the model, and write a restart.</p>
+        <ul class="files">
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">plasic_cli.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">648</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn h">plasic_cli.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">6</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">└──</span>
+          <span class="fhead">
+            <code class="fn c">plasic_standalone.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">6</span>
+          </span>
+        </li>
+        </ul>
+      </article>
+      <article class="mod" id="mod-runtime" style="--c:#6ba0d4">
+        <header class="mod-head">
+          <span class="mod-num">02</span>
+          <h2 class="mod-dir">runtime/</h2>
+          <span class="mod-rule" aria-hidden="true"></span>
+          <span class="mod-meta">9 files · 4,014 lines</span>
+        </header>
+        <p class="mod-note">Simulation lifecycle and time stepping: initialize state, advance dynamics and physics, apply forcing, and manage output.</p>
+        <ul class="files">
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">co2_forcing.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">305</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn h">co2_forcing.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">9</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">monthly_netcdf.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">891</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn h">monthly_netcdf.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">9</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">plasic_runtime.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">650</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">runtime_dynamics.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">590</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">runtime_initialization.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">690</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn h">runtime_internal.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">124</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">└──</span>
+          <span class="fhead">
+            <code class="fn c">runtime_output.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">746</span>
+          </span>
+        </li>
+        </ul>
+      </article>
+      <article class="mod" id="mod-state" style="--c:#aecbe2">
+        <header class="mod-head">
+          <span class="mod-num">03</span>
+          <h2 class="mod-dir">state/</h2>
+          <span class="mod-rule" aria-hidden="true"></span>
+          <span class="mod-meta">2 files · 769 lines</span>
+        </header>
+        <p class="mod-note">Shared model state: spectral and grid fields, prognostic variables, diagnostics, and calendar metadata.</p>
+        <ul class="files">
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">plasicmod_state.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">514</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">└──</span>
+          <span class="fhead">
+            <code class="fn h">plasicmod_state.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">255</span>
+          </span>
+        </li>
+        </ul>
+      </article>
+      <article class="mod" id="mod-dynamical_core" style="--c:#2f6fae">
+        <header class="mod-head">
+          <span class="mod-num">04</span>
+          <h2 class="mod-dir">dynamical_core/</h2>
+          <span class="mod-rule" aria-hidden="true"></span>
+          <span class="mod-meta">3 files · 1,953 lines</span>
+        </header>
+        <p class="mod-note">Atmospheric dynamical core: grid-point tendencies, spectral stepping, implicit solves, filtering, and dissipation.</p>
+        <ul class="files">
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">calgp.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">595</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">plasic_kernels.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">1,173</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">└──</span>
+          <span class="fhead">
+            <code class="fn h">plasic_kernels.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">185</span>
+          </span>
+        </li>
+        </ul>
+      </article>
+      <article class="mod" id="mod-math_tools" style="--c:#8ab4d8">
+        <header class="mod-head">
+          <span class="mod-num">05</span>
+          <h2 class="mod-dir">math_tools/</h2>
+          <span class="mod-rule" aria-hidden="true"></span>
+          <span class="mod-meta">6 files · 2,108 lines</span>
+        </header>
+        <p class="mod-note">Numerical foundations: spherical-harmonic transforms, Gaussian quadrature, and matrix solvers.</p>
+        <ul class="files">
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">gaussmod_kernels.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">340</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn h">gaussmod_kernels.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">10</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">linear_algebra.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">258</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn h">linear_algebra.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">15</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">sht_kernels.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">1,417</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">└──</span>
+          <span class="fhead">
+            <code class="fn h">sht_kernels.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">68</span>
+          </span>
+        </li>
+        </ul>
+      </article>
+      <article class="mod" id="mod-physics" style="--c:#1f4e7e">
+        <header class="mod-head">
+          <span class="mod-num">06</span>
+          <h2 class="mod-dir">physics/</h2>
+          <span class="mod-rule" aria-hidden="true"></span>
+          <span class="mod-meta">14 files · 9,044 lines</span>
+        </header>
+        <p class="mod-note">Physics driver and kernels for radiation, surface fluxes, moisture, diffusion, and land–ocean coupling.</p>
+        <ul class="files">
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">fluxmod_kernels.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">1,530</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn h">fluxmod_kernels.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">46</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">physics_initialization.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">946</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn h">physics_internal.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">423</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">physics_io.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">220</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">physics_processes.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">1,255</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">plasic_physics.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">104</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn h">plasic_physics.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">28</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">radmod_kernels.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">1,450</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn h">radmod_kernels.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">57</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">rainmod_kernels.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">1,820</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn h">rainmod_kernels.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">104</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">vdiff_kernel.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">1,022</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">└──</span>
+          <span class="fhead">
+            <code class="fn h">vdiff_kernel.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">39</span>
+          </span>
+        </li>
+        </ul>
+      </article>
+      <article class="mod" id="mod-land" style="--c:#7fa9cc">
+        <header class="mod-head">
+          <span class="mod-num">07</span>
+          <h2 class="mod-dir">land/</h2>
+          <span class="mod-rule" aria-hidden="true"></span>
+          <span class="mod-meta">2 files · 751 lines</span>
+        </header>
+        <p class="mod-note">Land-surface kernels for soil and snow heat and water budgets, glaciers, and climatology interpolation.</p>
+        <ul class="files">
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">landmod_kernels.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">666</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">└──</span>
+          <span class="fhead">
+            <code class="fn h">landmod_kernels.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">85</span>
+          </span>
+        </li>
+        </ul>
+      </article>
+      <article class="mod" id="mod-sea" style="--c:#37bddb">
+        <header class="mod-head">
+          <span class="mod-num">08</span>
+          <h2 class="mod-dir">sea/</h2>
+          <span class="mod-rule" aria-hidden="true"></span>
+          <span class="mod-meta">8 files · 3,059 lines</span>
+        </header>
+        <p class="mod-note">Sea coupling kernels for mixed-layer and 3-D ocean dynamics, sea-ice thermodynamics, and surface updates.</p>
+        <ul class="files">
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">icemod_kernels.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">639</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn h">icemod_kernels.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">55</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">3docean.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">985</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn h">3docean.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">105</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">slab_ocean.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">679</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn h">slab_ocean.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">61</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">seamod_kernels.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">475</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">└──</span>
+          <span class="fhead">
+            <code class="fn h">seamod_kernels.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">60</span>
+          </span>
+        </li>
+        </ul>
+      </article>
+      <article class="mod" id="mod-mpi" style="--c:#5f8fbd">
+        <header class="mod-head">
+          <span class="mod-num">09</span>
+          <h2 class="mod-dir">mpi/</h2>
+          <span class="mod-rule" aria-hidden="true"></span>
+          <span class="mod-meta">6 files · 1,412 lines</span>
+        </header>
+        <p class="mod-note">Parallel abstraction with native MPI and serial backends, collectives, and latitude-halo exchange.</p>
+        <ul class="files">
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">mpi_native_backend.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">540</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn h">mpi_native_backend.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">90</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">mpi_serial_backend.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">167</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn h">mpi_serial_backend.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">60</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">plasic_mpi.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">336</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">└──</span>
+          <span class="fhead">
+            <code class="fn h">plasic_mpi.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">219</span>
+          </span>
+        </li>
+        </ul>
+      </article>
+      <article class="mod" id="mod-tools" style="--c:#9dc0dc">
+        <header class="mod-head">
+          <span class="mod-num">10</span>
+          <h2 class="mod-dir">tools/</h2>
+          <span class="mod-rule" aria-hidden="true"></span>
+          <span class="mod-meta">18 files · 2,995 lines</span>
+        </header>
+        <p class="mod-note">Shared utilities for calendars, restart and NetCDF I/O, surface data, CO₂ forcing tables, streams, and constants.</p>
+        <ul class="files">
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">calmod_kernels.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">425</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn h">calmod_kernels.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">103</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">co2_forcing_table.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">234</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn h">co2_forcing_table.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">64</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">miscmod_kernels.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">239</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn h">miscmod_kernels.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">41</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">monthly_netcdf_writer.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">358</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn h">monthly_netcdf_writer.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">81</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">p_earth_kernels.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">60</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn h">p_earth_kernels.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">14</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">plasic_stream.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">214</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn h">plasic_stream.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">74</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">restartmod_io.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">711</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn h">restartmod_io.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">47</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">surface_data_io.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">234</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn h">surface_data_io.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">31</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">├──</span>
+          <span class="fhead">
+            <code class="fn c">surfmod_kernels.c</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">51</span>
+          </span>
+        </li>
+        <li class="f">
+          <span class="br" aria-hidden="true">└──</span>
+          <span class="fhead">
+            <code class="fn h">surfmod_kernels.h</code>
+            <span class="lead" aria-hidden="true"></span>
+            <span class="fl">14</span>
+          </span>
+        </li>
+        </ul>
+      </article>
+
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-foot">
+  <span>PlaSiC — Planet Simulator in C</span>
+  <a href="index.html">Return to the model<i aria-hidden="true">←</i></a>
+</footer>
+
+<noscript>
+  <style>.reveal{opacity:1;transform:none}</style>
+</noscript>
+
+<script>
+(function(){
+"use strict";
+
+/* Entrance — the same settle as index.html and the model-guide page. */
+function settle(){
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){ document.body.classList.add("in"); });
+  });
+}
+if (document.readyState === "loading"){ document.addEventListener("DOMContentLoaded", settle); }
+else { settle(); }
+
+/* Deep links (#mod-...) — webfonts and the reveal transition both shift the
+   layout after the browser's first jump, so land on the module again once the
+   page has settled; leave the reader alone if the target is already in view. */
+window.addEventListener("load", function(){
+  var id = decodeURIComponent(window.location.hash.slice(1));
+  if (!id) return;
+  var target = document.getElementById(id);
+  if (!target) return;
+
+  function land(){
+    var box = target.getBoundingClientRect();
+    if (box.top < 0 || box.top > window.innerHeight * .6){
+      target.scrollIntoView({block:"start"});
+    }
+  }
+  if (document.fonts && document.fonts.ready){ document.fonts.ready.then(land); }
+  else { land(); }
+});
+})();
+</script>
+</body>
+</html>

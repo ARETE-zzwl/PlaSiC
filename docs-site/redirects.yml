@@ -1,0 +1,247 @@
+# Preserve published URLs after reorganizing the notes.
+# Chapter folders and note filenames are all English now; every legacy URL
+# listed below is redirected to its current English page.
+
+# ---------------------------------------------------------------------------
+# 1. Legacy topic slugs used by the first published version of the tutorial.
+# ---------------------------------------------------------------------------
+guide/usage.md: tutorial/index.md
+math/dynamical-core.md: tutorial/2-dynamical-core/2.1-governing-equations.md
+math/continuous-control-equations.md: tutorial/2-dynamical-core/2.1-governing-equations.md
+math/spectral-transform-and-fft.md: tutorial/2-dynamical-core/2.3-spectral-transform-and-fft.md
+math/dynamical-core-gridpoint-dynamics.md: tutorial/2-dynamical-core/2.4-sigma-vertical-discretization.md
+math/dynamical-core-semi-implicit-time-stepping.md: tutorial/2-dynamical-core/2.6-semi-implicit-gravity-wave-solver.md
+math/dynamical-core-leapfrog-time-stepping.md: tutorial/2-dynamical-core/2.7-leapfrog-time-stepping.md
+math/dynamical-core-dissipation.md: tutorial/2-dynamical-core/2.9-spectral-dissipation.md
+math/surface-flux-parameterization.md: tutorial/3-parameterizations/3.2-surface-fluxes.md
+math/horizontal-vertical-diffusion.md: tutorial/3-parameterizations/3.3-horizontal-and-vertical-diffusion.md
+math/radiation-parameterization.md: tutorial/3-parameterizations/3.4-radiation-parameterization.md
+math/moist-convection-and-precipitation.md: tutorial/3-parameterizations/3.5-moist-convection-and-precipitation.md
+model/time-step-and-coupling.md: tutorial/4-model-and-coupling/4.1-how-the-spheres-are-coupled.md
+math/land-surface-physics.md: tutorial/4-model-and-coupling/4.2-land-surface-module.md
+math/sea-module-physics.md: tutorial/4-model-and-coupling/4.3-sea-interface.md
+app/architecture.md: tutorial/8-desktop-app/8.1-plasic-app-architecture-guide.md
+appendix/lu-decomposition.md: tutorial/9-appendix/9.1-matrix-inversion.md
+appendix/globe-projection.md: tutorial/8-desktop-app/8.2-from-lat-lon-grid-to-interactive-3d-globe.md
+appendix/sht-sphtor-transform.md: tutorial/9-appendix/9.2-mathematical-foundations-of-spat_to_shsphtor.md
+appendix/gaussmod-kernels-math.md: tutorial/9-appendix/9.3-mathematical-foundations-of-gaussmod_kernels.md
+appendix/pyside6-quickstart.md: tutorial/9-appendix/9.4-pyside6-quickstart.md
+
+# ---------------------------------------------------------------------------
+# 2. Pages that were merged or renamed earlier.
+# ---------------------------------------------------------------------------
+# 1.1 如何使用本教程 的内容已并入首页，不再单独成篇。
+1 使用指南/1.1 如何使用本教程.md: tutorial/index.md
+7 附录/7.7 MPI 并行基础：原理、用法与 PlaSiC 实现.md: tutorial/7-parallel/7.1-mpi-parallel-basics.md
+
+# ---------------------------------------------------------------------------
+# 3. Old Chinese chapter paths -> new English paths.
+# ---------------------------------------------------------------------------
+1 使用指南/1.1 编译、运行与 Makefile 入门.md: tutorial/1-user-guide/1.1-Running-PlaSiC-first.md
+1 使用指南/1.2 一个时间步的伪代码.md: tutorial/1-user-guide/1.2-pseudocode-for-one-time-step.md
+1 使用指南/1.3 全局状态变量.md: tutorial/1-user-guide/1.3-global-state-variables.md
+2 动力核/2.1 控制方程.md: tutorial/2-dynamical-core/2.1-governing-equations.md
+2 动力核/2.2 控制方程的推导.md: tutorial/2-dynamical-core/2.1-governing-equations.md
+2 动力核/2.3 球谐谱、FFT 与 SHTns.md: tutorial/2-dynamical-core/2.3-spectral-transform-and-fft.md
+2 动力核/2.4 σ 垂直离散与格点非线性动力.md: tutorial/2-dynamical-core/2.4-sigma-vertical-discretization.md
+2 动力核/2.5 半隐式重力波求解.md: tutorial/2-dynamical-core/2.6-semi-implicit-gravity-wave-solver.md
+2 动力核/2.6 跃蛙时间推进与 Robert–Asselin 滤波.md: tutorial/2-dynamical-core/2.7-leapfrog-time-stepping.md
+2 动力核/2.7 摩擦、谱耗散与耗散回热.md: tutorial/2-dynamical-core/2.9-spectral-dissipation.md
+3 参数化/3.1 表面通量.md: tutorial/3-parameterizations/3.2-surface-fluxes.md
+3 参数化/3.2 水平与垂直扩散.md: tutorial/3-parameterizations/3.3-horizontal-and-vertical-diffusion.md
+3 参数化/3.3 辐射参数化.md: tutorial/3-parameterizations/3.4-radiation-parameterization.md
+3 参数化/3.4 湿对流与降水参数化.md: tutorial/3-parameterizations/3.5-moist-convection-and-precipitation.md
+4 模式程序与耦合/4.1 圈层如何耦合.md: tutorial/4-model-and-coupling/4.1-how-the-spheres-are-coupled.md
+4 模式程序与耦合/4.2 陆面模块.md: tutorial/4-model-and-coupling/4.2-land-surface-module.md
+4 模式程序与耦合/4.3 海洋与海冰模块.md: tutorial/4-model-and-coupling/4.3-sea-interface.md
+4 模式程序与耦合/4.4 三维海洋：控制方程、原理与数值方法.md: tutorial/4-model-and-coupling/4.6-three-dimensional-ocean.md
+5 历史实验/historical-experiment.md: tutorial/6-experiments/6.2-historical-experiment-1850-2014.md
+6 桌面应用/6.1 PlaSiC App 架构导览.md: tutorial/8-desktop-app/8.1-plasic-app-architecture-guide.md
+7 附录/7.1 LU 分解、回代与矩阵求逆.md: tutorial/9-appendix/9.1-matrix-inversion.md
+7 附录/7.2 从经纬度网格到可交互三维地球.md: tutorial/8-desktop-app/8.2-from-lat-lon-grid-to-interactive-3d-globe.md
+7 附录/7.3 spat_to_SHsphtor 背后的完整数学原理.md: tutorial/9-appendix/9.2-mathematical-foundations-of-spat_to_shsphtor.md
+7 附录/7.4 gaussmod_kernels 背后的完整数学原理.md: tutorial/9-appendix/9.3-mathematical-foundations-of-gaussmod_kernels.md
+7 附录/7.5 PySide6 快速入门.md: tutorial/9-appendix/9.4-pyside6-quickstart.md
+7 附录/7.6 C Language Primer.md: tutorial/9-appendix/9.5-c-language-primer.md
+7 附录/7.7 MPI Parallel Basics.md: tutorial/7-parallel/7.1-mpi-parallel-basics.md
+
+# ---------------------------------------------------------------------------
+# 4. Chapter renumbering: 6 Desktop App -> 7, 7 Appendix -> 8, and
+#    7.7 MPI -> its own Chapter 6. Also 2.3 and 8.4 renamed to English filenames.
+# ---------------------------------------------------------------------------
+2-dynamical-core/2.3 球谐谱、FFT 与 SHTns.md: tutorial/2-dynamical-core/2.3-spectral-transform-and-fft.md
+6-desktop-app/6.1 PlaSiC App 架构导览.md: tutorial/8-desktop-app/8.1-plasic-app-architecture-guide.md
+7-appendix/7.1 矩阵求逆.md: tutorial/9-appendix/9.1-matrix-inversion.md
+7-appendix/7.2 从经纬度网格到可交互三维地球.md: tutorial/8-desktop-app/8.2-from-lat-lon-grid-to-interactive-3d-globe.md
+7-appendix/7.3 spat_to_SHsphtor 背后的完整数学原理.md: tutorial/9-appendix/9.2-mathematical-foundations-of-spat_to_shsphtor.md
+7-appendix/7.4 gaussmod_kernels 背后的完整数学原理.md: tutorial/9-appendix/9.3-mathematical-foundations-of-gaussmod_kernels.md
+7-appendix/7.5 PySide6 快速入门.md: tutorial/9-appendix/9.4-pyside6-quickstart.md
+7-appendix/7.6-c-language-primer.md: tutorial/9-appendix/9.5-c-language-primer.md
+7-appendix/7.7-mpi-parallel-basics.md: tutorial/7-parallel/7.1-mpi-parallel-basics.md
+7-appendix/7.8-physical-constants.md: tutorial/9-appendix/9.6-physical-constants.md
+8-appendix/8.4 gaussmod_kernels 背后的完整数学原理.md: tutorial/9-appendix/9.3-mathematical-foundations-of-gaussmod_kernels.md
+
+# ---------------------------------------------------------------------------
+# 5. 8.3 translated and renamed to an English filename.
+# ---------------------------------------------------------------------------
+8-appendix/8.3 spat_to_SHsphtor 背后的完整数学原理.md: tutorial/9-appendix/9.2-mathematical-foundations-of-spat_to_shsphtor.md
+
+# ---------------------------------------------------------------------------
+# 6. Chapter 2 renumbering: 2.1 was split into 2.1 Governing Equations and
+#    2.2 Ten-Step Algorithm; the former 2.2-2.7 notes became 2.3-2.8, and the
+#    English notes were renamed to kebab-case filenames.
+# ---------------------------------------------------------------------------
+2-dynamical-core/2.1 控制方程.md: tutorial/2-dynamical-core/2.1-governing-equations.md
+2-dynamical-core/2.2 控制方程的推导.md: tutorial/2-dynamical-core/2.1-governing-equations.md
+2-dynamical-core/2.4 σ 垂直离散与格点非线性动力.md: tutorial/2-dynamical-core/2.4-sigma-vertical-discretization.md
+2-dynamical-core/2.5 半隐式重力波求解.md: tutorial/2-dynamical-core/2.6-semi-implicit-gravity-wave-solver.md
+2-dynamical-core/2.6 跃蛙时间推进与 Robert–Asselin 滤波.md: tutorial/2-dynamical-core/2.7-leapfrog-time-stepping.md
+2-dynamical-core/2.7 摩擦、谱耗散与耗散回热.md: tutorial/2-dynamical-core/2.9-spectral-dissipation.md
+
+# ---------------------------------------------------------------------------
+# 7. 2.7 translated and renamed to an English filename.
+# ---------------------------------------------------------------------------
+2-dynamical-core/2.7 跃蛙时间推进与 Robert–Asselin 滤波.md: tutorial/2-dynamical-core/2.7-leapfrog-time-stepping.md
+
+# ---------------------------------------------------------------------------
+# 8. 2.8 renamed to an English filename.
+# ---------------------------------------------------------------------------
+2-dynamical-core/2.8 摩擦、谱耗散与耗散回热.md: tutorial/2-dynamical-core/2.9-spectral-dissipation.md
+
+# ---------------------------------------------------------------------------
+# 9. 2.8 renamed a second time to a shorter English filename.
+# ---------------------------------------------------------------------------
+2-dynamical-core/2.8-friction-spectral-dissipation-and-dissipation-heating.md: tutorial/2-dynamical-core/2.9-spectral-dissipation.md
+
+# ---------------------------------------------------------------------------
+# 10. 2.5 and 2.6 renamed to English filenames.
+# ---------------------------------------------------------------------------
+2-dynamical-core/2.5 σ 垂直离散与格点非线性动力.md: tutorial/2-dynamical-core/2.4-sigma-vertical-discretization.md
+2-dynamical-core/2.6 半隐式重力波求解.md: tutorial/2-dynamical-core/2.6-semi-implicit-gravity-wave-solver.md
+
+# ---------------------------------------------------------------------------
+# 11. 2.7 was split into 2.7 Leapfrog Time Stepping and 2.8 Robert–Asselin
+#     Filtering; the former 2.8 Spectral Dissipation became 2.9.
+# ---------------------------------------------------------------------------
+2-dynamical-core/2.7-leapfrog-time-stepping-and-robert-asselin-filtering.md: tutorial/2-dynamical-core/2.7-leapfrog-time-stepping.md
+
+# ---------------------------------------------------------------------------
+# 12. Chapter 3 renumbering: a new note 3.1 Why Parameterization? was inserted;
+#     the former 3.1-3.4 notes became 3.2-3.5.
+# ---------------------------------------------------------------------------
+3-parameterizations/3.1-surface-fluxes.md: tutorial/3-parameterizations/3.2-surface-fluxes.md
+3-parameterizations/3.2-horizontal-and-vertical-diffusion.md: tutorial/3-parameterizations/3.3-horizontal-and-vertical-diffusion.md
+3-parameterizations/3.3 辐射参数化.md: tutorial/3-parameterizations/3.4-radiation-parameterization.md
+3-parameterizations/3.4-moist-convection-and-precipitation.md: tutorial/3-parameterizations/3.5-moist-convection-and-precipitation.md
+
+# ---------------------------------------------------------------------------
+# 13. 3.4 translated and renamed to an English filename.
+# ---------------------------------------------------------------------------
+3-parameterizations/3.4 辐射参数化.md: tutorial/3-parameterizations/3.4-radiation-parameterization.md
+
+# ---------------------------------------------------------------------------
+# 14. 4.2 translated and renamed to an English filename.
+# ---------------------------------------------------------------------------
+4-model-and-coupling/4.2 陆面模块.md: tutorial/4-model-and-coupling/4.2-land-surface-module.md
+
+# ---------------------------------------------------------------------------
+# 15. 7.1 translated and renamed to an English filename.
+# ---------------------------------------------------------------------------
+7-desktop-app/7.1 PlaSiC App 架构导览.md: tutorial/8-desktop-app/8.1-plasic-app-architecture-guide.md
+
+# ---------------------------------------------------------------------------
+# 16. The restart-file note moved from the appendix into Chapter 5 as 5.3;
+#     the former 8.9 Model Time and Calendar was renumbered to 8.8.
+# ---------------------------------------------------------------------------
+8-appendix/8.8-restart-file-format.md: tutorial/6-experiments/6.4-restart-file-format.md
+8-appendix/8.9-model-time-and-calendar.md: tutorial/5-time-control/5.1-calendar.md
+
+# ---------------------------------------------------------------------------
+# 17. Chapter 2 renumbering: the untranslated note 2.3 控制方程的推导 was removed
+#     (its URLs now fall back to 2.1 Governing Equations); the former 2.4-2.9
+#     notes became 2.3-2.8 and are redirected to their new filenames.
+# ---------------------------------------------------------------------------
+2-dynamical-core/2.3 控制方程的推导.md: tutorial/2-dynamical-core/2.1-governing-equations.md
+2-dynamical-core/2.4-spectral-transform-and-fft.md: tutorial/2-dynamical-core/2.3-spectral-transform-and-fft.md
+2-dynamical-core/2.5-sigma-vertical-discretization-and-gridpoint-nonlinear-dynamics.md: tutorial/2-dynamical-core/2.4-sigma-vertical-discretization.md
+
+# ---------------------------------------------------------------------------
+# 18. Chapter 4 renumbering: the combined 4.3 Sea Interface and Thermodynamic
+#    Sea Ice note was split into 4.3 Sea Interface and 4.4 Thermodynamic Sea
+#    Ice; the former 4.4-4.5 notes became 4.5-4.6 and were renamed.
+# ---------------------------------------------------------------------------
+4-model-and-coupling/4.3 海洋与海冰模块.md: tutorial/4-model-and-coupling/4.3-sea-interface.md
+4-model-and-coupling/4.4-slab-ocean.md: tutorial/4-model-and-coupling/4.5-slab-ocean.md
+4-model-and-coupling/4.5-three-dimensional-ocean.md: tutorial/4-model-and-coupling/4.6-three-dimensional-ocean.md
+
+# ---------------------------------------------------------------------------
+# 19. The last four notes with Chinese filenames were renamed to English
+#    filenames; redirect the previously published URLs.
+# ---------------------------------------------------------------------------
+4-model-and-coupling/4.1 圈层如何耦合.md: tutorial/4-model-and-coupling/4.1-how-the-spheres-are-coupled.md
+8-appendix/8.1 矩阵求逆.md: tutorial/9-appendix/9.1-matrix-inversion.md
+8-appendix/8.2 从经纬度网格到可交互三维地球.md: tutorial/8-desktop-app/8.2-from-lat-lon-grid-to-interactive-3d-globe.md
+8-appendix/8.5 PySide6 快速入门.md: tutorial/9-appendix/9.4-pyside6-quickstart.md
+
+# ---------------------------------------------------------------------------
+# 20. Chapter 5 reordering: the speed benchmark is now 5.1, the historical
+#    experiment 5.2, the idealized-CO₂ experiments 5.3 and the restart-file
+#    note 5.4; redirect the previously published URLs.
+# ---------------------------------------------------------------------------
+5-experiments/5.1-historical-experiment-1850-2014.md: tutorial/6-experiments/6.2-historical-experiment-1850-2014.md
+5-experiments/5.2-speed-and-memory-benchmark.md: tutorial/6-experiments/6.1-speed-and-memory-benchmark.md
+5-experiments/5.3-restart-file-format.md: tutorial/6-experiments/6.4-restart-file-format.md
+5-experiments/5.4-idealized-co2-experiments-tcr-ecs.md: tutorial/6-experiments/6.3-idealized-co2-experiments-tcr-ecs.md
+
+# ---------------------------------------------------------------------------
+# 21. Chapter 2 renumbering: 2.4 was split into 2.4 σ Vertical Discretization
+#     and 2.5 Grid-Point Nonlinear Dynamics; the former 2.5-2.8 notes became
+#     2.6-2.9, and every earlier URL is redirected to its new page.
+# ---------------------------------------------------------------------------
+2-dynamical-core/2.4-sigma-vertical-discretization-and-gridpoint-nonlinear-dynamics.md: tutorial/2-dynamical-core/2.4-sigma-vertical-discretization.md
+2-dynamical-core/2.5-semi-implicit-gravity-wave-solver.md: tutorial/2-dynamical-core/2.6-semi-implicit-gravity-wave-solver.md
+2-dynamical-core/2.6-leapfrog-time-stepping.md: tutorial/2-dynamical-core/2.7-leapfrog-time-stepping.md
+2-dynamical-core/2.7-robert-asselin-filtering.md: tutorial/2-dynamical-core/2.8-robert-asselin-filtering.md
+2-dynamical-core/2.8-spectral-dissipation.md: tutorial/2-dynamical-core/2.9-spectral-dissipation.md
+
+# ---------------------------------------------------------------------------
+# 22. Chapter 5 Time Control was inserted: 8.8 Model Time and Calendar became
+#    5.1 Calendar and 8.10 Solar Orbital Geometry became 5.2; the former
+#    Chapters 5-8 were renumbered to 6-9, and every note file was renamed.
+# ---------------------------------------------------------------------------
+5-experiments/5.1-speed-and-memory-benchmark.md: tutorial/6-experiments/6.1-speed-and-memory-benchmark.md
+5-experiments/5.2-historical-experiment-1850-2014.md: tutorial/6-experiments/6.2-historical-experiment-1850-2014.md
+5-experiments/5.3-idealized-co2-experiments-tcr-ecs.md: tutorial/6-experiments/6.3-idealized-co2-experiments-tcr-ecs.md
+5-experiments/5.4-restart-file-format.md: tutorial/6-experiments/6.4-restart-file-format.md
+6-parallel/6.1-mpi-parallel-basics.md: tutorial/7-parallel/7.1-mpi-parallel-basics.md
+7-desktop-app/7.1-plasic-app-architecture-guide.md: tutorial/8-desktop-app/8.1-plasic-app-architecture-guide.md
+8-appendix/8.1-matrix-inversion.md: tutorial/9-appendix/9.1-matrix-inversion.md
+8-appendix/8.2-from-lat-lon-grid-to-interactive-3d-globe.md: tutorial/8-desktop-app/8.2-from-lat-lon-grid-to-interactive-3d-globe.md
+8-appendix/8.3-mathematical-foundations-of-spat_to_shsphtor.md: tutorial/9-appendix/9.2-mathematical-foundations-of-spat_to_shsphtor.md
+8-appendix/8.4-mathematical-foundations-of-gaussmod_kernels.md: tutorial/9-appendix/9.3-mathematical-foundations-of-gaussmod_kernels.md
+8-appendix/8.5-pyside6-quickstart.md: tutorial/9-appendix/9.4-pyside6-quickstart.md
+8-appendix/8.6-c-language-primer.md: tutorial/9-appendix/9.5-c-language-primer.md
+8-appendix/8.7-physical-constants.md: tutorial/9-appendix/9.6-physical-constants.md
+8-appendix/8.8-model-time-and-calendar.md: tutorial/5-time-control/5.1-calendar.md
+8-appendix/8.9-cold-start-surface-fields-t42.md: tutorial/6-experiments/6.5-cold-start-surface-fields-t42.md
+8-appendix/8.10-solar-orbital-geometry.md: tutorial/5-time-control/5.2-solar-orbital-geometry.md
+
+# ---------------------------------------------------------------------------
+# 23. The globe note moved from the appendix into Chapter 8 Desktop App as
+#     8.2, and the cold-start note became Chapter 6 Experiments 6.5; the
+#     appendix notes 9.3-9.7 were renumbered to 9.2-9.6. Redirect every
+#     previously published URL.
+# ---------------------------------------------------------------------------
+9-appendix/9.2-from-lat-lon-grid-to-interactive-3d-globe.md: tutorial/8-desktop-app/8.2-from-lat-lon-grid-to-interactive-3d-globe.md
+9-appendix/9.3-mathematical-foundations-of-spat_to_shsphtor.md: tutorial/9-appendix/9.2-mathematical-foundations-of-spat_to_shsphtor.md
+9-appendix/9.4-mathematical-foundations-of-gaussmod_kernels.md: tutorial/9-appendix/9.3-mathematical-foundations-of-gaussmod_kernels.md
+9-appendix/9.5-pyside6-quickstart.md: tutorial/9-appendix/9.4-pyside6-quickstart.md
+9-appendix/9.6-c-language-primer.md: tutorial/9-appendix/9.5-c-language-primer.md
+9-appendix/9.7-physical-constants.md: tutorial/9-appendix/9.6-physical-constants.md
+9-appendix/9.8-cold-start-surface-fields-t42.md: tutorial/6-experiments/6.5-cold-start-surface-fields-t42.md
+
+# ---------------------------------------------------------------------------
+# 24. Chapter 1.1 was retitled: 1.1 Compiling, Running, and a Makefile Primer
+#     became 1.1 Running PlaSiC first!; redirect the previously published URL.
+# ---------------------------------------------------------------------------
+1-user-guide/1.1-compiling-running-and-a-makefile-primer.md: tutorial/1-user-guide/1.1-Running-PlaSiC-first.md

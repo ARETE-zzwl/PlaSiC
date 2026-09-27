@@ -1,0 +1,4 @@
+# 构建在线教材所需的 Python 依赖（GitHub Actions 与本地预览共用）。
+mkdocs==1.6.1
+mkdocs-material==9.7.7
+pymdown-extensions==11.0.2

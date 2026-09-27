@@ -1,0 +1,214 @@
+
+site_name: PlaSiC C Tutorial
+site_description: Documentation and tutorial for the PlaSiC climate model, an independent C11 implementation of PlaSim.
+site_url: https://sunmoumou1.github.io/PlaSiC/
+
+repo_url: https://github.com/sunmoumou1/PlaSiC
+repo_name: PlaSiC
+
+
+# =============================================================================
+# 主题
+# =============================================================================
+
+theme:
+  name: material
+  font: false
+
+  # ---------------------------------------------------------------------------
+  # 站点 Logo
+  # ---------------------------------------------------------------------------
+  # Logo 显示在每个页面左上角的 Header 中，点击后回到教程首页。
+  logo: tutorial/assets/images/logo.png
+
+  # 浏览器标签页图标与 Logo 保持一致。
+  favicon: tutorial/assets/images/logo.png
+
+  language: en
+
+  # ---------------------------------------------------------------------------
+  # 导航功能
+  # ---------------------------------------------------------------------------
+  features:
+
+    # GitBook 风格通常使用左侧文档树，因此不再使用 navigation.tabs。
+    # 一级章节也统一放到左侧。
+    - navigation.sections
+
+    # 只展开当前章节，避免长目录挤占导航。
+
+    # 支持章节 index 页面。
+    - navigation.indexes
+
+    # 页面滚动时让右侧 TOC 跟随。
+    - toc.follow
+
+    # 页面顶部返回按钮。
+    - navigation.footer
+    - navigation.top
+
+    # 代码复制按钮。
+    - content.code.copy
+
+    # 支持代码注释。
+    - content.code.annotate
+
+    # 搜索建议。
+    - search.suggest
+
+    # 搜索结果高亮。
+    - search.highlight
+
+
+  # ---------------------------------------------------------------------------
+  # 浅色 / 深色模式
+  # ---------------------------------------------------------------------------
+  palette:
+
+    # 浅色模式
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: white
+      accent: indigo
+
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+
+    # 深色模式
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: indigo
+
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+
+# =============================================================================
+# Markdown 扩展
+# =============================================================================
+
+markdown_extensions:
+
+  # Markdown 表格
+  - tables
+
+  # 提示框
+  - admonition
+
+  # 属性列表
+  # 后面如果需要自定义图片大小、按钮等会很方便。
+  - attr_list
+
+  # Markdown 内嵌 HTML
+  - md_in_html
+
+  # 数学公式
+  - pymdownx.arithmatex:
+      generic: true
+
+  # 代码语法高亮
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+
+  # 增强代码块
+  - pymdownx.superfences
+
+  # 折叠内容
+  - pymdownx.details
+
+  # Tab 页面
+  - pymdownx.tabbed:
+      alternate_style: true
+
+  # 页面目录
+  - toc:
+      permalink: true
+
+
+# =============================================================================
+# JavaScript
+# =============================================================================
+
+extra_javascript:
+
+  # MathJax 配置
+  - tutorial/javascripts/mathjax.js
+
+  # MathJax 3
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+
+# =============================================================================
+# 自定义 CSS
+# =============================================================================
+
+extra_css:
+  - tutorial/stylesheets/extra.css
+
+
+# =============================================================================
+# 导航
+# =============================================================================
+
+hooks:
+  - hooks/redirects.py
+  - hooks/figure_labels.py
+
+nav:
+- Project Home: https://sunmoumou1.github.io/PlaSiC/
+- Preface: tutorial/preface.md
+- PlaSiC Online Tutorial: tutorial/index.md
+- About the Author: tutorial/author.md
+- 1 User Guide:
+  - 1.1 Running PlaSiC first!: tutorial/1-user-guide/1.1-Running-PlaSiC-first.md
+  - 1.2 Pseudocode for One Time Step: tutorial/1-user-guide/1.2-pseudocode-for-one-time-step.md
+  - 1.3 Global State Variables: tutorial/1-user-guide/1.3-global-state-variables.md
+- 2 Dynamical Core:
+  - 2.1 Governing Equations: tutorial/2-dynamical-core/2.1-governing-equations.md
+  - 2.2 Ten-Step Algorithm: tutorial/2-dynamical-core/2.2-ten-step-algorithm.md
+  - 2.3 Spherical Harmonic Spectra & Transforms Method: tutorial/2-dynamical-core/2.3-spectral-transform-and-fft.md
+  - 2.4 σ Vertical Discretization: tutorial/2-dynamical-core/2.4-sigma-vertical-discretization.md
+  - 2.5 Grid-Point Nonlinear Dynamics: tutorial/2-dynamical-core/2.5-gridpoint-nonlinear-dynamics.md
+  - 2.6 Semi-Implicit Gravity-Wave Solver: tutorial/2-dynamical-core/2.6-semi-implicit-gravity-wave-solver.md
+  - 2.7 Leapfrog Time Stepping: tutorial/2-dynamical-core/2.7-leapfrog-time-stepping.md
+  - 2.8 Robert–Asselin Filtering: tutorial/2-dynamical-core/2.8-robert-asselin-filtering.md
+  - 2.9 Spectral Dissipation: tutorial/2-dynamical-core/2.9-spectral-dissipation.md
+- 3 Parameterizations:
+  - 3.1 Why Parameterization?: tutorial/3-parameterizations/3.1-why-parameterization.md
+  - 3.2 Surface Fluxes: tutorial/3-parameterizations/3.2-surface-fluxes.md
+  - 3.3 Horizontal and Vertical Diffusion: tutorial/3-parameterizations/3.3-horizontal-and-vertical-diffusion.md
+  - 3.4 Radiation Parameterization: tutorial/3-parameterizations/3.4-radiation-parameterization.md
+  - 3.5 Moist Convection and Precipitation Parameterization: tutorial/3-parameterizations/3.5-moist-convection-and-precipitation.md
+- 4 Model and Coupling:
+  - 4.1 How the Spheres Are Coupled: tutorial/4-model-and-coupling/4.1-how-the-spheres-are-coupled.md
+  - 4.2 Land Surface Module: tutorial/4-model-and-coupling/4.2-land-surface-module.md
+  - 4.3 Sea Interface: tutorial/4-model-and-coupling/4.3-sea-interface.md
+  - 4.4 Thermodynamic Sea Ice: tutorial/4-model-and-coupling/4.4-sea-ice-module.md
+  - 4.5 Slab Ocean: tutorial/4-model-and-coupling/4.5-slab-ocean.md
+  - 4.6 Three-Dimensional Ocean: tutorial/4-model-and-coupling/4.6-three-dimensional-ocean.md
+- 5 Time Control:
+  - 5.1 Calendar: tutorial/5-time-control/5.1-calendar.md
+  - 5.2 Solar Orbital Geometry: tutorial/5-time-control/5.2-solar-orbital-geometry.md
+- 6 Experiments:
+  - 6.1 Speed and Memory Benchmark: tutorial/6-experiments/6.1-speed-and-memory-benchmark.md
+  - 6.2 PlaSiC historical experiment (1850–2014): tutorial/6-experiments/6.2-historical-experiment-1850-2014.md
+  - 6.3 1pctCO₂ and abrupt-4×CO₂ experiments: tutorial/6-experiments/6.3-idealized-co2-experiments-tcr-ecs.md
+  - 6.4 Inside a Restart File: tutorial/6-experiments/6.4-restart-file-format.md
+  - 6.5 Cold-Start Surface Boundary Fields at T42: tutorial/6-experiments/6.5-cold-start-surface-fields-t42.md
+- 7 Parallel:
+  - 7.1 MPI Parallel Basics: tutorial/7-parallel/7.1-mpi-parallel-basics.md
+- 8 Desktop App:
+  - 8.1 PlaSiC App Architecture Guide: tutorial/8-desktop-app/8.1-plasic-app-architecture-guide.md
+  - 8.2 From a Latitude–Longitude Grid to an Interactive 3D Globe: tutorial/8-desktop-app/8.2-from-lat-lon-grid-to-interactive-3d-globe.md
+- 9 Appendix:
+  - 9.1 Matrix Inversion: tutorial/9-appendix/9.1-matrix-inversion.md
+  - 9.2 The Complete Mathematics Behind spat_to_SHsphtor: tutorial/9-appendix/9.2-mathematical-foundations-of-spat_to_shsphtor.md
+  - 9.3 The Complete Mathematics Behind gaussmod_kernels: tutorial/9-appendix/9.3-mathematical-foundations-of-gaussmod_kernels.md
+  - 9.4 PySide6 and Qt in Brief: tutorial/9-appendix/9.4-pyside6-quickstart.md
+  - 9.5 C Language Primer: tutorial/9-appendix/9.5-c-language-primer.md
+  - 9.6 Physical Constants and Model Coefficients: tutorial/9-appendix/9.6-physical-constants.md
+- License and Attribution: tutorial/license.md

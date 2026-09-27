@@ -1,0 +1,173 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="2140" viewBox="0 0 1180 2140" role="img" aria-labelledby="title desc">
+  <title id="title">Moist convection, condensation, precipitation fallout and cloud diagnosis</title>
+  <desc id="desc">Starting from the predictor temperature and specific humidity and the large-scale moisture supply, the flow runs Kuo-type deep or shallow convection, dry convective adjustment, large-scale condensation, precipitation fallout with phase change and re-evaporation, and finally diagnoses cloud cover and cloud liquid water.</desc>
+
+  <defs>
+    <marker id="arrow" markerWidth="14" markerHeight="14" refX="13.5" refY="7" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L14,7 L0,14 Z" fill="#94a3b8"/>
+    </marker>
+    <marker id="arrowH" markerWidth="14" markerHeight="14" refX="13.5" refY="7" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L14,7 L0,14 Z" fill="#94a3b8"/>
+    </marker>
+    <filter id="shadow" x="-8%" y="-8%" width="116%" height="124%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.05"/>
+    </filter>
+    <style>
+      .title{font:700 29px Arial, 'Helvetica Neue', Helvetica, sans-serif;fill:#0f172a}
+      .subtitle{font:400 16px Arial, 'Helvetica Neue', Helvetica, sans-serif;fill:#64748b}
+      .cardTitle{font:700 19.5px Arial, 'Helvetica Neue', Helvetica, sans-serif;fill:#0f172a}
+      .nodeTitle{font:700 17px Arial, 'Helvetica Neue', Helvetica, sans-serif;fill:#0f172a}
+      .rowLabel{font:700 16px Arial, 'Helvetica Neue', Helvetica, sans-serif}
+      .rowLine{font:500 16px Arial, 'Helvetica Neue', Helvetica, sans-serif;fill:#334155}
+      .badge{font:700 19px Arial, 'Helvetica Neue', Helvetica, sans-serif;fill:#fff}
+      .tag{font:700 11.5px Arial, 'Helvetica Neue', Helvetica, sans-serif;letter-spacing:1.4px}
+      .formula{font:500 19px Arial, 'Cambria Math', 'STIX Two Math', 'Times New Roman', serif;fill:#1e293b}
+      .formulaHero{font:700 20px Arial, 'Cambria Math', 'STIX Two Math', 'Times New Roman', serif;fill:#0f172a}
+      .formulaSm{font:500 17px Arial, 'Cambria Math', 'STIX Two Math', 'Times New Roman', serif;fill:#1e293b}
+      .note{font:400 15px Arial, 'Helvetica Neue', Helvetica, sans-serif;fill:#64748b}
+      .arrowLine{fill:none;stroke:#94a3b8;stroke-width:3;marker-end:url(#arrow)}
+      .arrowSide{fill:none;stroke:#94a3b8;stroke-width:3;marker-end:url(#arrowH)}
+    </style>
+  </defs>
+
+  <rect x="1" y="1" width="1178" height="2138" rx="26" fill="#f8fafc" stroke="#e8edf4" stroke-width="1.5"/>
+
+  <text x="590" y="56" text-anchor="middle" class="title">How one moist-physics step turns vapor into surface precipitation</text>
+  <text x="590" y="88" text-anchor="middle" class="subtitle">Kuo convection → dry adjustment → large-scale condensation → fallout, phase change, re-evaporation → cloud diagnosis</text>
+  <line x1="60" y1="108" x2="1120" y2="108" stroke="#e2e8f0" stroke-width="1.4"/>
+
+  <!-- 1 · predictor state -->
+  <g filter="url(#shadow)"><rect x="60" y="122" width="1060" height="160" rx="18" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.6"/></g>
+  <circle cx="100" cy="160" r="20" fill="#2563eb"/>
+  <text x="100" y="167" text-anchor="middle" class="badge">1</text>
+  <text x="136" y="167" class="cardTitle">Build the predictor state for this physics step</text>
+  <text x="1098" y="166" text-anchor="end" class="tag" fill="#2563eb">PREDICTOR STATE</text>
+  <line x1="82" y1="184" x2="1098" y2="184" stroke="#bfdbfe" stroke-width="1.4"/>
+  <text x="590" y="224" text-anchor="middle" class="formula" xml:space="preserve">T̃ = T + τ Ṫ<tspan baseline-shift="sub" font-size="13">pre</tspan><tspan baseline-shift="baseline"> ,    q̃ = q + τ q̇</tspan><tspan baseline-shift="sub" font-size="13">pre</tspan></text>
+  <text x="590" y="260" text-anchor="middle" class="note">τ = 2Δt spans one physics update; the state also carries pₛ, the σ layers, the wind and the moisture supply A<tspan baseline-shift="sub" font-size="11">q</tspan></text>
+
+  <path d="M590 282 V318" class="arrowLine"/>
+
+  <!-- 2 · shared thermodynamics core -->
+  <g filter="url(#shadow)"><rect x="60" y="318" width="1060" height="170" rx="18" fill="#ecfeff" stroke="#a5f3fc" stroke-width="1.6"/></g>
+  <circle cx="100" cy="356" r="20" fill="#0891b2"/>
+  <text x="100" y="363" text-anchor="middle" class="badge">2</text>
+  <text x="136" y="363" class="cardTitle">One thermodynamics core shared by every branch</text>
+  <text x="1098" y="362" text-anchor="end" class="tag" fill="#0891b2">SHARED CORE</text>
+  <line x1="82" y1="380" x2="1098" y2="380" stroke="#a5f3fc" stroke-width="1.4"/>
+  <text x="590" y="424" text-anchor="middle" class="formulaHero">qₛ(T, p) = ε eₛ(T) / [p − (1 − ε) eₛ(T)]</text>
+  <text x="590" y="460" text-anchor="middle" class="note">Tetens saturation vapor pressure; cloud base, saturation adjustment, cloud cover and re-evaporation all share this qₛ</text>
+
+  <path d="M590 488 V524" class="arrowLine"/>
+
+  <!-- 3 · Kuo convection -->
+  <g filter="url(#shadow)"><rect x="60" y="524" width="1060" height="600" rx="18" fill="#fff7ed" stroke="#fed7aa" stroke-width="1.6"/></g>
+  <circle cx="100" cy="562" r="20" fill="#ea580c"/>
+  <text x="100" y="569" text-anchor="middle" class="badge">3</text>
+  <text x="136" y="569" class="cardTitle">Kuo-type convection: cloud intensity closed by the moisture supply</text>
+  <text x="1098" y="568" text-anchor="end" class="tag" fill="#ea580c">DEEP / SHALLOW CONVECTION</text>
+  <line x1="82" y1="586" x2="1098" y2="586" stroke="#fed7aa" stroke-width="1.4"/>
+
+  <rect x="90" y="602" width="1000" height="112" rx="12" fill="#fff" stroke="#fed7aa" stroke-width="1.4"/>
+  <text x="114" y="636" class="rowLabel" fill="#c2410c">1 · Find the lift level and the cloud base</text>
+  <text x="590" y="670" text-anchor="middle" class="formula">T<tspan baseline-shift="sub" font-size="13">cl,l</tspan><tspan baseline-shift="baseline"> = T</tspan><tspan baseline-shift="sub" font-size="13">cl,l+1</tspan><tspan baseline-shift="baseline"> (σ</tspan><tspan baseline-shift="sub" font-size="13">l</tspan><tspan baseline-shift="baseline">/σ</tspan><tspan baseline-shift="sub" font-size="13">l+1</tspan><tspan baseline-shift="baseline">)</tspan><tspan baseline-shift="super" font-size="13">κ</tspan><tspan baseline-shift="baseline"> ,   q</tspan><tspan baseline-shift="sub" font-size="13">cl</tspan><tspan baseline-shift="baseline"> unchanged</tspan></text>
+  <text x="590" y="698" text-anchor="middle" class="note">dry-adiabatic lifting from the lowest layer with A<tspan baseline-shift="sub" font-size="11">q</tspan><tspan baseline-shift="baseline"> &gt; 0, or from the surface</tspan></text>
+
+  <rect x="90" y="728" width="1000" height="112" rx="12" fill="#fff" stroke="#fed7aa" stroke-width="1.4"/>
+  <text x="114" y="762" class="rowLabel" fill="#c2410c">2 · Lift along the moist adiabat to the cloud top</text>
+  <text x="590" y="796" text-anchor="middle" class="formula">condensation δq → q<tspan baseline-shift="sub" font-size="13">cl</tspan><tspan baseline-shift="baseline"> decreases, T</tspan><tspan baseline-shift="sub" font-size="13">cl</tspan><tspan baseline-shift="baseline"> increases by L δq / c</tspan><tspan baseline-shift="sub" font-size="13">p</tspan></text>
+  <text x="590" y="824" text-anchor="middle" class="note">lifting continues until the parcel is no longer saturated or loses positive buoyancy</text>
+
+  <rect x="90" y="854" width="1000" height="124" rx="12" fill="#fff" stroke="#fed7aa" stroke-width="1.4"/>
+  <text x="114" y="888" class="rowLabel" fill="#c2410c">3 · Close the intensity with the moisture supply</text>
+  <text x="590" y="924" text-anchor="middle" class="formula">I = (2Δt pₛ/g) ∫ A<tspan baseline-shift="sub" font-size="13">q</tspan><tspan baseline-shift="baseline"> dσ ,    β ≈ [(1 − RH̄)/(1 − RH</tspan><tspan baseline-shift="sub" font-size="13">c</tspan><tspan baseline-shift="baseline">)]</tspan><tspan baseline-shift="super" font-size="13">n</tspan></text>
+  <text x="590" y="956" text-anchor="middle" class="note">1 − β: condensation, latent heating and convective rain · β: moistening of the environment · I ≤ 0: no deep convection</text>
+
+  <rect x="90" y="992" width="460" height="112" rx="12" fill="#f0fdf4" stroke="#a7f3d0" stroke-width="1.4"/>
+  <text x="114" y="1026" class="rowLabel" fill="#047857">Saturated, T<tspan baseline-shift="sub" font-size="12">cl</tspan><tspan baseline-shift="baseline"> &gt; T</tspan><tspan baseline-shift="sub" font-size="12">e</tspan></text>
+  <text x="114" y="1058" class="rowLine">→ deep convection proceeds</text>
+  <text x="114" y="1084" class="note">the cloud-base-to-top tendency profile is applied</text>
+
+  <rect x="630" y="992" width="460" height="112" rx="12" fill="#f5f3ff" stroke="#ddd6fe" stroke-width="1.4"/>
+  <text x="654" y="1026" class="rowLabel" fill="#6d28d9">Not saturated, or no positive buoyancy</text>
+  <text x="654" y="1058" class="rowLine">→ shallow convection, or none</text>
+  <text x="654" y="1084" class="note">vertical diffusion acts inside the shallow cloud</text>
+
+  <path d="M590 1124 V1160" class="arrowLine"/>
+
+  <!-- 4 · dry adjustment and 5 · large-scale condensation -->
+  <g filter="url(#shadow)"><rect x="60" y="1160" width="510" height="170" rx="18" fill="#fffbeb" stroke="#fde68a" stroke-width="1.6"/></g>
+  <circle cx="100" cy="1198" r="20" fill="#d97706"/>
+  <text x="100" y="1205" text-anchor="middle" class="badge">4</text>
+  <text x="136" y="1205" class="cardTitle">Dry convective adjustment</text>
+  <text x="548" y="1204" text-anchor="end" class="tag" fill="#b45309">DRY ADJUSTMENT</text>
+  <line x1="82" y1="1222" x2="548" y2="1222" stroke="#fde68a" stroke-width="1.4"/>
+  <text x="315" y="1264" text-anchor="middle" class="formulaSm">θ, q → uniform θ<tspan baseline-shift="sub" font-size="11.5">N</tspan><tspan baseline-shift="baseline">, q</tspan><tspan baseline-shift="sub" font-size="11.5">N</tspan><tspan baseline-shift="baseline"> inside the unstable layer</tspan></text>
+  <text x="315" y="1302" text-anchor="middle" class="note">Merging repeats until the whole column is stable</text>
+
+  <path d="M570 1245 H610" class="arrowSide"/>
+
+  <g filter="url(#shadow)"><rect x="610" y="1160" width="510" height="170" rx="18" fill="#f0fdf4" stroke="#a7f3d0" stroke-width="1.6"/></g>
+  <circle cx="650" cy="1198" r="20" fill="#059669"/>
+  <text x="650" y="1205" text-anchor="middle" class="badge">5</text>
+  <text x="686" y="1205" class="cardTitle">Large-scale condensation</text>
+  <text x="1098" y="1204" text-anchor="end" class="tag" fill="#047857">CONDENSATION</text>
+  <line x1="632" y1="1222" x2="1098" y2="1222" stroke="#a7f3d0" stroke-width="1.4"/>
+  <text x="865" y="1264" text-anchor="middle" class="formulaSm">if q̃ &gt; qₛ(T̃, p):  δq = [q̃ − qₛ(T̃)] / [1 + (L/c<tspan baseline-shift="sub" font-size="11.5">p</tspan><tspan baseline-shift="baseline">)(dqₛ/dT)]</tspan></text>
+  <text x="865" y="1302" text-anchor="middle" class="note">Condensate becomes large-scale precipitation at once</text>
+
+  <path d="M590 1330 V1366" class="arrowLine"/>
+
+  <!-- 6 · precipitation fallout -->
+  <g filter="url(#shadow)"><rect x="60" y="1366" width="1060" height="300" rx="18" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.6"/></g>
+  <circle cx="100" cy="1404" r="20" fill="#2563eb"/>
+  <text x="100" y="1411" text-anchor="middle" class="badge">6</text>
+  <text x="136" y="1411" class="cardTitle">Precipitation falls through the layers: phase change and re-evaporation</text>
+  <text x="1098" y="1410" text-anchor="end" class="tag" fill="#2563eb">FALLOUT</text>
+  <line x1="82" y1="1428" x2="1098" y2="1428" stroke="#bfdbfe" stroke-width="1.4"/>
+
+  <rect x="90" y="1462" width="320" height="150" rx="12" fill="#fff" stroke="#bfdbfe" stroke-width="1.4"/>
+  <text x="250" y="1496" text-anchor="middle" class="nodeTitle">Accumulate the flux</text>
+  <text x="250" y="1528" text-anchor="middle" class="note">separate convective / large-scale</text>
+  <text x="250" y="1554" text-anchor="middle" class="note">and liquid / solid parts</text>
+  <text x="250" y="1588" text-anchor="middle" class="formulaSm">P↓ = P↑ + P<tspan baseline-shift="sub" font-size="11.5">gen</tspan></text>
+
+  <rect x="430" y="1462" width="320" height="150" rx="12" fill="#fff" stroke="#bfdbfe" stroke-width="1.4"/>
+  <text x="590" y="1496" text-anchor="middle" class="nodeTitle">Phase change at 273.16 K</text>
+  <text x="590" y="1528" text-anchor="middle" class="note">melting absorbs heat, freezing releases it</text>
+  <text x="590" y="1560" text-anchor="middle" class="formulaSm">L<tspan baseline-shift="sub" font-size="11.5">f</tspan><tspan baseline-shift="baseline"> = L</tspan><tspan baseline-shift="sub" font-size="11.5">s</tspan><tspan baseline-shift="baseline"> − L</tspan><tspan baseline-shift="sub" font-size="11.5">v</tspan></text>
+  <text x="590" y="1588" text-anchor="middle" class="note">the air temperature reacts in turn</text>
+
+  <rect x="770" y="1462" width="320" height="150" rx="12" fill="#fff" stroke="#bfdbfe" stroke-width="1.4"/>
+  <text x="930" y="1496" text-anchor="middle" class="nodeTitle">Re-evaporation below cloud</text>
+  <text x="930" y="1528" text-anchor="middle" class="note">limited by the saturation deficit</text>
+  <text x="930" y="1554" text-anchor="middle" class="note">may leave virga with no rain at all</text>
+  <text x="930" y="1588" text-anchor="middle" class="formulaSm">E ∝ (qₛ − q)</text>
+
+  <text x="590" y="1646" text-anchor="middle" class="note">The remaining mass flux in the lowest layer × pₛ/(gρ<tspan baseline-shift="sub" font-size="11">w</tspan><tspan baseline-shift="baseline">) gives surface convective rain, large-scale rain and snow</tspan></text>
+
+  <path d="M590 1666 V1702" class="arrowLine"/>
+
+  <!-- 7 · cloud diagnosis -->
+  <g filter="url(#shadow)"><rect x="60" y="1702" width="1060" height="230" rx="18" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.6"/></g>
+  <circle cx="100" cy="1740" r="20" fill="#64748b"/>
+  <text x="100" y="1747" text-anchor="middle" class="badge">7</text>
+  <text x="136" y="1747" class="cardTitle">Cloud diagnosis: rain intensity and relative humidity</text>
+  <text x="1098" y="1746" text-anchor="end" class="tag" fill="#475569">DIAGNOSTIC CLOUDS</text>
+  <line x1="82" y1="1764" x2="1098" y2="1764" stroke="#cbd5e1" stroke-width="1.4"/>
+  <text x="590" y="1806" text-anchor="middle" class="formula">c<tspan baseline-shift="sub" font-size="13">c</tspan><tspan baseline-shift="baseline"> = clip[0.245 + 0.125 ln(P</tspan><tspan baseline-shift="sub" font-size="13">c</tspan><tspan baseline-shift="baseline">), 0.05, 0.8]</tspan></text>
+  <text x="590" y="1842" text-anchor="middle" class="formula">c<tspan baseline-shift="sub" font-size="13">s</tspan><tspan baseline-shift="baseline"> = f</tspan><tspan baseline-shift="sub" font-size="13">ω</tspan><tspan baseline-shift="baseline"> {max[0, (RH − RH</tspan><tspan baseline-shift="sub" font-size="13">c</tspan><tspan baseline-shift="baseline">)/(1 − RH</tspan><tspan baseline-shift="sub" font-size="13">c</tspan><tspan baseline-shift="baseline">)]}²</tspan></text>
+  <text x="590" y="1878" text-anchor="middle" class="note">deep convection may add an anvil at upper levels; layer cloud cover merges as 1 − ∏(1 − c<tspan baseline-shift="sub" font-size="11">l</tspan><tspan baseline-shift="baseline">)</tspan></text>
+  <text x="590" y="1906" text-anchor="middle" class="note">cloud liquid water comes from height decay and column moisture; it serves radiation, not the rain reservoir</text>
+
+  <path d="M590 1932 V1968" class="arrowLine"/>
+
+  <!-- 8 · outputs -->
+  <g filter="url(#shadow)"><rect x="60" y="1968" width="1060" height="120" rx="18" fill="#f0fdf4" stroke="#a7f3d0" stroke-width="1.6"/></g>
+  <circle cx="104" cy="2023" r="22" fill="#059669"/>
+  <text x="104" y="2030" text-anchor="middle" class="badge">8</text>
+  <text x="150" y="2016" class="cardTitle">What the rest of the model receives</text>
+  <text x="1098" y="2015" text-anchor="end" class="tag" fill="#059669">OUTPUT</text>
+  <text x="150" y="2046" class="note">temperature and specific-humidity tendencies (optionally wind)</text>
+  <text x="150" y="2070" class="note">surface convective rain, large-scale rain, snow · layer and total cloud cover, cloud liquid water</text>
+</svg>

@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="1800" viewBox="0 0 1180 1800" role="img" aria-labelledby="title desc">
+  <title id="title">Algorithm flow of one coupling step of the three-dimensional ocean</title>
+  <desc id="desc">One step of deep_ocean_step(): latitude halo exchange, top-layer reset with freshwater, equation of state and hydrostatic pressure, diagnostic geostrophic and Ekman velocities, vertical velocity from continuity, sub-cycled upwind advection and explicit diffusion of temperature and salinity, convective adjustment, and finally the deep-ocean heat flux returned to the slab.</desc>
+
+  <defs>
+    <marker id="arrow" markerWidth="14" markerHeight="14" refX="13.5" refY="7" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L14,7 L0,14 Z" fill="#94a3b8"/>
+    </marker>
+    <filter id="shadow" x="-8%" y="-8%" width="116%" height="124%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.05"/>
+    </filter>
+    <style>
+      .title{font:700 29px Arial, 'Helvetica Neue', Helvetica, sans-serif;fill:#0f172a}
+      .subtitle{font:400 16px Arial, 'Helvetica Neue', Helvetica, sans-serif;fill:#64748b}
+      .cardTitle{font:700 19.5px Arial, 'Helvetica Neue', Helvetica, sans-serif;fill:#0f172a}
+      .badge{font:700 19px Arial, 'Helvetica Neue', Helvetica, sans-serif;fill:#fff}
+      .tag{font:700 11.5px Arial, 'Helvetica Neue', Helvetica, sans-serif;letter-spacing:1.4px}
+      .formula{font:500 19px Arial, 'Cambria Math', 'STIX Two Math', 'Times New Roman', serif;fill:#1e293b}
+      .formulaHero{font:700 20px Arial, 'Cambria Math', 'STIX Two Math', 'Times New Roman', serif;fill:#0f172a}
+      .note{font:400 15px Arial, 'Helvetica Neue', Helvetica, sans-serif;fill:#64748b}
+      .arrowLine{fill:none;stroke:#94a3b8;stroke-width:3;marker-end:url(#arrow)}
+    </style>
+  </defs>
+
+  <rect x="1" y="1" width="1178" height="1798" rx="26" fill="#f8fafc" stroke="#e8edf4" stroke-width="1.5"/>
+
+  <text x="590" y="56" text-anchor="middle" class="title">One coupling step of the three-dimensional ocean</text>
+  <text x="590" y="88" text-anchor="middle" class="subtitle">deep_ocean_step(): boundaries first, then the diagnosed circulation, then the tracers, then the flux returned to the slab</text>
+  <line x1="60" y1="108" x2="1120" y2="108" stroke="#e2e8f0" stroke-width="1.4"/>
+
+  <!-- 0 · halo -->
+  <g filter="url(#shadow)"><rect x="60" y="122" width="1060" height="160" rx="18" fill="#ecfeff" stroke="#a5f3fc" stroke-width="1.6"/></g>
+  <circle cx="100" cy="160" r="20" fill="#0891b2"/>
+  <text x="100" y="167" text-anchor="middle" class="badge">0</text>
+  <text x="136" y="167" class="cardTitle">Latitude halo exchange</text>
+  <text x="1098" y="166" text-anchor="end" class="tag" fill="#0891b2">HALO</text>
+  <line x1="82" y1="184" x2="1098" y2="184" stroke="#a5f3fc" stroke-width="1.4"/>
+  <text x="590" y="224" text-anchor="middle" class="formula">T, S, u, v, w   →   north and south ghost rows are exchanged</text>
+  <text x="590" y="260" text-anchor="middle" class="note">mp_exchange_latitude_halo(): each rank keeps and advances only its own latitude band</text>
+
+  <path d="M590 282 V318" class="arrowLine"/>
+
+  <!-- 1 · surface boundary -->
+  <g filter="url(#shadow)"><rect x="60" y="318" width="1060" height="160" rx="18" fill="#fff7ed" stroke="#fed7aa" stroke-width="1.6"/></g>
+  <circle cx="100" cy="356" r="20" fill="#ea580c"/>
+  <text x="100" y="363" text-anchor="middle" class="badge">1</text>
+  <text x="136" y="363" class="cardTitle">Surface boundary: top-layer reset and freshwater</text>
+  <text x="1098" y="362" text-anchor="end" class="tag" fill="#ea580c">SURFACE</text>
+  <line x1="82" y1="380" x2="1098" y2="380" stroke="#fed7aa" stroke-width="1.4"/>
+  <text x="590" y="420" text-anchor="middle" class="formula">T<tspan baseline-shift="super" font-size="13">(0)</tspan><tspan baseline-shift="baseline"> ← T</tspan><tspan baseline-shift="sub" font-size="13">s</tspan><tspan baseline-shift="baseline" xml:space="preserve"> ,    S</tspan><tspan baseline-shift="super" font-size="13">(0)</tspan><tspan baseline-shift="baseline"> ← S</tspan><tspan baseline-shift="super" font-size="13">(0)</tspan><tspan baseline-shift="baseline"> · h</tspan><tspan baseline-shift="sub" font-size="13">0</tspan><tspan baseline-shift="baseline">/(h</tspan><tspan baseline-shift="sub" font-size="13">0</tspan><tspan baseline-shift="baseline"> + F</tspan><tspan baseline-shift="sub" font-size="13">w</tspan><tspan baseline-shift="baseline"> Δt)</tspan></text>
+  <text x="590" y="456" text-anchor="middle" class="note">the slab provides the SST; F<tspan baseline-shift="sub" font-size="11">w</tspan><tspan baseline-shift="baseline"> = P − E is the freshwater flux</tspan></text>
+
+  <path d="M590 478 V514" class="arrowLine"/>
+
+  <!-- 2 · equation of state -->
+  <g filter="url(#shadow)"><rect x="60" y="514" width="1060" height="160" rx="18" fill="#f0fdfa" stroke="#99f6e4" stroke-width="1.6"/></g>
+  <circle cx="100" cy="552" r="20" fill="#0d9488"/>
+  <text x="100" y="559" text-anchor="middle" class="badge">2</text>
+  <text x="136" y="559" class="cardTitle">Equation of state and hydrostatic pressure</text>
+  <text x="1098" y="558" text-anchor="end" class="tag" fill="#0d9488">EOS + PRESSURE</text>
+  <line x1="82" y1="576" x2="1098" y2="576" stroke="#99f6e4" stroke-width="1.4"/>
+  <text x="590" y="616" text-anchor="middle" class="formula">ρ = ρ₀ [1 − α(T − 4 °C) + β(S − 35)]</text>
+  <text x="590" y="652" text-anchor="middle" class="note">p(k) = g ΣρΔz accumulated downward; land columns take ρ₀ and p = 0</text>
+
+  <path d="M590 674 V710" class="arrowLine"/>
+
+  <!-- 3 · diagnostic circulation -->
+  <g filter="url(#shadow)"><rect x="60" y="710" width="1060" height="200" rx="18" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.6"/></g>
+  <circle cx="100" cy="748" r="20" fill="#2563eb"/>
+  <text x="100" y="755" text-anchor="middle" class="badge">3</text>
+  <text x="136" y="755" class="cardTitle">Diagnose the velocity field (momentum is never integrated)</text>
+  <text x="1098" y="754" text-anchor="end" class="tag" fill="#2563eb">DIAGNOSTIC</text>
+  <line x1="82" y1="772" x2="1098" y2="772" stroke="#bfdbfe" stroke-width="1.4"/>
+  <text x="590" y="812" text-anchor="middle" class="formula" xml:space="preserve">u = −(1/ρ₀ f) ∂p/∂y ,    v = +(1/ρ₀ f) ∂p/∂x</text>
+  <text x="590" y="848" text-anchor="middle" class="formula">top layer only:  u += τ<tspan baseline-shift="sub" font-size="13">y</tspan><tspan baseline-shift="baseline">/(ρ₀ f h</tspan><tspan baseline-shift="sub" font-size="13">0</tspan><tspan baseline-shift="baseline" xml:space="preserve">) ,   v −= τ</tspan><tspan baseline-shift="sub" font-size="13">x</tspan><tspan baseline-shift="baseline">/(ρ₀ f h</tspan><tspan baseline-shift="sub" font-size="13">0</tspan><tspan baseline-shift="baseline">)</tspan></text>
+  <text x="590" y="884" text-anchor="middle" class="note">f = 2Ω sinφ, floored near the equator at |f| ≥ 2Ω sin2°; speed capped at 0.5 m s⁻¹</text>
+
+  <path d="M590 910 V946" class="arrowLine"/>
+
+  <!-- 4 · continuity -->
+  <g filter="url(#shadow)"><rect x="60" y="946" width="1060" height="160" rx="18" fill="#eef2ff" stroke="#c7d2fe" stroke-width="1.6"/></g>
+  <circle cx="100" cy="984" r="20" fill="#4f46e5"/>
+  <text x="100" y="991" text-anchor="middle" class="badge">4</text>
+  <text x="136" y="991" class="cardTitle">Continuity equation gives the vertical velocity</text>
+  <text x="1098" y="990" text-anchor="end" class="tag" fill="#4f46e5">CONTINUITY</text>
+  <line x1="82" y1="1008" x2="1098" y2="1008" stroke="#c7d2fe" stroke-width="1.4"/>
+  <text x="590" y="1048" text-anchor="middle" class="formula">w(k) = w(k−1) − (∂u/∂x + ∂v/∂y)<tspan baseline-shift="sub" font-size="13">k−1</tspan><tspan baseline-shift="baseline"> Δz(k−1),   w(0) = 0</tspan></text>
+  <text x="590" y="1084" text-anchor="middle" class="note">capped at 10⁻⁶ m s⁻¹; used for diagnosis and weak vertical advection only</text>
+
+  <path d="M590 1106 V1142" class="arrowLine"/>
+
+  <!-- 5 · tracers -->
+  <g filter="url(#shadow)"><rect x="60" y="1142" width="1060" height="200" rx="18" fill="#fffbeb" stroke="#fde68a" stroke-width="1.6"/></g>
+  <circle cx="100" cy="1180" r="20" fill="#d97706"/>
+  <text x="100" y="1187" text-anchor="middle" class="badge">5</text>
+  <text x="136" y="1187" class="cardTitle">Tracers: sub-cycled upwind advection and explicit diffusion</text>
+  <text x="1098" y="1186" text-anchor="end" class="tag" fill="#b45309">TRACERS</text>
+  <line x1="82" y1="1204" x2="1098" y2="1204" stroke="#fde68a" stroke-width="1.4"/>
+  <text x="590" y="1244" text-anchor="middle" class="formula">∂T/∂t = −(u·∇<tspan baseline-shift="sub" font-size="13">h</tspan><tspan baseline-shift="baseline">T + w ∂T/∂z) + κ</tspan><tspan baseline-shift="sub" font-size="13">h</tspan><tspan baseline-shift="baseline">∇²T + ∂/∂z(κ</tspan><tspan baseline-shift="sub" font-size="13">v</tspan><tspan baseline-shift="baseline"> ∂T/∂z)</tspan></text>
+  <text x="590" y="1280" text-anchor="middle" class="note">the salinity equation has the same form; upwind advection is positive-definite, diffusion is second-order central</text>
+  <text x="590" y="1316" text-anchor="middle" class="note">Δt is split into at most 16 sub-steps from a velocity-bound estimate, keeping explicit advection stable</text>
+
+  <path d="M590 1342 V1378" class="arrowLine"/>
+
+  <!-- 6 · convective adjustment -->
+  <g filter="url(#shadow)"><rect x="60" y="1378" width="1060" height="160" rx="18" fill="#fff1f2" stroke="#fecdd3" stroke-width="1.6"/></g>
+  <circle cx="100" cy="1416" r="20" fill="#e11d48"/>
+  <text x="100" y="1423" text-anchor="middle" class="badge">6</text>
+  <text x="136" y="1423" class="cardTitle">Convective adjustment removes static instability</text>
+  <text x="1098" y="1422" text-anchor="end" class="tag" fill="#be123c">CONVECTION</text>
+  <line x1="82" y1="1440" x2="1098" y2="1440" stroke="#fecdd3" stroke-width="1.4"/>
+  <text x="590" y="1480" text-anchor="middle" class="formula">if ρ(k) &lt; ρ(k−1):  mix T and S of the two layers, weighted by Δz</text>
+  <text x="590" y="1516" text-anchor="middle" class="note">the scan repeats until potential density no longer decreases with depth</text>
+
+  <path d="M590 1538 V1574" class="arrowLine"/>
+
+  <!-- 7 · deep-ocean heat flux -->
+  <g filter="url(#shadow)"><rect x="60" y="1574" width="1060" height="180" rx="18" fill="#f0fdf4" stroke="#a7f3d0" stroke-width="1.6"/></g>
+  <circle cx="100" cy="1612" r="20" fill="#059669"/>
+  <text x="100" y="1619" text-anchor="middle" class="badge">7</text>
+  <text x="136" y="1619" class="cardTitle">Diagnose the deep-ocean heat flux and hand it back to the slab</text>
+  <text x="1098" y="1618" text-anchor="end" class="tag" fill="#059669">COUPLING</text>
+  <line x1="82" y1="1636" x2="1098" y2="1636" stroke="#a7f3d0" stroke-width="1.4"/>
+  <text x="590" y="1682" text-anchor="middle" class="formulaHero">Q<tspan baseline-shift="sub" font-size="14">deep</tspan><tspan baseline-shift="baseline"> = ρ₀ c</tspan><tspan baseline-shift="sub" font-size="14">p</tspan><tspan baseline-shift="baseline"> (T</tspan><tspan baseline-shift="sub" font-size="14">new</tspan><tspan baseline-shift="super" font-size="13">(0)</tspan><tspan baseline-shift="baseline"> − T</tspan><tspan baseline-shift="sub" font-size="14">s</tspan><tspan baseline-shift="baseline">) h</tspan><tspan baseline-shift="sub" font-size="14">0</tspan><tspan baseline-shift="baseline"> / Δt</tspan></text>
+  <text x="590" y="1722" text-anchor="middle" class="note">written to ocean.deep_ocean_flux and consumed by the slab in the same coupling instant (clamped to ±2000 W m⁻²)</text>
+</svg>

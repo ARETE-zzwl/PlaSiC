@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1810" viewBox="0 0 1080 1810" role="img" aria-labelledby="title desc">
+  <title id="title">Surface-flux parameterization: algorithm flow</title>
+  <desc id="desc">Starting from the lowest model level and the surface state, the flow builds the near-surface air state, the bulk Richardson number, the neutral exchange coefficient and the stability functions, computes the momentum, sensible heat and moisture fluxes, and finally updates the lowest model level implicitly with water limits and frictional-dissipation heating.</desc>
+
+  <defs>
+    <marker id="arrow" markerWidth="14" markerHeight="14" refX="13.5" refY="7" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L14,7 L0,14 Z" fill="#94a3b8"/>
+    </marker>
+    <marker id="arrowFb" markerWidth="12" markerHeight="12" refX="11.5" refY="6" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#3b82f6"/>
+    </marker>
+    <filter id="shadow" x="-8%" y="-8%" width="116%" height="124%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.05"/>
+    </filter>
+    <style>
+      .title{font:700 29px Arial, 'Helvetica Neue', Helvetica, sans-serif;fill:#0f172a}
+      .subtitle{font:400 16px Arial, 'Helvetica Neue', Helvetica, sans-serif;fill:#64748b}
+      .cardTitle{font:700 19.5px Arial, 'Helvetica Neue', Helvetica, sans-serif;fill:#0f172a}
+      .nodeTitle{font:700 17px Arial, 'Helvetica Neue', Helvetica, sans-serif;fill:#0f172a}
+      .badge{font:700 19px Arial, 'Helvetica Neue', Helvetica, sans-serif;fill:#fff}
+      .tag{font:700 11.5px Arial, 'Helvetica Neue', Helvetica, sans-serif;letter-spacing:1.4px}
+      .formula{font:500 19px Arial, 'Cambria Math', 'STIX Two Math', 'Times New Roman', serif;fill:#1e293b}
+      .formulaHero{font:700 21.5px Arial, 'Cambria Math', 'STIX Two Math', 'Times New Roman', serif;fill:#0f172a}
+      .formulaSm{font:500 16.5px Arial, 'Cambria Math', 'STIX Two Math', 'Times New Roman', serif;fill:#1e293b}
+      .note{font:400 15px Arial, 'Helvetica Neue', Helvetica, sans-serif;fill:#64748b}
+      .arrowLine{fill:none;stroke:#94a3b8;stroke-width:3;marker-end:url(#arrow)}
+      .feedbackLine{fill:none;stroke:#3b82f6;stroke-width:2.4;stroke-dasharray:7 7;stroke-linecap:round;marker-end:url(#arrowFb)}
+      .fbLabel{font:700 11.5px Arial, 'Helvetica Neue', Helvetica, sans-serif;fill:#60a5fa;letter-spacing:1.6px}
+    </style>
+  </defs>
+
+  <!-- Step 1: inputs -->
+  <g filter="url(#shadow)"><rect x="60" y="122" width="960" height="160" rx="18" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.6"/></g>
+  <circle cx="100" cy="160" r="20" fill="#2563eb"/>
+  <text x="100" y="167" text-anchor="middle" class="badge">1</text>
+  <text x="136" y="167" class="cardTitle">Read the lowest model level and the surface state</text>
+  <text x="998" y="166" text-anchor="end" class="tag" fill="#2563eb">INPUT</text>
+  <line x1="82" y1="184" x2="998" y2="184" stroke="#bfdbfe" stroke-width="1.4"/>
+  <text x="540" y="224" text-anchor="middle" class="formula" xml:space="preserve">Air: T₁, q₁, u₁, v₁   ·   Surface: Tₛ, qₛ, z₀, C<tspan baseline-shift="sub" font-size="13">w</tspan></text>
+  <text x="540" y="260" text-anchor="middle" class="note">U² ← max(U²<tspan baseline-shift="sub" font-size="11">min</tspan><tspan baseline-shift="baseline">, u₁² + v₁²) — weak winds still keep a background exchange</tspan></text>
+
+  <path d="M540 282 V318" class="arrowLine"/>
+
+  <!-- Step 2: reference state -->
+  <g filter="url(#shadow)"><rect x="60" y="318" width="960" height="196" rx="18" fill="#f0fdfa" stroke="#99f6e4" stroke-width="1.6"/></g>
+  <circle cx="100" cy="356" r="20" fill="#0d9488"/>
+  <text x="100" y="363" text-anchor="middle" class="badge">2</text>
+  <text x="136" y="363" class="cardTitle">Map the lowest-level state to the surface reference height</text>
+  <text x="998" y="362" text-anchor="end" class="tag" fill="#0d9488">REFERENCE STATE</text>
+  <line x1="82" y1="380" x2="998" y2="380" stroke="#99f6e4" stroke-width="1.4"/>
+  <text x="540" y="420" text-anchor="middle" class="formula" xml:space="preserve">Tₐ⁽ˢ⁾ = T₁σ₁⁻ᵏ   ·   Tᵥ = T[1 + (Rᵥ/R<tspan baseline-shift="sub" font-size="13">d</tspan><tspan baseline-shift="baseline"> − 1)q]</tspan></text>
+  <text x="540" y="456" text-anchor="middle" class="formula">z₁ ≈ −(R<tspan baseline-shift="sub" font-size="13">d</tspan><tspan baseline-shift="baseline">/2g)(T₁ + Tₐ⁽ˢ⁾) ln σ₁</tspan></text>
+
+  <path d="M540 514 V550" class="arrowLine"/>
+
+  <!-- Step 3: bulk Richardson number -->
+  <g filter="url(#shadow)"><rect x="60" y="550" width="960" height="190" rx="18" fill="#fffbeb" stroke="#fde68a" stroke-width="1.6"/></g>
+  <circle cx="100" cy="588" r="20" fill="#d97706"/>
+  <text x="100" y="595" text-anchor="middle" class="badge">3</text>
+  <text x="136" y="595" class="cardTitle">Diagnose the bulk Richardson number: buoyancy versus shear</text>
+  <text x="998" y="594" text-anchor="end" class="tag" fill="#d97706">STABILITY</text>
+  <line x1="82" y1="612" x2="998" y2="612" stroke="#fde68a" stroke-width="1.4"/>
+  <text x="540" y="662" text-anchor="middle" class="formulaHero">Ri<tspan baseline-shift="sub" font-size="15">B</tspan><tspan baseline-shift="baseline"> = g z₁ (Tᵥ,ₐ⁽ˢ⁾ − Tᵥ,ₛ) / (Tᵥ,ₐ⁽ˢ⁾ U²)</tspan></text>
+  <text x="360" y="714" text-anchor="middle" class="formulaSm">Ri<tspan baseline-shift="sub" font-size="12">B</tspan><tspan baseline-shift="baseline"> ≤ 0: unstable — turbulence enhanced</tspan></text>
+  <text x="720" y="714" text-anchor="middle" class="formulaSm">Ri<tspan baseline-shift="sub" font-size="12">B</tspan><tspan baseline-shift="baseline"> &gt; 0: stable — turbulence suppressed</tspan></text>
+
+  <path d="M540 740 V776" class="arrowLine"/>
+
+  <!-- Step 4: exchange coefficients -->
+  <g filter="url(#shadow)"><rect x="60" y="776" width="960" height="286" rx="18" fill="#f5f3ff" stroke="#ddd6fe" stroke-width="1.6"/></g>
+  <circle cx="100" cy="814" r="20" fill="#7c3aed"/>
+  <text x="100" y="821" text-anchor="middle" class="badge">4</text>
+  <text x="136" y="821" class="cardTitle">Combine the roughness log law with the stability functions</text>
+  <text x="998" y="820" text-anchor="end" class="tag" fill="#7c3aed">COEFFICIENTS</text>
+  <line x1="82" y1="838" x2="998" y2="838" stroke="#ddd6fe" stroke-width="1.4"/>
+  <text x="540" y="882" text-anchor="middle" class="formulaHero">C<tspan baseline-shift="sub" font-size="15">N</tspan><tspan baseline-shift="baseline"> = [ k / ln(1 + z₁/z₀) ]²</tspan></text>
+  <rect x="110" y="904" width="418" height="96" rx="12" fill="#fff" stroke="#ddd6fe" stroke-width="1.4"/>
+  <text x="319" y="938" text-anchor="middle" class="nodeTitle">Unstable:  fₘ, fₕ &gt; 1</text>
+  <text x="319" y="970" text-anchor="middle" class="note">Free convection boosts heat over a warm sea</text>
+  <rect x="552" y="904" width="418" height="96" rx="12" fill="#fff" stroke="#ddd6fe" stroke-width="1.4"/>
+  <text x="761" y="938" text-anchor="middle" class="nodeTitle">Stable:  0 &lt; fₘ, fₕ &lt; 1</text>
+  <text x="761" y="970" text-anchor="middle" class="note">Buoyancy weakens the vertical exchange</text>
+  <text x="540" y="1038" text-anchor="middle" class="formula" xml:space="preserve">Vₘ = U C<tspan baseline-shift="sub" font-size="13">N</tspan><tspan baseline-shift="baseline"> fₘ   ·   Vₕ = U C</tspan><tspan baseline-shift="sub" font-size="13">N</tspan><tspan baseline-shift="baseline"> fₕ</tspan></text>
+
+  <path d="M540 1062 V1098" class="arrowLine"/>
+
+  <!-- Step 5: the three fluxes -->
+  <g filter="url(#shadow)"><rect x="60" y="1098" width="960" height="256" rx="18" fill="#ecfeff" stroke="#a5f3fc" stroke-width="1.6"/></g>
+  <circle cx="100" cy="1136" r="20" fill="#0891b2"/>
+  <text x="100" y="1143" text-anchor="middle" class="badge">5</text>
+  <text x="136" y="1143" class="cardTitle">Turn exchange velocities and state contrasts into three fluxes</text>
+  <text x="998" y="1142" text-anchor="end" class="tag" fill="#0891b2">FLUXES</text>
+  <line x1="82" y1="1160" x2="998" y2="1160" stroke="#a5f3fc" stroke-width="1.4"/>
+  <rect x="110" y="1174" width="276" height="156" rx="12" fill="#fff" stroke="#a5f3fc" stroke-width="1.4"/>
+  <text x="248" y="1210" text-anchor="middle" class="nodeTitle">Momentum</text>
+  <text x="248" y="1246" text-anchor="middle" class="formulaSm">τₓ = ρₛVₘu₁</text>
+  <text x="248" y="1278" text-anchor="middle" class="formulaSm">τ<tspan baseline-shift="sub" font-size="11.5">y</tspan><tspan baseline-shift="baseline"> = ρₛVₘv₁</tspan></text>
+  <rect x="402" y="1174" width="276" height="156" rx="12" fill="#fff" stroke="#a5f3fc" stroke-width="1.4"/>
+  <text x="540" y="1210" text-anchor="middle" class="nodeTitle">Sensible heat</text>
+  <text x="540" y="1246" text-anchor="middle" class="formulaSm">H = ρₛcₚVₕ(Tₐ⁽ˢ⁾ − Tₛ)</text>
+  <text x="540" y="1278" text-anchor="middle" class="formulaSm">cₚ = c<tspan baseline-shift="sub" font-size="11.5">pd</tspan><tspan baseline-shift="baseline">(1 + α</tspan><tspan baseline-shift="sub" font-size="11.5">q</tspan><tspan baseline-shift="baseline">q₁)</tspan></text>
+  <rect x="694" y="1174" width="276" height="156" rx="12" fill="#fff" stroke="#a5f3fc" stroke-width="1.4"/>
+  <text x="832" y="1210" text-anchor="middle" class="nodeTitle">Moisture &amp; latent heat</text>
+  <text x="832" y="1246" text-anchor="middle" class="formulaSm">E = ρₛVₕC<tspan baseline-shift="sub" font-size="11.5">w</tspan><tspan baseline-shift="baseline">(q₁ − qₛ)</tspan></text>
+  <text x="832" y="1278" text-anchor="middle" class="formulaSm">LE = L·E</text>
+  <text x="832" y="1308" text-anchor="middle" class="note">Wetness caps potential evaporation</text>
+
+  <path d="M540 1354 V1390" class="arrowLine"/>
+
+  <!-- Step 6: implicit update -->
+  <g filter="url(#shadow)"><rect x="60" y="1390" width="960" height="230" rx="18" fill="#fff7ed" stroke="#fed7aa" stroke-width="1.6"/></g>
+  <circle cx="100" cy="1428" r="20" fill="#ea580c"/>
+  <text x="100" y="1435" text-anchor="middle" class="badge">6</text>
+  <text x="136" y="1435" class="cardTitle">Update the lowest model level implicitly</text>
+  <text x="998" y="1434" text-anchor="end" class="tag" fill="#ea580c">IMPLICIT UPDATE</text>
+  <line x1="82" y1="1452" x2="998" y2="1452" stroke="#fed7aa" stroke-width="1.4"/>
+  <text x="540" y="1496" text-anchor="middle" class="formula" xml:space="preserve">u⁺ = u⁻/(1 + λₘ)   ·   T⁺ = (T⁻ + λₕTₛ)/(1 + λₕσ₁⁻ᵏ)</text>
+  <text x="540" y="1532" text-anchor="middle" class="formula">q⁺ = (q⁻ + λ<tspan baseline-shift="sub" font-size="13">q</tspan><tspan baseline-shift="baseline">qₛ)/(1 + λ</tspan><tspan baseline-shift="sub" font-size="13">q</tspan><tspan baseline-shift="baseline">)</tspan></text>
+  <text x="540" y="1572" text-anchor="middle" class="note">The increment is capped by the water the surface can supply</text>
+  <text x="540" y="1600" text-anchor="middle" class="note">The implicit form stays stable under strong exchange — friction can never reverse the wind</text>
+
+  <path d="M540 1620 V1656" class="arrowLine"/>
+
+  <!-- Step 7: outputs -->
+  <g filter="url(#shadow)"><rect x="60" y="1656" width="960" height="110" rx="18" fill="#f0fdf4" stroke="#a7f3d0" stroke-width="1.6"/></g>
+  <circle cx="104" cy="1711" r="22" fill="#059669"/>
+  <text x="104" y="1718" text-anchor="middle" class="badge">7</text>
+  <text x="150" y="1704" class="cardTitle">Wind stress, sensible heat, evaporation / latent heat, friction velocity</text>
+  <text x="998" y="1703" text-anchor="end" class="tag" fill="#059669">OUTPUT</text>
+  <text x="150" y="1740" class="note">Optional frictional-dissipation heating returns the lost kinetic energy to the atmosphere</text>
+
+  <!-- feedback into the next time step -->
+  <path d="M1020 1711 H1036 Q1050 1711 1050 1697 V216 Q1050 202 1036 202 H1020" class="feedbackLine"/>
+  <text x="1066" y="956" text-anchor="middle" transform="rotate(-90 1066 956)" class="fbLabel">NEXT TIME STEP</text>
+</svg>

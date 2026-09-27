@@ -1,0 +1,216 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="2550" viewBox="0 0 1000 2550" role="img" aria-labelledby="title desc">
+  <title id="title">Detailed algorithm flow of one physical time step of the PlaSiC land module</title>
+  <desc id="desc">The flow starts from atmospheric fluxes driven by the old land boundary and proceeds through calendar interpolation, rain and snow partitioning, effective snow and soil thermal properties, surface temperature and snowmelt, implicit five-layer soil heat diffusion, soil water bucket capacity truncation, and diagnosis of the new atmospheric boundary. The diagram also shows the prognostic and prescribed-mode branches, the melting-point test, and the snow reservoir cap.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#334155"/>
+    </marker>
+    <marker id="arrowBlue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrowGray" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#64748b"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .title { font: 700 34px Arial, 'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 18px Arial, 'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif; fill: #475569; }
+      .module { font: 700 17px Arial, 'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif; letter-spacing: 0.6px; }
+      .boxTitle { font: 700 22px Arial, 'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif; fill: #0f172a; }
+      .nodeTitle { font: 700 20px Arial, 'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif; fill: #0f172a; }
+      .body { font: 400 18px Arial, 'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif; fill: #334155; }
+      .small { font: 400 16px Arial, 'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif; fill: #475569; }
+      .formula { font: 500 20px Arial, 'Cambria Math', 'STIX Two Math', 'Times New Roman', 'PingFang SC', 'Microsoft YaHei', serif; fill: #0f172a; }
+      .formulaStrong { font: 700 22px Arial, 'Cambria Math', 'STIX Two Math', 'Times New Roman', 'PingFang SC', 'Microsoft YaHei', serif; fill: #0f172a; }
+      .step { font: 700 21px Arial, 'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif; fill: #ffffff; }
+      .arrow { fill: none; stroke: #334155; stroke-width: 3; marker-end: url(#arrow); }
+      .feedback { fill: none; stroke: #2563eb; stroke-width: 3; stroke-dasharray: 9 7; marker-end: url(#arrowBlue); }
+      .bypass { fill: none; stroke: #64748b; stroke-width: 2.5; stroke-dasharray: 8 7; marker-end: url(#arrowGray); }
+      .guide { fill: none; stroke: #94a3b8; stroke-width: 2; }
+    </style>
+  </defs>
+
+  <rect width="1000" height="2550" rx="24" fill="#f8fafc"/>
+  <text x="500" y="48" text-anchor="middle" class="title">Energy, snow and soil water in one land update</text>
+  <text x="500" y="80" text-anchor="middle" class="subtitle">Solid: prognostic path　Gray dashed: prescribed bypass　Blue dashed: next-step feedback</text>
+  <text x="500" y="106" text-anchor="middle" class="small">State stores: Tₛ, T₁…T₅, snow water equivalent S, soil water W</text>
+
+  <!-- 1. Atmosphere forcing from old boundary -->
+  <g filter="url(#shadow)">
+    <rect x="70" y="130" width="860" height="132" rx="18" fill="#fff7ed" stroke="#f97316" stroke-width="2.5"/>
+    <circle cx="112" cy="190" r="25" fill="#f97316"/>
+    <text x="112" y="198" text-anchor="middle" class="step">1</text>
+    <text x="156" y="169" class="boxTitle">Atmosphere reads old Bⁿ and computes this step's fluxes</text>
+    <text x="156" y="205" class="formula">Qₐⁿ = Rₙ + H + LE　　<tspan class="small">(Qₐ &gt; 0: land gains heat)</tspan></text>
+    <text x="156" y="237" class="body">Also passed in: total P, solid Pₛ and E (E &lt; 0 when evaporating)</text>
+    <text x="900" y="156" text-anchor="end" class="module" fill="#c2410c">ATMOSPHERE</text>
+  </g>
+  <path d="M500 262 L500 300" class="arrow"/>
+
+  <!-- 2. Calendar interpolation and switches -->
+  <g filter="url(#shadow)">
+    <rect x="70" y="304" width="860" height="164" rx="18" fill="#eff6ff" stroke="#3b82f6" stroke-width="2.5"/>
+    <circle cx="112" cy="360" r="25" fill="#3b82f6"/>
+    <text x="112" y="368" text-anchor="middle" class="step">2</text>
+    <text x="156" y="345" class="boxTitle">Interpolate monthly means; read the two mode switches</text>
+    <text x="156" y="382" class="body">Always interpolate α<tspan baseline-shift="sub" font-size="12">b</tspan><tspan baseline-shift="baseline">; prescribed modes also interpolate T</tspan><tspan baseline-shift="sub" font-size="12">clim</tspan><tspan baseline-shift="baseline"> or W</tspan><tspan baseline-shift="sub" font-size="12">clim</tspan></text>
+    <rect x="156" y="402" width="326" height="44" rx="10" fill="#ffffff" stroke="#93c5fd"/>
+    <text x="319" y="430" text-anchor="middle" class="body" font-size="17">Prognostic temperature? Default: yes</text>
+    <rect x="518" y="402" width="326" height="44" rx="10" fill="#ffffff" stroke="#93c5fd"/>
+    <text x="681" y="430" text-anchor="middle" class="body" font-size="17">Prognostic soil water? Default: yes</text>
+    <text x="900" y="332" text-anchor="end" class="module" fill="#1d4ed8">LAND DRIVER</text>
+  </g>
+  <path d="M500 468 L500 516" class="arrow"/>
+
+  <!-- Prescribed-temperature bypass -->
+  <path d="M156 424 C36 424 36 1718 50 1718" class="bypass"/>
+
+  <!-- 3. Snow and energy -->
+  <g filter="url(#shadow)">
+    <rect x="58" y="520" width="884" height="1080" rx="22" fill="#fff7ed" stroke="#f97316" stroke-width="2.5"/>
+    <circle cx="102" cy="566" r="25" fill="#f97316"/>
+    <text x="102" y="574" text-anchor="middle" class="step">3</text>
+    <text x="146" y="574" class="boxTitle">Prognostic temperature path: snow, energy and soil heat</text>
+    <text x="910" y="548" text-anchor="end" class="module" fill="#c2410c">LAND_TANDS</text>
+
+    <!-- 3a snow mass -->
+    <rect x="92" y="610" width="816" height="112" rx="15" fill="#ffffff" stroke="#fdba74" stroke-width="2"/>
+    <text x="122" y="643" class="nodeTitle" fill="#c2410c">3a</text>
+    <text x="166" y="643" class="nodeTitle">Update the snow reservoir before any melting</text>
+    <text x="500" y="679" text-anchor="middle" class="formula">S* = max[0, Sⁿ + Δt(Pₛ + 𝟙<tspan baseline-shift="sub" font-size="13">S&gt;0</tspan><tspan baseline-shift="baseline">E)]</tspan></text>
+    <text x="500" y="708" text-anchor="middle" class="small">F<tspan baseline-shift="sub" font-size="11">W</tspan><tspan baseline-shift="baseline"> = E + P − (S*−Sⁿ)/Δt; snowfall stays in the reservoir, rain enters the soil</tspan></text>
+    <path d="M500 722 L500 748" class="arrow"/>
+
+    <!-- 3b effective properties -->
+    <rect x="92" y="752" width="816" height="150" rx="15" fill="#ffffff" stroke="#fdba74" stroke-width="2"/>
+    <text x="122" y="785" class="nodeTitle" fill="#c2410c">3b</text>
+    <text x="166" y="785" class="nodeTitle">Convert water equivalent to snow depth; rebuild surface properties</text>
+    <text x="500" y="822" text-anchor="middle" class="formula">hₛ=(ρ<tspan baseline-shift="sub" font-size="13">w</tspan><tspan baseline-shift="baseline">/ρ</tspan><tspan baseline-shift="sub" font-size="13">s</tspan><tspan baseline-shift="baseline">)S*　│　h</tspan><tspan baseline-shift="sub" font-size="13">mix</tspan><tspan baseline-shift="baseline">=min(hₛ,hₘ)　│　h</tspan><tspan baseline-shift="sub" font-size="13">ins</tspan><tspan baseline-shift="baseline">=min(hₛ,1 m)−h</tspan><tspan baseline-shift="sub" font-size="13">mix</tspan></text>
+    <text x="500" y="859" text-anchor="middle" class="body">Harmonic mixing gives the surface Cₘ and the first combined layer h₁*, K₁*, C₁*</text>
+    <text x="500" y="887" text-anchor="middle" class="small">Thin snow mainly alters the heat capacity; thick snow adds surface-to-soil resistance</text>
+    <path d="M500 902 L500 928" class="arrow"/>
+
+    <!-- 3c trial temperature -->
+    <rect x="92" y="932" width="816" height="128" rx="15" fill="#ffffff" stroke="#fdba74" stroke-width="2"/>
+    <text x="122" y="966" class="nodeTitle" fill="#c2410c">3c</text>
+    <text x="166" y="966" class="nodeTitle">Semi-implicit trial surface temperature and downward conduction</text>
+    <text x="500" y="1005" text-anchor="middle" class="formula">Tₛ* = [(Cₘhₘ/Δt)Tₛⁿ + Qₐⁿ + (2K₁*/h₁*)T₁ⁿ] / [(Cₘhₘ/Δt)+(2K₁*/h₁*)]</text>
+    <text x="500" y="1040" text-anchor="middle" class="formula">G = (2K₁*/h₁*)(Tₛ*−T₁ⁿ)</text>
+    <path d="M500 1060 L500 1090" class="arrow"/>
+
+    <!-- Melt decision -->
+    <path d="M500 1094 L664 1162 L500 1230 L336 1162 Z" fill="#ffffff" stroke="#ea580c" stroke-width="2.5"/>
+    <text x="500" y="1153" text-anchor="middle" class="nodeTitle">S* &gt; 0 and Tₛ* &gt; Tₘ?</text>
+    <text x="500" y="1184" text-anchor="middle" class="small">snow cannot pass Tₘ</text>
+
+    <path d="M664 1162 L696 1162" class="arrow"/>
+    <text x="674" y="1148" class="small">yes</text>
+    <rect x="700" y="1088" width="208" height="222" rx="15" fill="#ffedd5" stroke="#f97316" stroke-width="2"/>
+    <text x="804" y="1121" text-anchor="middle" class="nodeTitle">Clamp and melt</text>
+    <text x="804" y="1156" text-anchor="middle" class="formula">Tₛ=Tₘ</text>
+    <text x="804" y="1191" text-anchor="middle" class="formula">Qₘ=max(0, surplus)</text>
+    <text x="804" y="1226" text-anchor="middle" class="formula">ΔS<tspan baseline-shift="sub" font-size="13">melt</tspan><tspan baseline-shift="baseline">≤S*</tspan></text>
+    <text x="804" y="1260" text-anchor="middle" class="small">meltwater joins F<tspan baseline-shift="sub" font-size="11">W</tspan></text>
+    <text x="804" y="1288" text-anchor="middle" class="small">if all gone: re-solve Tₛ</text>
+
+    <path d="M500 1230 L500 1322" class="arrow"/>
+    <text x="515" y="1262" class="small">no: Tₛ=Tₛ*</text>
+    <path d="M804 1310 L804 1332 L500 1332" class="guide"/>
+
+    <!-- 3d soil solver -->
+    <rect x="92" y="1336" width="816" height="124" rx="15" fill="#ffffff" stroke="#fdba74" stroke-width="2"/>
+    <text x="122" y="1370" class="nodeTitle" fill="#c2410c">3d</text>
+    <text x="166" y="1370" class="nodeTitle">Implicit five-layer soil heat diffusion</text>
+    <text x="500" y="1407" text-anchor="middle" class="formula">Cₖhₖ(Tₖⁿ⁺¹−Tₖⁿ)/Δt = G<tspan baseline-shift="sub" font-size="13">k−1/2</tspan><tspan baseline-shift="baseline">ⁿ⁺¹−G</tspan><tspan baseline-shift="sub" font-size="13">k+1/2</tspan><tspan baseline-shift="baseline">ⁿ⁺¹</tspan></text>
+    <text x="500" y="1441" text-anchor="middle" class="small">Top receives G, zero flux at the bottom; tridiagonal system solved directly in O(N)</text>
+    <path d="M500 1460 L500 1484" class="arrow"/>
+
+    <!-- 3e snow cap -->
+    <rect x="92" y="1488" width="816" height="82" rx="15" fill="#ffffff" stroke="#fdba74" stroke-width="2"/>
+    <text x="122" y="1521" class="nodeTitle" fill="#c2410c">3e</text>
+    <text x="166" y="1521" class="nodeTitle">Check the snow reservoir cap Sₘₐₓ</text>
+    <text x="500" y="1554" text-anchor="middle" class="small">Excess becomes meltwater with latent-heat cooling; distinct from the 1 m thermal cap</text>
+  </g>
+
+  <path d="M500 1600 L500 1642" class="arrow"/>
+
+  <!-- 4. Hydrology -->
+  <g filter="url(#shadow)">
+    <rect x="58" y="1646" width="884" height="436" rx="22" fill="#eff6ff" stroke="#3b82f6" stroke-width="2.5"/>
+    <circle cx="102" cy="1690" r="25" fill="#3b82f6"/>
+    <text x="102" y="1698" text-anchor="middle" class="step">4</text>
+    <text x="146" y="1698" class="boxTitle">Soil water: update the bucket and truncate to capacity</text>
+    <text x="910" y="1675" text-anchor="end" class="module" fill="#1d4ed8">LAND_UPDATE_SOIL_WATER</text>
+
+    <rect x="92" y="1732" width="816" height="80" rx="14" fill="#ffffff" stroke="#93c5fd" stroke-width="2"/>
+    <text x="500" y="1765" text-anchor="middle" class="formulaStrong">F<tspan baseline-shift="sub" font-size="14">W</tspan><tspan baseline-shift="baseline"> = E + P − dS/dt</tspan></text>
+    <text x="500" y="1795" text-anchor="middle" class="small">Rain and meltwater are positive; snowfall left in the reservoir cancels via dS/dt</text>
+
+    <path d="M500 1812 L500 1836" class="arrow"/>
+    <path d="M500 1840 L660 1892 L500 1944 L340 1892 Z" fill="#ffffff" stroke="#2563eb" stroke-width="2.5"/>
+    <text x="500" y="1884" text-anchor="middle" class="nodeTitle">Prognostic soil water?</text>
+    <text x="500" y="1913" text-anchor="middle" class="small">default: yes</text>
+
+    <path d="M340 1892 L314 1892" class="arrow"/>
+    <text x="326" y="1877" class="small">yes</text>
+    <rect x="70" y="1840" width="240" height="174" rx="14" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+    <text x="190" y="1874" text-anchor="middle" class="nodeTitle">Bucket update</text>
+    <text x="190" y="1911" text-anchor="middle" class="formula">W*=Wⁿ+ΔtF<tspan baseline-shift="sub" font-size="13">W</tspan></text>
+    <text x="190" y="1949" text-anchor="middle" class="small">excess above Wₘₐₓ removed</text>
+    <text x="190" y="1987" text-anchor="middle" class="formula">Wⁿ⁺¹=clip(W*,0,W<tspan baseline-shift="sub" font-size="13">max</tspan><tspan baseline-shift="baseline">)</tspan></text>
+
+    <path d="M660 1892 L686 1892" class="arrow"/>
+    <text x="650" y="1877" class="small">no</text>
+    <rect x="690" y="1840" width="240" height="174" rx="14" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2"/>
+    <text x="810" y="1874" text-anchor="middle" class="nodeTitle">Prescribed water</text>
+    <text x="810" y="1914" text-anchor="middle" class="formula">W=W<tspan baseline-shift="sub" font-size="13">clim</tspan></text>
+    <text x="810" y="1952" text-anchor="middle" class="small">this step's F<tspan baseline-shift="sub" font-size="11">W</tspan><tspan baseline-shift="baseline"> is unused</tspan></text>
+    <text x="810" y="1988" text-anchor="middle" class="small">no capacity truncation</text>
+
+    <path d="M190 2014 L190 2044 L500 2044" class="guide"/>
+    <path d="M810 2014 L810 2044 L500 2044" class="guide"/>
+  </g>
+
+  <path d="M500 2082 L500 2122" class="arrow"/>
+
+  <!-- 5. Boundary diagnostics -->
+  <g filter="url(#shadow)">
+    <rect x="70" y="2126" width="860" height="210" rx="18" fill="#f0fdf4" stroke="#22c55e" stroke-width="2.5"/>
+    <circle cx="112" cy="2178" r="25" fill="#22c55e"/>
+    <text x="112" y="2186" text-anchor="middle" class="step">5</text>
+    <text x="156" y="2165" class="boxTitle">Diagnose the boundary Bⁿ⁺¹ the atmosphere reads</text>
+    <text x="900" y="2152" text-anchor="end" class="module" fill="#15803d">SURFACE EXCHANGE</text>
+    <text x="500" y="2214" text-anchor="middle" class="formula">qₛ*=q<tspan baseline-shift="sub" font-size="13">sat</tspan><tspan baseline-shift="baseline">(Tₛ,pₛ)　│　β=min[1,W/(0.4W</tspan><tspan baseline-shift="sub" font-size="13">max</tspan><tspan baseline-shift="baseline">)]</tspan></text>
+    <text x="500" y="2252" text-anchor="middle" class="formula">α=α<tspan baseline-shift="sub" font-size="13">b</tspan><tspan baseline-shift="baseline">+[α</tspan><tspan baseline-shift="sub" font-size="13">snow</tspan><tspan baseline-shift="baseline">(Tₛ)−α</tspan><tspan baseline-shift="sub" font-size="13">b</tspan><tspan baseline-shift="baseline">]S/(S+0.01)　│　z₀=z</tspan><tspan baseline-shift="sub" font-size="13">0,clim</tspan></text>
+    <text x="500" y="2291" text-anchor="middle" class="body">β=1 with snow or glacier; glacier points override with a higher albedo floor</text>
+    <text x="500" y="2321" text-anchor="middle" class="small">Outputs Tₛ, qₛ*, β, α, z₀, plus five-layer soil temperatures and snow</text>
+  </g>
+
+  <path d="M500 2336 L500 2378" class="arrow"/>
+
+  <!-- 6. Feedback -->
+  <g filter="url(#shadow)">
+    <rect x="188" y="2382" width="742" height="92" rx="18" fill="#fff7ed" stroke="#f97316" stroke-width="2.5"/>
+    <circle cx="230" cy="2428" r="24" fill="#f97316"/>
+    <text x="230" y="2436" text-anchor="middle" class="step">6</text>
+    <text x="274" y="2421" class="boxTitle">The next atmosphere step recomputes fluxes with Bⁿ⁺¹</text>
+  </g>
+
+  <path d="M188 2428 C24 2428 24 190 70 190" class="feedback"/>
+  <text x="28" y="2260" class="small" fill="#1d4ed8" transform="rotate(-90 28 2260)">Tₛ, qₛ*, β, α, z₀ feed back to the next step</text>
+
+  <text x="500" y="2518" text-anchor="middle" class="small">NOTE: water above Wₘₐₓ leaves the model system</text>
+
+  <!-- Prescribed-temperature bypass callout (drawn last so it floats above the flow) -->
+  <g filter="url(#shadow)">
+    <rect x="18" y="1081" width="126" height="162" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+    <text x="81" y="1105" text-anchor="middle" class="small">Temperature not</text>
+    <text x="81" y="1127" text-anchor="middle" class="small">prognostic:</text>
+    <text x="81" y="1153" text-anchor="middle" class="formula" font-size="18">Tₛ=T<tspan baseline-shift="sub" font-size="12">clim</tspan></text>
+    <text x="81" y="1181" text-anchor="middle" class="small">skip snow and</text>
+    <text x="81" y="1203" text-anchor="middle" class="small">soil conduction</text>
+    <text x="81" y="1229" text-anchor="middle" class="formula" font-size="18">F<tspan baseline-shift="sub" font-size="11">W</tspan><tspan baseline-shift="baseline">=E+P</tspan></text>
+  </g>
+</svg>

@@ -1,0 +1,2688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="PlaSiC historical experiment: a 1850–2014 CO₂-forced climate simulation and its warming response.">
+<meta name="theme-color" content="#0a0f1d">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3CradialGradient id='g' cx='35%25' cy='28%25'%3E%3Cstop stop-color='%23dffaff'/%3E%3Cstop offset='.48' stop-color='%237fe0f2'/%3E%3Cstop offset='1' stop-color='%231d5d7c'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='32' cy='32' r='25' fill='url(%23g)'/%3E%3Cpath d='M12 34c13-9 27-11 40-4' fill='none' stroke='%23fff' stroke-opacity='.7' stroke-width='2'/%3E%3C/svg%3E">
+<title>PlaSiC — Historical experiment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&amp;family=STIX+Two+Text:ital,wght@0,400;0,500;1,400&amp;display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   1. TOKENS + RESET
+   ============================================================ */
+:root{
+  --ink:#0a0f1d;
+  --ink-2:#0d1424;
+  --ink-3:#101b33;
+  --line:rgba(127,224,242,.16);
+  --ice:#7fe0f2;
+  --ice-deep:#37bddb;
+  --ice-dim:#4a90a8;
+  --gold:#e7c489;
+  --text:#e9eef7;
+  --muted:#8fa1bd;
+
+  --font-elegant:'Newsreader','Bodoni 72','Didot','Baskerville','Times New Roman',serif;
+  --font-math:'STIX Two Text','STIX Two Math','STIXGeneral','Cambria Math','Baskerville','Times New Roman',serif;
+  --font-body:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif,'PingFang SC','Microsoft YaHei';
+  --font-mono:'SF Mono',SFMono-Regular,ui-monospace,Menlo,Consolas,'Liberation Mono',monospace;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-body);
+  color:var(--text);
+  background:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  overflow:hidden;           /* sections scroll inside .scroll */
+}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit}
+
+/* ============================================================
+   2. LAYERED BACKGROUND (gradient + vignette, fixed)
+   ============================================================ */
+.bg-gradient{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(120% 90% at 50% -10%, var(--ink-3) 0%, var(--ink-2) 42%, var(--ink) 78%),
+    #0a0f1d;
+}
+.bg-gradient::before,
+.bg-gradient::after{
+  content:"";position:absolute;inset:0;opacity:0;
+  transition:opacity .85s cubic-bezier(.2,.7,.2,1);
+}
+.bg-gradient::before{
+  background:
+    radial-gradient(72% 48% at 76% 6%,rgba(255,237,255,.28),transparent 68%),
+    linear-gradient(158deg,#75b9f5 0%,#798fe9 33%,#609ce9 66%,#9abcf4 100%);
+}
+.bg-gradient::after{
+  background:
+    radial-gradient(80% 58% at 13% 93%,rgba(242,181,249,.42),transparent 66%),
+    radial-gradient(66% 52% at 94% 76%,rgba(215,181,251,.38),transparent 70%),
+    linear-gradient(112deg,rgba(255,255,255,.16),transparent 48%,rgba(117,85,221,.15));
+  mix-blend-mode:screen;
+}
+body.theme-sky .bg-gradient::before,
+body.theme-sky .bg-gradient::after{opacity:1}
+.vignette{
+  position:fixed;inset:0;z-index:3;pointer-events:none;
+  background:radial-gradient(130% 130% at 50% 45%, transparent 55%, rgba(4,8,18,.55) 100%);
+  transition:background .85s ease;
+}
+.bottom-fade{
+  position:fixed;left:0;right:0;bottom:0;height:26vh;z-index:1;pointer-events:none;
+  background:linear-gradient(180deg,transparent,rgba(6,10,20,.8));
+  transition:background .85s ease;
+}
+body.theme-sky .vignette{background:radial-gradient(130% 115% at 52% 42%,transparent 56%,rgba(47,57,156,.18) 100%)}
+body.theme-sky .bottom-fade{background:linear-gradient(180deg,transparent,rgba(213,180,249,.22))}
+
+/* clouds canvas sits between gradient and content */
+#clouds{position:fixed;inset:0;z-index:1;pointer-events:none}
+
+/* ============================================================
+   3. SCROLL CONTAINER + SECTIONS
+   ============================================================ */
+.scroll{
+  position:relative;z-index:2;
+  height:100vh;height:100dvh;
+  overflow-y:auto;overflow-x:hidden;
+  scroll-snap-type:y mandatory;
+  scroll-snap-stop:always;
+  -webkit-overflow-scrolling:touch;
+}
+section{
+  position:relative;
+  min-height:100vh;min-height:100dvh;
+  scroll-snap-align:start;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:clamp(.75rem,1.9vh,1.35rem) clamp(1.25rem,6vw,4rem);
+}
+
+/* ============================================================
+   4. FIXED CHROME (logo + nav dots)
+   ============================================================ */
+.logo{
+  position:fixed;top:clamp(1rem,2.4vh,1.5rem);left:clamp(1.1rem,2.5vw,2rem);
+  z-index:6;pointer-events:auto;
+  display:flex;align-items:center;gap:.55rem;
+  font-family:var(--font-elegant);font-weight:500;
+  font-size:1.05rem;letter-spacing:.04em;color:var(--text);
+}
+.logo .mark{
+  width:26px;height:26px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, var(--ice) 0%, var(--ice-deep) 55%, transparent 78%);
+  box-shadow:0 0 18px rgba(127,224,242,.45);
+  opacity:.9;
+}
+.logo .sub{font-family:var(--font-elegant);font-size:.6rem;letter-spacing:.12em;color:var(--muted);font-style:italic;text-transform:none;margin-left:.1rem}
+body.theme-sky .logo{color:#fff;text-shadow:0 2px 18px rgba(50,48,151,.28)}
+body.theme-sky .logo .sub{color:rgba(255,255,255,.78)}
+body.theme-sky .logo .mark{
+  background:radial-gradient(circle at 35% 30%,#fff 0%,#efd9ff 32%,#8f78e8 68%,transparent 72%);
+  box-shadow:0 0 0 1px rgba(255,255,255,.3),0 8px 30px rgba(243,211,255,.6);
+}
+
+.nav{
+  position:fixed;right:clamp(.6rem,1.8vw,1.4rem);top:50%;transform:translateY(-50%);
+  z-index:6;display:flex;flex-direction:column;gap:.95rem;align-items:center;
+}
+.nav .dot{
+  border-radius:50%;
+  border:1px solid var(--line);background:rgba(15,23,40,.5);
+  transition:transform .35s ease,background .35s ease,border-color .35s ease,box-shadow .35s ease;
+}
+.nav .dot:hover{border-color:var(--ice);transform:scale(1.25)}
+.nav .dot.active{
+  background:var(--ice);border-color:var(--ice);
+  transform:scale(1.35);
+}
+.nav .dot.active::after{
+  content:"";display:none;
+}
+.nav .tick{width:1px;height:16px;background:linear-gradient(var(--line),var(--line))}
+body.theme-sky .nav .dot{border-color:rgba(255,255,255,.58);background:rgba(255,255,255,.18)}
+body.theme-sky .nav .dot:hover{border-color:#fff}
+body.theme-sky .nav .dot.active{background:#fff;border-color:#fff;box-shadow:0 0 0 5px rgba(255,255,255,.2),0 6px 22px rgba(55,51,164,.24)}
+body.theme-sky .nav .tick{background:rgba(255,255,255,.48)}
+
+/* the physics scene (#s2) is light-toned: darken the fixed chrome there */
+body.theme-physics .logo{color:#12303f;text-shadow:none}
+body.theme-physics .logo .sub{color:rgba(18,48,63,.62)}
+body.theme-physics .logo .mark{background:radial-gradient(circle at 35% 30%,#cfeaf7 0%,#5f9dbd 58%,transparent 78%);box-shadow:0 0 14px rgba(40,90,120,.35)}
+body.theme-physics .nav .dot{border-color:rgba(18,48,63,.38);background:rgba(18,48,63,.14)}
+body.theme-physics .nav .dot.active{background:#1d5d7c;border-color:#1d5d7c;box-shadow:0 0 12px rgba(29,93,124,.4)}
+body.theme-physics .nav .tick{background:rgba(18,48,63,.28)}
+
+/* ============================================================
+   5. SHARED REVEAL
+   ============================================================ */
+section .reveal{opacity:0;transform:translateY(28px);
+  transition:opacity .8s ease,transform .8s cubic-bezier(.16,.8,.28,1);
+  transition-delay:var(--d,0s);
+}
+section.active .reveal{opacity:1;transform:none}
+@media (min-width:760px){
+  section .reveal{will-change:opacity,transform}
+}
+
+/* ============================================================
+   6. PAGE 3 — EQUATIONS IN THE SKY
+   ============================================================ */
+#s1{
+  isolation:isolate;overflow:hidden;justify-content:flex-start;
+  padding:clamp(4.2rem,7vh,5.2rem) clamp(1.25rem,4vw,4rem) clamp(1.4rem,3vh,2.4rem);
+}
+#s1::after{
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:
+    linear-gradient(90deg,rgba(255,255,255,.16) 1px,transparent 1px),
+    linear-gradient(rgba(255,255,255,.12) 1px,transparent 1px);
+  background-size:8vw 8vw;
+  -webkit-mask:linear-gradient(180deg,transparent,rgba(0,0,0,.12) 28%,rgba(0,0,0,.08) 70%,transparent);
+          mask:linear-gradient(180deg,transparent,rgba(0,0,0,.12) 28%,rgba(0,0,0,.08) 70%,transparent);
+}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.sky-title{
+  position:relative;z-index:4;width:min(94vw,1180px);margin:0 auto clamp(.3rem,.8vh,.6rem);
+  color:#fff;text-align:center;text-wrap:balance;
+  font-family:var(--font-elegant);font-size:clamp(2.2rem,4.3vw,4.7rem);font-weight:400;
+  line-height:.94;letter-spacing:-.035em;font-kerning:normal;font-feature-settings:"kern" 1,"liga" 1;
+  opacity:0;transform:translateY(-14px);filter:blur(7px);
+  transition:opacity 1s ease .05s,transform 1s cubic-bezier(.16,.8,.28,1) .05s,filter 1s ease .05s;
+}
+#s1.active .sky-title{opacity:1;transform:none;filter:blur(0)}
+.eq-cloud{
+  position:relative;width:min(96vw,1540px);height:min(70vh,720px);
+  margin:0 auto;perspective:1500px;transform-style:preserve-3d;
+}
+.eq{
+  --tx:0px;--ty:0px;
+  position:absolute;left:var(--x);top:var(--y);z-index:var(--z,1);
+  max-width:min(66vw,900px);
+  color:rgba(255,255,255,.92);
+  opacity:0;
+  transform:translate(-50%,-50%) translate3d(var(--tx),var(--ty),0) rotate(var(--r,0deg)) scale(.92);
+  transition:opacity 1.15s ease var(--delay,0s),filter 1.15s ease var(--delay,0s),transform 1.15s cubic-bezier(.16,.8,.28,1) var(--delay,0s),color .35s ease;
+  text-shadow:0 1px 0 rgba(255,255,255,.18),0 4px 16px rgba(50,51,142,.32),0 14px 38px rgba(45,54,160,.2);
+  will-change:transform;
+}
+#s1.active .eq{
+  opacity:var(--alpha,.82);
+  transform:translate(-50%,-50%) translate3d(var(--tx),var(--ty),0) rotate(var(--r,0deg)) scale(1);
+}
+.eq .m{
+  display:inline-block;font-family:var(--font-math);font-weight:400;
+  line-height:1.2;letter-spacing:-.018em;font-kerning:normal;font-feature-settings:"kern" 1,"liga" 1;
+  animation:eqFloat var(--float,10s) ease-in-out var(--phase,0s) infinite alternate;
+  transition:transform .45s cubic-bezier(.2,.8,.2,1),color .35s ease,text-shadow .35s ease;
+}
+.eq:hover{z-index:20;color:#fff;--alpha:1}
+.eq:hover .m{transform:translateY(-4px) scale(1.035);text-shadow:0 2px 0 rgba(255,255,255,.2),0 16px 38px rgba(51,45,153,.34)}
+.eq.f-fore{color:#fff;--alpha:.98}
+.eq.f-fore .m{font-size:var(--fs,clamp(1.2rem,1.9vw,1.95rem));font-weight:500}
+.eq.f-diag{color:rgba(250,244,255,.9);--alpha:.88}
+.eq.f-diag .m{font-size:var(--fs,clamp(.9rem,1.22vw,1.26rem))}
+.m i{font-style:italic;color:inherit}
+.m .g{color:#f8d9ff}
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;margin:0 .14em;text-align:center;line-height:1.02;transform:translateY(-.04em)}
+.fr .fn{padding:0 .12em}
+.fr .fd{border-top:1px solid currentColor;padding:.08em .12em 0;font-size:.74em}
+sub,sup{font-size:.62em;line-height:0}
+@keyframes eqFloat{
+  0%{transform:translate3d(0,-3px,0)}
+  45%{transform:translate3d(5px,2px,0)}
+  100%{transform:translate3d(-3px,6px,0)}
+}
+
+/* ============================================================
+   7. PAGE 4 — PHYSICAL PROCESSES IN PLASIC (3-D GRID COLUMN)
+   design adapted from website/demo (isothermalbox-style column
+   + gridded globe); all selectors scoped under .physics-map
+   ============================================================ */
+#s2.physics-scene{
+  isolation:isolate;overflow:hidden;padding:0;display:block;
+  background:linear-gradient(165deg,#f3f8fc 0%,#e1ebf3 100%);color:#103b55;
+}
+.physics-figure{
+  position:absolute;inset:0;z-index:1;opacity:0;transform:scale(1.015);
+  transition:opacity 1.1s ease,transform 1.6s cubic-bezier(.16,.8,.28,1);
+}
+#s2.active .physics-figure{opacity:1;transform:none}
+.physics-map{display:block;width:100%;height:100%}
+.physics-map text{font-family:var(--font-body)}
+/* in-scene micro labels (kept to a minimum) */
+.physics-map .micro-label{font-size:28px;font-weight:750;letter-spacing:.13em;fill:#174b65;paint-order:stroke;stroke:rgba(248,253,255,.88);stroke-width:6px;stroke-linejoin:round}
+.physics-map .micro-label.light{fill:rgba(255,255,255,.9);stroke:rgba(12,63,82,.55)}
+/* parameterization callout panels */
+.physics-map .process-label{filter:drop-shadow(0 9px 16px rgba(20,67,87,.18));opacity:0;transition:opacity .65s ease}
+#s2.active .process-label{opacity:1}
+#s2.active .process-label.p2{transition-delay:.14s}
+#s2.active .process-label.p3{transition-delay:.24s}
+#s2.active .process-label.p4{transition-delay:.34s}
+.process-label .label-panel{fill:rgba(248,253,255,.92);stroke:rgba(12,72,101,.22);stroke-width:1.5}
+.process-label .label-index{font:750 16px var(--font-body);fill:#103f59;text-anchor:middle;dominant-baseline:middle}
+.process-label .label-title{font:750 24px var(--font-body);letter-spacing:.018em;fill:#103f59}
+.process-label .label-link{fill:none;stroke:rgba(20,82,105,.6);stroke-width:2.2;stroke-linecap:round;stroke-dasharray:3 7}
+.process-label:hover .label-panel{fill:rgba(255,255,255,.97);stroke:rgba(12,72,101,.45)}
+.process-label:hover .label-link{stroke-dasharray:none}
+/* globe image replaces the procedural graticule; only rain dots and
+   building windows remain procedural */
+/* scene motion, scoped to the physics map */
+.physics-map .cloud-soft{filter:url(#cloudShadow)}
+.physics-map .cloud-float-a,.physics-map .cloud-float-c{transform-box:fill-box;transform-origin:center;will-change:transform}
+.physics-map .cloud-float-a{animation:sceneCloudA 8s ease-in-out infinite alternate}
+.physics-map .cloud-float-c{animation:sceneCloudC 12s ease-in-out -5s infinite alternate}
+.physics-map .sun-core{transform-box:fill-box;transform-origin:center;animation:sunPulse 4.5s ease-in-out infinite alternate}
+.physics-map .sun-rays{transform-box:fill-box;transform-origin:center;animation:sunTurn 55s linear infinite}
+.physics-map .flow,.physics-map .shortwave,.physics-map .longwave,.physics-map .updraft,.physics-map .flux-arrow{stroke-dasharray:16 13;animation:streamDash 2.2s linear infinite}
+.physics-map .longwave{animation-duration:2.8s}
+.physics-map .rain-streak{stroke-dasharray:7 15;animation:rainFall 1.25s linear infinite}
+.physics-map .rain-streak.r2{animation-delay:-.45s}
+.physics-map .rain-streak.r3{animation-delay:-.85s}
+.physics-map .rain-dot{fill:#3f8fd2;animation:fallDots 1.5s linear infinite}
+.physics-map .eddy{transform-box:fill-box;transform-origin:center;animation:eddyTurn 9s linear infinite}
+.physics-map .mix-stream{stroke-dasharray:8 13;animation:streamDash 3.2s linear infinite}
+.physics-map .rain-drop{animation:dropBob 1.8s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.physics-map .rain-drop.d2{animation-delay:-.6s}
+.physics-map .rain-drop.d3{animation-delay:-1.2s}
+.physics-map .city-icon{filter:drop-shadow(0 5px 5px rgba(30,68,58,.16))}
+@keyframes sceneCloudA{to{transform:translate(10px,-13px)}}
+@keyframes sceneCloudC{to{transform:translate(8px,-9px)}}
+@keyframes sunPulse{to{transform:scale(1.06);opacity:.9}}
+@keyframes sunTurn{to{transform:rotate(360deg)}}
+@keyframes streamDash{to{stroke-dashoffset:-58}}
+@keyframes rainFall{to{stroke-dashoffset:-44}}
+@keyframes fallDots{0%{transform:translateY(-6px);opacity:0}20%{opacity:.95}85%{opacity:.9}100%{transform:translateY(38px);opacity:0}}
+@keyframes eddyTurn{to{transform:rotate(360deg)}}
+@keyframes dropBob{0%,100%{transform:translateY(-4px);opacity:.5}50%{transform:translateY(7px);opacity:1}}
+@media (max-width:780px){
+  .physics-figure{left:50%;width:1500px;transform:translateX(-50%) scale(1.015)}
+  #s2.active .physics-figure{transform:translateX(-50%)}
+}
+
+/* ============================================================
+   8. PAGE 5 — COUPLING
+   ============================================================ */
+#s3.coupling-scene{
+  --cx-ink:#173650;--cx-muted:#536f86;--cx-rule:rgba(47,93,130,.19);
+  --cx-down:#9b722f;--cx-up:#327ea6;
+  isolation:isolate;align-items:stretch;justify-content:center;
+  padding:clamp(5rem,8vh,6rem) clamp(1.5rem,5vw,5.5rem) clamp(1.8rem,4vh,3rem);
+  color:var(--cx-ink);
+  background:radial-gradient(ellipse at 90% 15%,rgba(126,196,242,.42),transparent 55%),
+    linear-gradient(125deg,#e6f2fd 5%,#cfe4f8 68%,#b9d6ee);
+}
+#s3::before{
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.35;
+  background-image:linear-gradient(rgba(71,120,160,.075) 1px,transparent 1px),linear-gradient(90deg,rgba(71,120,160,.075) 1px,transparent 1px);
+  background-size:64px 64px;
+  -webkit-mask-image:linear-gradient(120deg,transparent 30%,#000);mask-image:linear-gradient(120deg,transparent 30%,#000);
+}
+.cx-shell{width:min(100%,1400px);margin:auto}
+.cx-header{display:grid;grid-template-columns:1fr;align-items:end;gap:3rem;margin-bottom:clamp(1.6rem,3.5vh,2.6rem)}
+.cx-title{font-family:var(--font-elegant);font-size:clamp(3.25rem,5.2vw,5.35rem);font-weight:400;line-height:.94;letter-spacing:-.035em}
+.cx-title em{font-weight:400;color:#3b7fa9}
+.cx-header-note{max-width:38ch;margin:0 0 .25rem;color:var(--cx-muted);font-size:1.0625rem;line-height:1.55}
+.cx-network{margin:0}
+.cx-component{position:relative;min-width:0;border:1px solid var(--cx-rule);border-radius:12px;background:rgba(255,255,255,.57)}
+.cx-number{font-family:var(--font-mono);font-size:.875rem;letter-spacing:.12em;color:#6084a1}
+.cx-component h3{font-family:var(--font-elegant);font-size:clamp(1.9rem,2.8vw,2.7rem);font-weight:400;line-height:1.05;letter-spacing:-.025em}
+.cx-component p{font-size:1.125rem;line-height:1.55;color:var(--cx-muted);text-wrap:pretty}
+.cx-atmosphere{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:2rem;padding:1.3rem 1.7rem;background:linear-gradient(110deg,rgba(255,255,255,.85),rgba(204,229,247,.66));box-shadow:0 15px 35px -30px rgba(36,85,127,.3)}
+.cx-atmosphere-name{display:flex;align-items:center;gap:1.2rem}
+.cx-atmosphere p{max-width:47ch}
+.cx-branches{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.65fr);gap:2.3rem}
+.cx-branch{min-width:0;display:flex;flex-direction:column}
+.cx-exchange{display:flex;justify-content:center}
+.cx-direction{display:flex;font-size:.875rem;line-height:1.35;color:var(--cx-down)}
+.cx-direction.return{color:var(--cx-up)}
+.cx-arrow{position:relative;display:block;flex:none;width:2px;height:45px;background:currentColor;opacity:.8}
+.cx-arrow::after{content:"";position:absolute;bottom:0;left:-3px;width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg)}
+.return .cx-arrow::after{top:0;bottom:auto;transform:rotate(225deg)}
+.cx-land{flex:1;padding:1.5rem 1.7rem;display:flex;flex-direction:column;align-items:flex-start;background:linear-gradient(145deg,rgba(255,255,255,.76),rgba(217,236,234,.53))}
+.cx-land .cx-number{color:#547e7c}
+.cx-land h3{margin:.75rem 0 .65rem}
+.cx-land p{max-width:29ch}
+.cx-marine{min-width:0}
+.cx-interface{display:flex;align-items:center;justify-content:space-between;gap:1.8rem;padding:1.15rem 1.45rem;border:1px dashed rgba(55,108,143,.38);border-radius:8px;background:rgba(243,250,255,.5)}
+.cx-interface h3{font-size:1.45rem;font-weight:500;white-space:nowrap}
+.cx-interface p{font-size:1.0625rem;line-height:1.5;color:var(--cx-muted);max-width:42ch}
+.cx-interface-tag{display:block;margin-top:.3rem;font-family:var(--font-mono);font-size:.9375rem;color:#6385a0}
+.cx-gateway{width:43%;display:flex;align-items:center;justify-content:center;gap:.6rem;height:45px;color:#547f9f}
+.cx-gateway .cx-arrow{height:29px}
+.cx-gateway-label{margin-left:.4rem;font-size:.875rem;line-height:1.35;color:var(--cx-muted)}
+.cx-marine-pair{display:grid;grid-template-columns:minmax(0,1fr) 14% minmax(0,1fr);align-items:stretch}
+.cx-ice,.cx-ocean{padding:1.1rem 1.25rem}
+.cx-ice{background:linear-gradient(145deg,rgba(255,255,255,.8),rgba(224,231,247,.65))}
+.cx-ocean{background:linear-gradient(145deg,rgba(241,250,255,.9),rgba(191,221,243,.55))}
+.cx-ice h3,.cx-ocean h3{font-size:clamp(1.75rem,2.35vw,2.35rem);margin:.5rem 0 .6rem}
+.cx-ice p,.cx-ocean p{font-size:1.0625rem}
+.cx-bridge{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.7rem;color:#517b9c;padding:0 .6rem}
+.cx-horizontal{width:100%;height:2px;position:relative;background:currentColor}
+.cx-horizontal::after{content:"";position:absolute;right:0;top:-3px;width:8px;height:8px;border-top:2px solid currentColor;border-right:2px solid currentColor;transform:rotate(45deg)}
+.cx-horizontal.back::after{left:0;right:auto;transform:rotate(225deg)}
+.cx-bridge small{line-height:1.35;text-align:center}
+.cx-deep-link{display:flex;flex-direction:column;align-items:center;gap:.4rem;margin:.7rem 0 .45rem;color:#3d789b;font-size:.82rem;line-height:1.3;text-align:center}
+.cx-deep-link .cx-deep-arrow{position:relative;width:2px;height:27px;background:currentColor}
+.cx-deep-link .cx-deep-arrow::after{content:"";position:absolute;left:-3px;bottom:-1px;width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg)}
+.cx-deep-link strong{font-weight:600;letter-spacing:.02em}
+.cx-deep-ocean{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:1.1rem;padding:1rem 1.25rem;border-color:rgba(38,111,157,.28);background:linear-gradient(110deg,rgba(222,244,255,.9),rgba(155,206,237,.62));box-shadow:0 13px 30px -27px rgba(24,86,128,.58)}
+.cx-deep-ocean .cx-component-head{margin:0;align-items:center}
+.cx-deep-ocean .cx-symbol{width:4.8rem;height:4.8rem}
+.cx-deep-ocean h3{font-size:clamp(1.65rem,2.2vw,2.2rem);margin:.35rem 0 .2rem}
+.cx-deep-ocean p{font-size:1rem;line-height:1.42;max-width:192ch}
+.cx-deep-specs{display:flex;flex-direction:column;align-items:flex-end;gap:.4rem;max-width:24rem}
+.cx-deep-specs span{padding:.35rem .52rem;border:1px solid rgba(48,111,146,.2);border-radius:5px;background:rgba(244,252,255,.45);color:#37677f;font-family:var(--font-mono);font-size:.7rem;letter-spacing:.04em;white-space:nowrap}
+.cx-caption{display:grid;grid-template-columns:1fr 1.5fr;gap:2.8rem;padding-top:1rem;border-top:1px solid var(--cx-rule);font-size:1rem;line-height:1.6}
+.cx-caption strong{font-weight:500;color:var(--cx-ink)}
+.cx-caption p + p{margin-top:.3rem}
+.cx-grid-mark{display:inline-block;width:13px;height:13px;margin-right:.5rem;vertical-align:-1px;border:1px solid #779cb7;background:linear-gradient(90deg,transparent 45%,#779cb7 45% 55%,transparent 55%),linear-gradient(transparent 45%,#779cb7 45% 55%,transparent 55%)}
+body.theme-coupling .logo{color:#173650;text-shadow:none}
+body.theme-coupling .logo .sub{color:#54738d}
+body.theme-coupling .logo .mark{background:radial-gradient(circle at 35% 30%,#d7f2ff 0%,#6a9fc5 58%,transparent 78%);box-shadow:0 0 14px rgba(46,116,214,.2)}
+body.theme-coupling .nav .dot{border-color:rgba(20,72,128,.34);background:rgba(35,104,180,.1)}
+body.theme-coupling .nav .dot.active{background:#437fa8;border-color:#437fa8;box-shadow:0 0 0 5px rgba(46,120,236,.1)}
+body.theme-coupling .nav .tick{background:rgba(20,72,128,.22)}
+body.theme-coupling .vignette{background:radial-gradient(140% 120% at 55% 45%,transparent 70%,rgba(54,115,177,.07) 100%)}
+body.theme-coupling .bottom-fade{background:linear-gradient(180deg,transparent,rgba(185,222,252,.12))}
+@media(max-width:1050px){
+  .cx-header{gap:2rem;grid-template-columns:1fr 1fr}
+  .cx-branches{gap:1.5rem;grid-template-columns:minmax(0,.75fr) minmax(0,1.65fr)}
+  .cx-exchange{gap:1rem}.cx-direction{font-size:.8125rem}
+  .cx-interface{align-items:flex-start;gap:1rem}.cx-interface p{max-width:26ch}
+  .cx-land{padding:1.3rem}.cx-ice,.cx-ocean{padding:1rem}
+  .cx-component p{font-size:1.0625rem}
+}
+@media(max-width:760px){
+  #s3.coupling-scene{padding:5.5rem 1.5rem 2.5rem}
+  .cx-header{grid-template-columns:1fr;gap:1rem;margin-bottom:1.5rem}
+  .cx-title{font-size:clamp(2.8rem,9vw,4rem)}
+  .cx-atmosphere{grid-template-columns:1fr;gap:.65rem;padding:1.2rem}
+  .cx-atmosphere-name{gap:.8rem}
+  .cx-branches{grid-template-columns:1fr;gap:0}
+  .cx-exchange{justify-content:space-around}
+  .cx-direction{font-size:.875rem}
+  .cx-land{padding:1.2rem}.cx-land h3{margin:.45rem 0}
+  .cx-land p{max-width:none}
+  .cx-interface{padding:1rem}
+  .cx-deep-ocean{grid-template-columns:1fr;gap:.7rem;padding:1rem}
+  .cx-deep-ocean .cx-component-head{align-items:center}
+  .cx-deep-specs{align-items:flex-start;max-width:none}
+  .cx-caption{grid-template-columns:1fr;gap:.7rem;margin-top:1.4rem}
+}
+@media(max-width:430px){
+  .cx-interface p{max-width:none;margin-top:.6rem}
+  .cx-marine-pair{grid-template-columns:1fr}
+  .cx-gateway{width:100%}
+  .cx-bridge{flex-direction:row}
+  .cx-horizontal{width:2px;height:38px}
+  .cx-horizontal::after{right:auto;left:-3px;top:auto;bottom:0;transform:rotate(135deg)}
+  .cx-horizontal.back::after{left:-3px;top:0;bottom:auto;transform:rotate(-45deg)}
+  .cx-ocean h3 span{display:inline}
+  .cx-deep-ocean .cx-component-head{align-items:center}
+  .cx-deep-ocean .cx-symbol{width:4.2rem;height:4.2rem}
+  .cx-deep-specs span{font-size:.62rem}
+}
+@media(min-width:1051px) and (max-height:800px){
+  #s3.coupling-scene{padding-top:4.4rem;padding-bottom:1.5rem}
+  .cx-header{margin-bottom:1.3rem}.cx-title{font-size:clamp(3rem,4.4vw,4.3rem)}
+  .cx-atmosphere{padding:1rem 1.5rem}.cx-exchange{min-height:72px}
+  .cx-land{padding:1.2rem 1.5rem}.cx-caption{margin-top:1.1rem;padding-top:.8rem}
+}
+
+/* Component symbols reuse the original site's vector illustrations. */
+.cx-symbol{display:block;flex:none;width:4.8rem;height:4.8rem;filter:saturate(.68);}
+.cx-symbol svg{display:block;width:100%;height:100%}
+.cx-component-head{display:flex;align-items:center;gap:.8rem;margin-bottom:.7rem;width:100%}
+.cx-component-head > div{min-width:0}
+.cx-component-head h3{margin:.45rem 0 0}
+.cx-atmosphere-name h3{margin-top:.35rem}
+.cx-atmosphere{padding-top:.9rem;padding-bottom:.9rem}
+.cx-land .cx-symbol{width:5.3rem;height:5.3rem}
+.cx-ocean .cx-symbol{width:5.3rem;height:5.3rem}
+.cx-ice .cx-component-head,.cx-ocean .cx-component-head{align-items:flex-start;flex-direction:row;gap:.8rem}
+.cx-interface-name{display:flex;align-items:center;gap:.65rem;flex:none}
+.cx-interface .cx-symbol{width:4rem;height:4rem}
+.cx-exchange{align-items:stretch;gap:1.3rem;min-height:158px;padding:1rem .25rem}
+.cx-direction{align-items:center;flex:1;min-width:0;gap:.65rem}
+.cx-direction .cx-arrow{height:92px}
+.cx-field-list{display:grid;gap:.24rem;font-size:.9375rem;line-height:1.4}
+.cx-field-list strong{font-weight:600;font-size:.875rem;margin-bottom:.15rem}
+.cx-bridge{padding-left:.35rem;padding-right:.35rem}
+.cx-bridge small{font-size:.875rem}
+.cx-caption{margin-top:1rem}
+@media(max-width:1150px){
+  .cx-interface{flex-direction:column;gap:.5rem}.cx-interface p{max-width:none}
+  .cx-component-head{flex-direction:column;align-items:flex-start;gap:.35rem}
+  .cx-land .cx-symbol{width:4.8rem;height:4.8rem}
+}
+@media(max-width:760px){
+  .cx-exchange{gap:1.2rem;min-height:0;padding:1.1rem .25rem}
+  .cx-component-head{flex-direction:row;align-items:center;gap:.8rem}
+  .cx-interface{flex-direction:row;align-items:center}
+  .cx-ice .cx-component-head,.cx-ocean .cx-component-head{flex-direction:column}
+}
+@media(max-width:430px){
+  .cx-interface{display:block}.cx-interface-name{gap:.5rem}
+  .cx-atmosphere-name{gap:.6rem}.cx-atmosphere-name h3{font-size:1.7rem}
+  .cx-symbol,.cx-land .cx-symbol{width:4.2rem;height:4.2rem}
+  .cx-ice .cx-component-head,.cx-ocean .cx-component-head{flex-direction:row;align-items:center;gap:.8rem}
+  .cx-bridge{height:82px;gap:.8rem}
+  .cx-bridge small{max-width:9ch}
+  .cx-bridge .cx-horizontal{flex:none}
+}
+
+/* ============================================================
+   9. PAGE 1 — OPEN, LEARN, RUN
+   ============================================================ */
+#s4.closing{
+  position:relative;isolation:isolate;overflow:hidden;align-items:stretch;justify-content:flex-start;
+  padding:clamp(5.7rem,8.3vh,7.2rem) clamp(2.4rem,4.7vw,6rem) clamp(1.7rem,3.2vh,2.8rem);
+  color:#122c49;text-align:left;
+  background:
+    linear-gradient(108deg,rgba(246,251,255,.98) 0%,rgba(246,251,255,.96) 45%,rgba(222,238,252,.85) 70%,rgba(126,177,228,.72) 100%),
+    #f6fbff;
+}
+#s4.closing::before{
+  content:"";position:absolute;z-index:0;inset:0;pointer-events:none;
+}
+#s4.closing::after{
+  content:"";position:absolute;z-index:4;inset:0;pointer-events:none;opacity:.14;
+  background:
+    radial-gradient(circle at 12% 21%,rgba(23,58,92,.08) 0 .45px,transparent .7px),
+    radial-gradient(circle at 73% 61%,rgba(23,58,92,.06) 0 .45px,transparent .7px);
+  background-size:5px 5px,7px 7px;mix-blend-mode:multiply;
+}
+.earth-stage{
+  position:absolute;z-index:1;width:max(110vw,96rem);aspect-ratio:4/3;
+  right:-40vw;top:-49vh;pointer-events:none;opacity:0;
+  transition:opacity 1.6s ease .12s,filter 1.6s ease .12s;
+  filter:blur(5px);
+}
+#s4.active .earth-stage{filter:blur(0)}
+.earth-visual{
+  position:absolute;inset:0;clip-path:circle(30.8% at 50% 50%);
+  background-image:
+    url('https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?auto=format&fit=crop&w=1800&q=90'),
+    radial-gradient(circle,#dceaf2 0 38%,#9cb9cb 58%,#527895 72%,#24455f 100%);
+  background-position:center;background-size:cover;
+  animation:earthFloat 22s ease-in-out infinite alternate;
+}
+.earth-haze{position:absolute;z-index:2;right:-4%;top:-7%;width:57%;height:69%;pointer-events:none;background:radial-gradient(ellipse at 31% 54%,rgba(248,252,255,.55),transparent 52%);mix-blend-mode:screen}
+@keyframes earthFloat{to{transform:translate3d(-1.2%,1.1%,0) scale(1.018)}}
+
+.closing-topbar{
+  position:absolute;z-index:6;right:clamp(2.8rem,4.8vw,6rem);top:clamp(1.35rem,2.5vh,2rem);
+  display:flex;align-items:center;gap:clamp(.8rem,1.8vw,1.7rem);
+}
+.release-toplink{display:flex;align-items:center;gap:.55rem;font-family:var(--font-mono);font-size:1rem;letter-spacing:.06em;color:#1d4a75;transition:opacity .25s ease}
+.release-toplink::after{content:"↗";font-size:1.18rem}
+.release-toplink[aria-disabled="true"]{cursor:not-allowed;opacity:.72}
+.release-pill{
+  display:flex;align-items:center;gap:.85rem;padding:.72rem 1.25rem;border-radius:99px;
+  color:#f5f7f9;background:rgba(19,58,94,.9);
+  font-family:var(--font-mono);font-size:.95rem;letter-spacing:.07em;white-space:nowrap;
+}
+.release-pill::before{content:"";width:6px;height:6px;border-radius:50%;background:#b8d4ec;box-shadow:0 0 0 6px rgba(184,212,236,.14)}
+
+.closing-shell{
+  position:relative;z-index:5;width:min(100%,1840px);height:100%;margin:0 auto;
+  display:grid;grid-template-rows:minmax(0,1fr) auto auto;
+}
+.closing-head{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;min-height:0;padding:clamp(1rem,3vh,2.8rem) 0 clamp(1rem,2.2vh,2rem)}
+.closing-title{
+  max-width:min(9em,58vw);font-family:'Bodoni 72','Didot','Bodoni MT',var(--font-elegant);font-weight:400;
+  font-size:clamp(4.4rem,7.2vw,9.2rem);line-height:.73;letter-spacing:-.06em;
+}
+.closing-title > span,.closing-title em{display:block}
+.closing-title > span{white-space:nowrap}
+.closing-title em{font-weight:400}
+.closing-intro{max-width:37ch;margin-top:clamp(1.5rem,3vh,2.7rem);font-size:clamp(1.22rem,1.3vw,1.48rem);line-height:1.55;color:#52708f;text-wrap:pretty}
+
+.closing-grid{
+  position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  min-height:clamp(13.5rem,25vh,18.5rem);border-top:1px solid rgba(28,64,102,.16);
+}
+.closing-pillar{position:relative;padding:clamp(1.2rem,2.5vh,2.1rem) clamp(1.1rem,3vw,3.8rem) 1rem;min-width:0}
+.closing-pillar + .closing-pillar{border-left:1px solid rgba(28,64,102,.13)}
+.pillar-meta{display:flex;justify-content:space-between;gap:1rem;margin-bottom:clamp(.95rem,2.2vh,1.6rem);font-family:var(--font-mono);font-size:.9rem;letter-spacing:.22em;text-transform:uppercase;color:#7b93ab}
+.pillar-meta .number{color:#205081}
+.pillar-signal{display:flex;align-items:flex-end;gap:.85rem;margin-bottom:clamp(.7rem,1.5vh,1.05rem);white-space:nowrap}
+.pillar-signal strong{font-family:'Bodoni 72','Didot','Bodoni MT',var(--font-elegant);font-size:clamp(3.45rem,4.55vw,5.9rem);font-weight:400;line-height:.8;letter-spacing:-.06em;color:#14325a}
+.pillar-signal strong .approx{color:#6ba0d4}
+.pillar-signal span{max-width:8ch;padding-bottom:.18rem;font-family:var(--font-mono);font-size:.88rem;line-height:1.25;letter-spacing:.16em;text-transform:uppercase;color:#7b93ab;white-space:normal}
+.closing-pillar h3{margin-bottom:.45rem;font-family:'Bodoni 72','Didot','Bodoni MT',var(--font-elegant);font-size:clamp(1.55rem,1.85vw,2.1rem);font-weight:400;letter-spacing:-.025em;color:#1e3c60}
+.closing-pillar p{max-width:36ch;font-size:clamp(1.12rem,1.12vw,1.3rem);line-height:1.55;color:#647f9c;text-wrap:pretty}
+
+.closing-foot{display:flex;align-items:flex-end;justify-content:space-between;gap:2rem;padding-top:1rem}
+
+body.theme-closing .logo{color:#0d3568;text-shadow:none;font-size:1.15rem}
+body.theme-closing .logo .sub{color:rgba(13,53,104,.62);font-size:.72rem}
+body.theme-closing .logo .mark{width:30px;height:30px;background:linear-gradient(130deg,#8fc2ea,#eaf4fb 56%,#6ea6d4);box-shadow:none;opacity:.9}
+body.theme-closing .nav{opacity:1;pointer-events:auto}
+body.theme-closing .nav .dot{border-color:rgba(20,72,128,.34);background:rgba(35,104,180,.1)}
+body.theme-closing .nav .dot.active{background:#437fa8;border-color:#437fa8;box-shadow:0 0 0 5px rgba(46,120,236,.1)}
+body.theme-closing .nav .tick{background:rgba(20,72,128,.22)}
+body.theme-closing .vignette{background:radial-gradient(140% 120% at 55% 45%,transparent 70%,rgba(54,115,177,.07) 100%)}
+body.theme-closing .bottom-fade{background:linear-gradient(180deg,transparent,rgba(185,222,252,.18))}
+
+/* ---- pillar links through to their own pages ----
+   The whole tile is one big anchor: nested hairline frames mark it as a
+   card, and the call-to-action below reads as a button, so the region
+   announces itself as clickable before the pointer ever lands on it. */
+a.closing-pillar{
+  display:block;cursor:pointer;border-radius:22px;isolation:isolate;
+  transition:background .35s ease,transform .35s ease;
+}
+a.closing-pillar::after{
+  content:"";position:absolute;z-index:0;pointer-events:none;
+  inset:clamp(.15rem,.55vh,.45rem) clamp(.2rem,.55vw,.65rem) clamp(-.25rem,-.45vh,0rem);
+  border:1px solid rgba(37,92,140,.13);border-radius:24px;
+  background:rgba(255,255,255,.18);
+  box-shadow:0 16px 34px -28px rgba(28,72,116,.42),inset 0 1px 0 rgba(255,255,255,.52);
+  transition:border-color .35s ease,background .35s ease,box-shadow .35s ease;
+}
+a.closing-pillar::before{
+  content:"";position:absolute;z-index:1;pointer-events:none;
+  inset:clamp(.8rem,1.9vh,1.4rem) clamp(.6rem,1.6vw,1.6rem) clamp(-.2rem,-.35vh,0rem);
+  border:1px solid rgba(37,92,140,.26);border-radius:18px;
+  background:linear-gradient(160deg,rgba(255,255,255,.52),rgba(228,242,252,.3));
+  box-shadow:0 18px 38px -26px rgba(28,72,116,.55),inset 0 1px 0 rgba(255,255,255,.82);
+  transition:border-color .35s ease,background .35s ease,box-shadow .35s ease;
+}
+a.closing-pillar > *{position:relative;z-index:2}
+a.closing-pillar:hover::after,
+a.closing-pillar:focus-visible::after{
+  border-color:rgba(37,92,140,.24);
+  background:rgba(255,255,255,.3);
+  box-shadow:0 22px 44px -30px rgba(28,72,116,.54),inset 0 1px 0 rgba(255,255,255,.7);
+}
+a.closing-pillar:hover::before,
+a.closing-pillar:focus-visible::before{
+  border-color:rgba(37,92,140,.58);
+  background:linear-gradient(160deg,rgba(255,255,255,.88),rgba(216,236,251,.62));
+  box-shadow:0 28px 52px -30px rgba(28,72,116,.72),inset 0 1px 0 rgba(255,255,255,.94);
+}
+.pillar-cta{
+  display:inline-flex;align-items:center;gap:.6rem;
+  margin-top:clamp(.9rem,1.9vh,1.35rem);
+  padding:.6rem 1.05rem;
+  border:1px solid rgba(37,92,140,.3);border-radius:999px;
+  background:rgba(255,255,255,.6);
+  font-family:var(--font-mono);font-size:.78rem;letter-spacing:.18em;text-transform:uppercase;
+  color:#1e4f84;
+  box-shadow:0 12px 22px -16px rgba(28,72,116,.6);
+  transition:background .3s ease,color .3s ease,border-color .3s ease,box-shadow .3s ease;
+}
+.pillar-cta i{font-style:normal;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+a.closing-pillar:hover .pillar-cta,
+a.closing-pillar:focus-visible .pillar-cta{
+  background:#1e4f84;border-color:#1e4f84;color:#f7fbff;
+  box-shadow:0 18px 32px -14px rgba(30,79,132,.75);
+}
+a.closing-pillar:hover .pillar-cta i,
+a.closing-pillar:focus-visible .pillar-cta i{transform:translateX(4px)}
+
+/* ============================================================
+   10. PAGE 2 — MODEL LANDSCAPE
+   ============================================================ */
+#s5.comparison{
+  --comparison-rule:rgba(127,224,242,.14);
+  position:relative;isolation:isolate;overflow:hidden;align-items:stretch;justify-content:flex-start;
+  padding:clamp(5.1rem,7.2vh,6.4rem) clamp(2rem,4.5vw,5.5rem) clamp(1.5rem,3vh,2.6rem);
+  color:var(--text);
+  background:
+    radial-gradient(80% 70% at 88% -8%,rgba(91,164,216,.24),transparent 62%),
+    radial-gradient(60% 60% at -8% 104%,rgba(55,189,219,.12),transparent 68%),
+    linear-gradient(148deg,#101b33 0%,#0d1629 48%,#090f1d 100%);
+}
+#s5.comparison::before{
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.38;
+  background-image:
+    linear-gradient(rgba(127,224,242,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(127,224,242,.035) 1px,transparent 1px);
+  background-size:72px 72px;
+  -webkit-mask-image:linear-gradient(145deg,#000,transparent 62%);mask-image:linear-gradient(145deg,#000,transparent 62%);
+}
+.comparison-shell{
+  position:relative;width:min(100%,1720px);height:100%;margin:0 auto;
+  display:grid;grid-template-rows:auto minmax(0,1fr);gap:clamp(1rem,2.3vh,1.8rem);
+}
+.comparison-head{display:grid;grid-template-columns:1fr;align-items:end}
+.comparison-index{margin-bottom:.65rem;font-family:var(--font-mono);font-size:.72rem;letter-spacing:.25em;text-transform:uppercase;color:var(--ice-dim)}
+.comparison-title{
+  max-width:30ch;font-family:var(--font-elegant);font-size:clamp(2.8rem,4.7vw,5rem);font-weight:400;
+  line-height:.9;letter-spacing:-.04em;text-wrap:balance;
+}
+.comparison-title em{color:var(--ice);font-weight:400}
+.comparison-table-wrap{
+  min-height:0;overflow:auto;border:1px solid var(--comparison-rule);border-radius:18px;
+  background:linear-gradient(150deg,rgba(18,29,50,.9),rgba(10,17,31,.78));
+  box-shadow:0 26px 70px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.035);
+  scrollbar-color:rgba(127,224,242,.3) transparent;scrollbar-width:thin;
+}
+.comparison-table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}
+.comparison-table caption{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.comparison-table col:nth-child(1){width:13%}
+.comparison-table col:nth-child(2){width:18%}
+.comparison-table col:nth-child(3){width:25%}
+.comparison-table col:nth-child(4){width:15%}
+.comparison-table col:nth-child(5){width:29%}
+.comparison-table th,.comparison-table td{text-align:left;vertical-align:top;border-bottom:1px solid rgba(127,224,242,.1)}
+.comparison-table thead th{
+  position:sticky;top:0;z-index:2;padding:.9rem 1rem .82rem;
+  background:rgba(13,22,40,.96);backdrop-filter:blur(18px);
+  font-family:var(--font-mono);font-size:.72rem;font-weight:500;line-height:1.35;letter-spacing:.13em;text-transform:uppercase;color:#8398b5;
+}
+.comparison-table tbody th,.comparison-table tbody td{padding:.86rem 1rem;font-size:clamp(.875rem,.82vw,.96rem);line-height:1.43;color:#a9b8cc}
+.comparison-table tbody th{
+  font-family:var(--font-elegant);font-size:clamp(1.02rem,1.05vw,1.18rem);font-weight:500;color:#edf5ff;
+}
+.comparison-table thead th + th,.comparison-table tbody td,.comparison-table tbody th + td{border-left:1px solid rgba(127,224,242,.06)}
+.comparison-table thead th:last-child,.comparison-table tbody td:last-child{
+  border-left-color:rgba(127,224,242,.18);background:linear-gradient(90deg,rgba(127,224,242,.045),rgba(127,224,242,.015));
+}
+.comparison-table thead th:last-child{color:var(--ice);background:rgba(18,37,57,.97)}
+.comparison-table tbody tr:last-child th,.comparison-table tbody tr:last-child td{border-bottom:0}
+.comparison-table tbody tr{transition:background .28s ease}
+.comparison-table tbody tr:hover{background:rgba(127,224,242,.035)}
+.comparison-table tbody tr[data-peer="closest"]{background:linear-gradient(90deg,rgba(231,196,137,.055),transparent 58%)}
+.comparison-table tbody tr[data-peer="closest"] th{color:var(--gold)}
+.peer-tag{
+  display:block;width:max-content;margin-top:.38rem;padding:.2rem .42rem;border:1px solid rgba(231,196,137,.28);border-radius:99px;
+  font-family:var(--font-mono);font-size:.58rem;line-height:1.2;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);
+}
+body.theme-comparison .logo{color:var(--text);text-shadow:none}
+body.theme-comparison .logo .sub{color:var(--muted)}
+body.theme-comparison .logo .mark{background:radial-gradient(circle at 35% 30%,var(--ice) 0%,var(--ice-deep) 55%,transparent 78%);box-shadow:0 0 18px rgba(127,224,242,.4)}
+body.theme-comparison .vignette{background:radial-gradient(130% 120% at 50% 42%,transparent 64%,rgba(4,8,18,.48) 100%)}
+body.theme-comparison .bottom-fade{background:linear-gradient(180deg,transparent,rgba(6,10,20,.72))}
+
+/* ============================================================
+   11. REDUCED MOTION
+   ============================================================ */
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
+}
+
+/* ============================================================
+   12. RESPONSIVE
+   ============================================================ */
+@media (max-width:980px){
+  .eq{max-width:72vw}
+  .earth-stage{width:100rem;right:-55rem;top:-32rem}
+  .closing-title{font-size:clamp(4.2rem,8.6vw,6.3rem)}
+  .closing-intro{max-width:35ch}
+  .pillar-signal{display:block;white-space:normal}
+  .pillar-signal span{display:block;max-width:none;margin-top:.5rem;padding:0}
+  .pillar-cta{font-size:.66rem;letter-spacing:.07em;padding:.55rem .78rem;gap:.45rem}
+  a.closing-pillar{padding-left:clamp(.9rem,2.2vw,2.6rem);padding-right:clamp(.9rem,2.2vw,2.6rem)}
+  a.closing-pillar::after{inset:.2rem clamp(.35rem,.8vw,.75rem) -.15rem}
+  a.closing-pillar::before{inset:.9rem clamp(.5rem,1.15vw,1.1rem) -.1rem}
+  .comparison-title{max-width:26ch}
+  .comparison-table{min-width:1180px}
+}
+@media (max-width:680px){
+  #s1{height:auto;min-height:100dvh;overflow:visible;padding:5.2rem 1rem 4rem}
+  .eq-cloud{height:auto;width:100%;display:flex;flex-direction:column;gap:1.15rem;perspective:none}
+  .eq,.eq:nth-child(n){position:relative;inset:auto;max-width:94%;align-self:center;transform:translateY(16px) rotate(var(--r,0deg));filter:blur(5px)}
+  #s1.active .eq,#s1.active .eq:nth-child(n){transform:translateY(0) rotate(var(--r,0deg));filter:blur(0)}
+  .eq:nth-child(3n+1){align-self:flex-start}.eq:nth-child(3n){align-self:flex-end}
+  .sky-title{font-size:clamp(1.58rem,7.2vw,2.25rem);line-height:1.02;margin-bottom:1.6rem}
+  .eq.f-fore .m{font-size:clamp(1.02rem,4.8vw,1.24rem)}
+  .eq.f-diag .m{font-size:clamp(.82rem,4vw,1.02rem)}
+  #s4.closing{height:auto;min-height:100dvh;overflow:hidden;padding:8.5rem 1.35rem 1.8rem}
+  .closing-topbar{top:4.8rem;left:1.35rem;right:auto}
+  .release-pill{padding:.62rem 1rem;font-size:.82rem}
+  .earth-stage{width:60rem;right:-35rem;top:-15rem;opacity:.2}
+  .earth-haze{display:none}
+  .closing-shell{height:auto;display:block}
+  .closing-head{min-height:32rem;justify-content:flex-start;padding-top:2.8rem}
+  .closing-title{max-width:100%;font-size:clamp(3.6rem,16vw,5.3rem);line-height:.76}
+  .closing-title > span{white-space:normal}
+  .closing-intro{max-width:30ch;margin-top:2rem;font-size:1.1rem}
+  .closing-grid{grid-template-columns:1fr;min-height:0;margin-top:1.6rem}
+  .closing-pillar,.closing-pillar:first-child,.closing-pillar:last-child{padding:1.3rem 0}
+  .closing-pillar + .closing-pillar{border-left:0;border-top:1px solid rgba(30,43,54,.15)}
+  a.closing-pillar,a.closing-pillar:first-child,a.closing-pillar:last-child{padding:1.55rem 1.15rem}
+  a.closing-pillar::after{inset:.15rem .25rem -.15rem}
+  a.closing-pillar::before{inset:.4rem .45rem -.1rem}
+  .pillar-meta{margin-bottom:.8rem}
+  .pillar-signal{display:flex;margin-bottom:.75rem}
+  .pillar-signal strong{font-size:clamp(3.5rem,14.5vw,4.8rem)}
+  .pillar-signal span{display:inline;max-width:10ch;margin-top:0;padding-bottom:.2rem}
+  .closing-foot{align-items:flex-end;gap:1rem;padding-top:1.6rem}
+  #s5.comparison{height:auto;min-height:100dvh;overflow:visible;padding:5.8rem 1.1rem 2rem}
+  .comparison-shell{height:auto;display:block}
+  .comparison-head{margin-bottom:1.3rem}
+  .comparison-title{max-width:100%;font-size:clamp(2.7rem,12vw,4rem)}
+  .comparison-table-wrap{overflow-x:auto;overflow-y:visible;border-radius:14px}
+  .comparison-table{min-width:1080px}
+  .comparison-table thead th:first-child,.comparison-table tbody th{position:sticky;left:0;z-index:1;background:#111d31}
+  .comparison-table thead th:first-child{z-index:3;background:#0f1b2f}
+}
+@media (min-width:681px) and (max-height:760px){
+  #s4.closing{padding-top:4.8rem;padding-bottom:1.1rem}
+  .closing-title{font-size:clamp(3.85rem,6.5vw,6.5rem)}
+  .closing-intro{margin-top:1.25rem}
+  .closing-grid{min-height:13rem}
+  .closing-pillar{padding-top:1rem}
+  .pillar-meta{margin-bottom:.75rem}
+  .pillar-signal{margin-bottom:.55rem}
+}
+@media (max-height:700px){
+  section{padding-top:3.4rem}
+}
+
+/* ============================================================
+   13. POLISH PASS — shared finish, depth and interaction states
+   ============================================================ */
+:root{
+  --shadow-deep:0 24px 80px rgba(0,0,0,.26);
+  --focus-ring:0 0 0 3px rgba(127,224,242,.24),0 0 0 1px rgba(127,224,242,.82);
+}
+
+body{letter-spacing:.002em}
+::selection{background:rgba(127,224,242,.34);color:#fff}
+:focus-visible{outline:none;box-shadow:var(--focus-ring);border-radius:8px}
+.scroll{scrollbar-width:thin;scrollbar-color:rgba(127,224,242,.42) transparent}
+.scroll::-webkit-scrollbar{width:9px}
+.scroll::-webkit-scrollbar-track{background:transparent}
+.scroll::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(127,224,242,.66),rgba(127,224,242,.18));border:2px solid transparent;background-clip:padding-box;border-radius:99px}
+
+.logo{
+  padding:.48rem .72rem .48rem .52rem;
+  border:1px solid rgba(127,224,242,.18);
+  border-radius:999px;
+  background:linear-gradient(135deg,rgba(10,18,34,.78),rgba(16,28,49,.46));
+  box-shadow:0 12px 28px rgba(3,9,20,.16),inset 0 1px 0 rgba(255,255,255,.08);
+  -webkit-backdrop-filter:blur(16px) saturate(130%);
+  backdrop-filter:blur(16px) saturate(130%);
+  transition:transform .3s ease,background .3s ease,border-color .3s ease;
+}
+.logo:hover{transform:translateY(-1px);border-color:rgba(127,224,242,.42);background:rgba(16,29,50,.82)}
+.logo .mark{flex:none}
+.nav{
+  padding:.72rem .46rem;
+  border:1px solid rgba(127,224,242,.15);
+  border-radius:999px;
+  background:rgba(8,16,30,.36);
+  box-shadow:0 16px 34px rgba(3,9,20,.15),inset 0 1px 0 rgba(255,255,255,.07);
+  -webkit-backdrop-filter:blur(18px) saturate(125%);
+  backdrop-filter:blur(18px) saturate(125%);
+}
+.nav .dot{width:10px;height:10px}
+.nav .dot.active{box-shadow:0 0 0 4px rgba(127,224,242,.11),0 0 18px rgba(127,224,242,.66)}
+
+#s1{background:radial-gradient(58% 46% at 50% 42%,rgba(97,75,190,.13),transparent 72%)}
+.sky-title{max-width:1100px;text-shadow:0 2px 0 rgba(255,255,255,.16),0 16px 54px rgba(52,45,157,.38)}
+.eq-cloud::before{content:"";position:absolute;inset:12% 16% 18%;border-radius:50%;background:radial-gradient(ellipse,rgba(148,123,246,.12),transparent 68%);filter:blur(30px);pointer-events:none}
+.eq{filter:blur(9px) drop-shadow(0 10px 24px rgba(43,36,125,.18))}
+#s1.active .eq{filter:blur(0) drop-shadow(0 10px 24px rgba(43,36,125,.18))}
+.eq:hover{filter:drop-shadow(0 16px 30px rgba(43,36,125,.32))}
+
+#s2.physics-scene::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;border:1px solid rgba(15,67,91,.1);box-shadow:inset 0 0 100px rgba(32,93,120,.12)}
+.physics-map{filter:saturate(1.06) contrast(1.015)}
+.process-label .label-panel{filter:drop-shadow(0 12px 18px rgba(20,67,87,.12))}
+
+#s3.coupling-scene{background:radial-gradient(56% 70% at 78% 13%,rgba(163,218,255,.42),transparent 72%),linear-gradient(130deg,#e9f5fd 0%,#d5e8f7 56%,#c0dced 100%)}
+.cx-shell{filter:drop-shadow(0 20px 50px rgba(42,97,139,.08))}
+.cx-component,.cx-interface{box-shadow:0 14px 32px rgba(36,85,127,.07),inset 0 1px 0 rgba(255,255,255,.72);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.cx-component{transition:transform .35s ease,box-shadow .35s ease,border-color .35s ease}
+.cx-component:hover{transform:translateY(-3px);border-color:rgba(47,93,130,.34);box-shadow:0 20px 38px rgba(36,85,127,.12),inset 0 1px 0 rgba(255,255,255,.82)}
+.cx-caption{color:#5e7890}
+
+#s4.closing{background:radial-gradient(54% 86% at 92% 26%,rgba(105,165,220,.28),transparent 66%),linear-gradient(112deg,#f8fcff 0%,#f1f8fd 53%,#d5e9f8 100%)}
+#s4.closing::before{background:linear-gradient(90deg,rgba(248,252,255,.98) 0%,rgba(248,252,255,.84) 45%,rgba(228,242,252,.24) 71%,rgba(70,130,190,.08) 100%)}
+.earth-visual{filter:saturate(.72) brightness(1.22) contrast(.86) drop-shadow(-28px 0 42px rgba(94,151,204,.28))}
+#s4.active .earth-stage{opacity:.42}
+.closing-title{color:#14325a;text-shadow:0 10px 34px rgba(44,93,142,.12)}
+.closing-title em{color:#6ba0d4}
+.closing-grid{border-top-color:rgba(28,64,102,.22)}
+.closing-pillar{background:rgba(248,252,255,.12);transition:background .3s ease,transform .3s ease}
+.closing-pillar:hover{background:rgba(255,255,255,.3);transform:translateY(-3px)}
+/* only the tutorial tile is a link — it lifts and brightens, its neighbours stay put */
+.closing-pillar:not(a):hover{transform:none}
+a.closing-pillar:hover{background:transparent}
+.release-pill{border:1px solid rgba(255,255,255,.18);box-shadow:0 12px 28px rgba(28,73,112,.2),inset 0 1px 0 rgba(255,255,255,.16)}
+
+body.theme-physics .logo,body.theme-coupling .logo,body.theme-closing .logo{
+  background:rgba(248,253,255,.66);
+  border-color:rgba(35,91,130,.16);
+  box-shadow:0 12px 28px rgba(32,78,112,.12),inset 0 1px 0 rgba(255,255,255,.86);
+}
+body.theme-physics .logo:hover,body.theme-coupling .logo:hover,body.theme-closing .logo:hover{background:rgba(255,255,255,.88);border-color:rgba(35,91,130,.3)}
+body.theme-physics .nav,body.theme-coupling .nav,body.theme-closing .nav{background:rgba(248,253,255,.5);border-color:rgba(35,91,130,.14);box-shadow:0 16px 34px rgba(32,78,112,.1),inset 0 1px 0 rgba(255,255,255,.82)}
+
+#s5.comparison{background:radial-gradient(62% 60% at 90% 0%,rgba(68,151,209,.22),transparent 68%),radial-gradient(50% 60% at 0 100%,rgba(55,189,219,.1),transparent 72%),linear-gradient(148deg,#111f38 0%,#0d1629 48%,#080e1b 100%)}
+.comparison-table-wrap{position:relative;border-color:rgba(127,224,242,.2);box-shadow:var(--shadow-deep),inset 0 1px 0 rgba(255,255,255,.06)}
+.comparison-table-wrap::before{content:"";position:absolute;left:1rem;right:1rem;top:0;height:2px;background:linear-gradient(90deg,transparent,var(--ice),transparent);opacity:.6;z-index:3}
+.comparison-table tbody tr:hover{background:linear-gradient(90deg,rgba(127,224,242,.07),rgba(127,224,242,.015))}
+
+@media (max-width:680px){
+  .logo{max-width:calc(100vw - 5rem);padding:.38rem .58rem .38rem .42rem;font-size:.95rem}
+  .logo .sub{display:none}
+  .nav{right:.55rem;padding:.56rem .35rem;gap:.8rem}
+  .nav .dot{width:9px;height:9px}
+  .sky-title{text-wrap:pretty}
+  .eq-cloud::before{inset:8% 0 10%}
+  #s4.active .earth-stage{opacity:.24}
+  .cx-component:hover,.closing-pillar:hover{transform:none}
+}
+
+/* ============================================================
+   13B. EDITORIAL FINISH — quiet hierarchy, wayfinding and focus
+   ============================================================ */
+:root{
+  --paper:#f5f9fc;
+  --blue-ink:#163454;
+  --blue-muted:#607b95;
+  --hairline:rgba(36,84,122,.18);
+}
+
+/* A small amount of texture keeps the flat gradients from feeling synthetic. */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:1;
+  pointer-events:none;
+  opacity:.2;
+  background-image:
+    radial-gradient(circle at 18% 22%,rgba(255,255,255,.55) 0 .5px,transparent .8px),
+    radial-gradient(circle at 72% 68%,rgba(8,30,54,.16) 0 .45px,transparent .75px);
+  background-size:7px 7px,9px 9px;
+  mix-blend-mode:soft-light;
+}
+
+.logo{letter-spacing:.055em}
+.logo .sub{letter-spacing:.15em}
+.nav .dot{position:relative}
+.nav .dot::after,
+.nav .dot.active::after{
+  content:attr(aria-label);
+  display:block;
+  position:absolute;
+  right:calc(100% + .85rem);
+  top:50%;
+  width:max-content;
+  max-width:15rem;
+  padding:.38rem .58rem;
+  border:1px solid rgba(127,224,242,.2);
+  border-radius:6px;
+  background:rgba(9,18,34,.84);
+  color:#dceaf5;
+  font-family:var(--font-mono);
+  font-size:.6rem;
+  font-weight:500;
+  letter-spacing:.08em;
+  line-height:1.25;
+  text-transform:uppercase;
+  white-space:nowrap;
+  opacity:0;
+  pointer-events:none;
+  transform:translateY(-50%) translateX(5px);
+  transition:opacity .22s ease,transform .22s ease;
+  box-shadow:0 10px 28px rgba(3,10,20,.2);
+}
+.nav .dot:hover::after,
+.nav .dot:focus-visible::after{opacity:1;transform:translateY(-50%) translateX(0)}
+body.theme-physics .nav .dot::after,
+body.theme-coupling .nav .dot::after,
+body.theme-closing .nav .dot::after,
+body.theme-historical .nav .dot::after{
+  border-color:rgba(39,91,127,.18);
+  background:rgba(248,253,255,.92);
+  color:#315570;
+}
+
+.closing-kicker,
+.sky-kicker,
+.physics-kicker,
+.cx-kicker{
+  display:flex;
+  align-items:center;
+  gap:.72rem;
+  font-family:var(--font-mono);
+  font-size:.68rem;
+  font-weight:500;
+  letter-spacing:.2em;
+  line-height:1.3;
+  text-transform:uppercase;
+}
+.closing-kicker{margin-bottom:clamp(1.35rem,2.6vh,2.35rem);color:#6483a1}
+.closing-kicker .kicker-rule{width:2.9rem;height:1px;background:#7fa8c8}
+.closing-kicker .kicker-index{margin-left:.25rem;color:#2e5c84}
+.closing-kicker .kicker-index::before{content:"/ ";color:#91aac0}
+.closing-intro{max-width:40ch}
+.closing-scroll-note{
+  display:flex;
+  align-items:center;
+  gap:.7rem;
+  margin-right:auto;
+  color:#7591aa;
+  font-family:var(--font-mono);
+  font-size:.68rem;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+}
+.scroll-line{display:inline-block;width:2.6rem;height:1px;background:#80a6c3}
+
+.comparison-table-wrap{border-radius:20px}
+
+#s1{position:relative}
+.sky-kicker{
+  position:relative;
+  z-index:4;
+  margin:0 auto .7rem;
+  color:rgba(255,255,255,.62);
+  text-shadow:0 2px 18px rgba(52,45,157,.32);
+}
+.sky-kicker::before,.sky-kicker::after{content:"";width:2.4rem;height:1px;background:rgba(255,255,255,.34)}
+.sky-title{max-width:1060px}
+
+.physics-kicker{
+  position:absolute;
+  z-index:5;
+  top:clamp(1rem,3.2vh,2.2rem);
+  right:clamp(1rem,4vw,4.4rem);
+  color:#28546b;
+  opacity:0;
+  transform:translateY(-8px);
+  transition:opacity .8s ease .08s,transform .8s ease .08s;
+}
+#s2.active .physics-kicker{opacity:1;transform:none}
+.physics-kicker::before{content:"";width:2.2rem;height:1px;background:#6d9bb5}
+
+.cx-kicker{margin-bottom:.7rem;color:#4a7898}
+.cx-kicker::before{content:"";width:2.4rem;height:1px;background:#7ea9c4}
+.cx-title{max-width:24ch}
+
+#s4.active .earth-stage{opacity:.3}
+.earth-visual{filter:saturate(.58) brightness(1.24) contrast(.8) drop-shadow(-28px 0 42px rgba(94,151,204,.22))}
+
+@media (max-width:760px){
+  body::before{opacity:.14}
+  .nav .dot::after,.nav .dot.active::after{display:none}
+  .closing-kicker{font-size:.58rem;letter-spacing:.14em}
+  .closing-scroll-note{display:none}
+  .closing-head{min-height:26rem}
+  .comparison-head{grid-template-columns:1fr;gap:.9rem}
+  .sky-kicker{font-size:.58rem;letter-spacing:.15em}
+  .physics-kicker{top:4.8rem;right:1.1rem;font-size:.55rem;letter-spacing:.13em}
+  .cx-kicker{font-size:.58rem;letter-spacing:.15em}
+}
+
+/* ============================================================
+   14. PAGE 6 — HISTORICAL EXPERIMENT
+   ============================================================ */
+#s6.historical{
+  --hist-ink:#17344d;
+  --hist-muted:#58728b;
+  --hist-line:rgba(45,98,128,.2);
+  --hist-accent:#b86f32;
+  --hist-blue:#78b7f0;
+  position:relative;isolation:isolate;overflow:hidden;align-items:stretch;justify-content:flex-start;
+  padding:clamp(4.9rem,7vh,6.2rem) clamp(1.2rem,5vw,5.5rem) clamp(1.4rem,3vh,2.5rem);
+  color:var(--hist-ink);
+  background:
+    radial-gradient(66% 95% at 92% 8%,rgba(91,157,211,.28),transparent 68%),
+    radial-gradient(55% 75% at 8% 96%,rgba(242,181,111,.17),transparent 70%),
+    linear-gradient(137deg,#eaf5fa 0%,#d9eaf3 52%,#c3dce9 100%);
+}
+#s6.historical::before{
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.4;
+  background-image:linear-gradient(rgba(55,107,139,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(55,107,139,.08) 1px,transparent 1px);
+  background-size:76px 76px;
+  -webkit-mask-image:linear-gradient(155deg,#000 0%,transparent 72%);mask-image:linear-gradient(155deg,#000 0%,transparent 72%);
+}
+.historical-shell{width:min(100%,1640px);height:100%;margin:0 auto;display:grid;grid-template-rows:auto minmax(0,1fr);gap:clamp(1.05rem,2.3vh,1.75rem)}
+.historical-head{display:flex;align-items:flex-end;justify-content:space-between;gap:2rem}
+.historical-index{margin-bottom:.7rem;font-family:var(--font-mono);font-size:.72rem;letter-spacing:.25em;text-transform:uppercase;color:#3e7798}
+.historical-title{max-width:24ch;font-family:var(--font-elegant);font-size:clamp(2.65rem,4.8vw,5.2rem);font-weight:400;line-height:.9;letter-spacing:-.045em;text-wrap:balance}
+.historical-title em{color:var(--hist-accent);font-weight:400}
+.historical-lead{max-width:55ch;margin-top:1rem;color:var(--hist-muted);font-size:clamp(.98rem,1.05vw,1.15rem);line-height:1.55}
+.historical-badges{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:.55rem;max-width:32rem;padding-bottom:.25rem}
+.historical-badge{padding:.52rem .72rem;border:1px solid rgba(45,98,128,.22);border-radius:999px;background:rgba(255,255,255,.48);font-family:var(--font-mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:#46657c;white-space:nowrap;box-shadow:inset 0 1px 0 rgba(255,255,255,.75)}
+.historical-badge strong{color:#a45f2d;font-weight:500}
+.historical-content{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(.9rem,1.7vw,1.5rem);min-height:0}
+.historical-chart-card,.historical-summary{min-height:0;border:1px solid var(--hist-line);border-radius:22px;background:linear-gradient(145deg,rgba(250,254,255,.84),rgba(229,242,249,.72));box-shadow:0 28px 75px rgba(56,102,131,.16),inset 0 1px 0 rgba(255,255,255,.86);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+.historical-chart-card{display:flex;flex-direction:column;padding:clamp(.9rem,1.55vw,1.35rem) clamp(.82rem,1.7vw,1.5rem) .9rem;overflow:hidden}
+.historical-chart-top{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:.35rem}
+.historical-chart-title{font-family:var(--font-elegant);font-size:clamp(1.45rem,1.95vw,1.95rem);font-weight:400;color:#17344d}
+.historical-legend{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;justify-content:flex-end;font-family:Arial,Helvetica,sans-serif;font-size:clamp(.88rem,1.25vw,1.12rem);letter-spacing:.08em;text-transform:uppercase;color:#54708a}
+.historical-legend span{display:inline-flex;align-items:center;gap:.32rem;white-space:nowrap}
+.legend-swatch{width:21px;height:3px;border-radius:99px;display:inline-block;background:#17344d}.legend-swatch.branch{height:8px;background:linear-gradient(90deg,rgba(120,183,240,.7),rgba(230,132,130,.7));opacity:.65}.legend-swatch.observed{height:10px;border:1px solid rgba(83,112,137,.3);background:repeating-linear-gradient(135deg,rgba(111,140,160,.25) 0 2px,transparent 2px 6px)}
+#historicalChart{display:block;flex:1 1 auto;width:100%;height:auto;min-height:0;overflow:visible}
+.historical-chart-card figcaption{padding:.45rem .15rem 0;font-size:clamp(.98rem,1.1vw,1.12rem);line-height:1.45;color:#57728b}
+.historical-chart-card figcaption strong{color:#2c4a62;font-weight:500}
+.historical-summary{display:flex;flex-direction:column;justify-content:space-between;padding:clamp(1rem,1.65vw,1.45rem)}
+.historical-summary{border:0;border-radius:0;background:transparent;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+.historical-summary-kicker{font-family:var(--font-mono);font-size:.68rem;letter-spacing:.24em;text-transform:uppercase;color:#3e7798}
+.historical-metric{margin:clamp(1rem,2.8vh,2rem) 0 1rem;padding-bottom:1rem;border-bottom:1px solid rgba(143,196,226,.18)}
+.historical-metric strong{display:block;font-family:var(--font-elegant);font-size:clamp(3.75rem,5.8vw,6.4rem);font-weight:400;line-height:.8;letter-spacing:-.065em;color:#ae672f}
+.historical-metric span{display:block;margin-top:.65rem;font-family:var(--font-mono);font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;color:#5c7489}
+.historical-summary-copy{font-size:.93rem;line-height:1.55;color:#4d687e}
+.historical-summary-copy strong{color:#17344d;font-weight:500}
+.historical-timeline{display:grid;gap:.72rem;margin-top:1.3rem}
+.historical-timeline-item{display:grid;grid-template-columns:1.2rem 1fr;gap:.55rem;align-items:start}
+.historical-timeline-item::before{content:"";width:.48rem;height:.48rem;margin:.27rem 0 0 .13rem;border:1px solid #5f9bb8;border-radius:50%;background:#d8edf6;box-shadow:0 0 0 4px rgba(95,155,184,.12)}
+.historical-timeline-item strong{display:block;font-family:var(--font-mono);font-size:.67rem;letter-spacing:.12em;color:#31546e}
+.historical-timeline-item span{display:block;margin-top:.12rem;font-size:.8rem;line-height:1.4;color:#587188}
+.historical-source{display:inline-flex;align-items:center;gap:.45rem;width:max-content;margin-top:1.25rem;padding:.55rem .78rem;border:1px solid rgba(45,98,128,.25);border-radius:999px;font-family:var(--font-mono);font-size:.63rem;letter-spacing:.1em;text-transform:uppercase;color:#3f7190;transition:background .25s ease,border-color .25s ease,transform .25s ease}
+.historical-source:hover,.historical-source:focus-visible{border-color:#4d91b0;background:rgba(113,180,228,.15);transform:translateY(-1px)}
+.historical-mean{stroke-dasharray:3000;stroke-dashoffset:3000;transition:stroke-dashoffset 1.5s cubic-bezier(.2,.8,.2,1)}
+#s6.active .historical-mean{stroke-dashoffset:0}
+.historical-co2-line{stroke-dasharray:1800;stroke-dashoffset:1800;transition:stroke-dashoffset 1.5s cubic-bezier(.2,.8,.2,1) .35s}
+#s6.active .historical-co2-line{stroke-dashoffset:0}
+body.theme-historical .logo{color:#173b58;text-shadow:none}
+body.theme-historical .logo .sub{color:rgba(35,77,105,.68)}
+body.theme-historical .logo .mark{background:radial-gradient(circle at 35% 30%,#fff 0%,#9ee8f4 38%,#4389aa 72%,transparent 78%);box-shadow:0 0 18px rgba(90,164,191,.34)}
+body.theme-historical .logo{background:rgba(248,253,255,.72);border-color:rgba(45,98,128,.16);box-shadow:0 12px 28px rgba(47,91,119,.12),inset 0 1px 0 rgba(255,255,255,.9)}
+body.theme-historical .nav{background:rgba(248,253,255,.62);border-color:rgba(45,98,128,.16);box-shadow:0 16px 34px rgba(47,91,119,.12),inset 0 1px 0 rgba(255,255,255,.86)}
+body.theme-historical .nav .dot{border-color:rgba(45,98,128,.35);background:rgba(255,255,255,.48)}
+body.theme-historical .nav .dot.active{background:#f2b56f;border-color:#f2b56f;box-shadow:0 0 0 5px rgba(242,181,111,.13),0 0 20px rgba(242,181,111,.42)}
+body.theme-historical .nav .tick{background:rgba(45,98,128,.25)}
+
+@media (max-width:900px){
+  #s6.historical{height:auto;min-height:100dvh;overflow:visible}
+  .historical-head{display:block}
+  .historical-badges{justify-content:flex-start;margin-top:1.1rem;padding-bottom:0}
+  .historical-content{grid-template-columns:1fr;min-height:auto}
+  .historical-chart-card{min-height:24rem}
+  .historical-summary{min-height:0;display:grid;grid-template-columns:1fr 1fr;column-gap:1.4rem;align-items:start}
+  .historical-summary-kicker,.historical-metric,.historical-summary-copy,.historical-timeline,.historical-source{grid-column:1 / -1}
+  .historical-summary-copy{max-width:58ch}
+}
+@media (max-width:680px){
+  #s6.historical{padding:5.7rem 1.05rem 2.2rem}
+  .historical-title{font-size:clamp(2.55rem,13vw,4.2rem)}
+  .historical-lead{font-size:.96rem}
+  .historical-badges{gap:.42rem}
+  .historical-badge{font-size:.59rem;padding:.45rem .58rem}
+  .historical-chart-card{min-height:22rem;padding:.75rem .55rem .7rem;border-radius:16px}
+  .historical-chart-top{display:block}
+  .historical-legend{justify-content:flex-start;margin-top:.55rem;gap:.65rem;font-size:.8rem}
+  .historical-summary{display:block;padding:1rem}
+  .historical-metric{margin:1rem 0}
+  .historical-timeline{margin-top:1.2rem}
+}
+</style>
+</head>
+<body class="theme-closing">
+
+<!-- fixed background layers -->
+<div class="bg-gradient" aria-hidden="true"></div>
+<canvas id="clouds" aria-hidden="true"></canvas>
+<div class="vignette" aria-hidden="true"></div>
+<div class="bottom-fade" aria-hidden="true"></div>
+
+<!-- fixed chrome -->
+<div class="logo" data-link="home">
+  <span class="mark"></span>
+  <span>PlaSiC</span>
+  <span class="sub">Planet Simulator in <b>C</b></span>
+</div>
+<nav class="nav" id="nav" aria-label="Sections">
+  <span class="tick"></span>
+  <button class="dot" data-target="s4" aria-label="Open, learn and run"></button>
+  <button class="dot" data-target="s5" aria-label="Model comparison"></button>
+  <button class="dot" data-target="s1" aria-label="Dynamical core"></button>
+  <button class="dot" data-target="s2" aria-label="Physics parameterization"></button>
+  <button class="dot" data-target="s3" aria-label="Component coupling"></button>
+  <button class="dot" data-target="s6" aria-label="Historical experiment"></button>
+</nav>
+
+<main class="scroll" id="scroll">
+
+  <!-- ================= SECTION 1 : OPEN, LEARN, RUN ================= -->
+  <section id="s4" class="closing" data-theme="theme-closing" data-cloud="0.12">
+    <div class="earth-stage" aria-hidden="true">
+      <div class="earth-visual"></div>
+    </div>
+    <div class="earth-haze" aria-hidden="true"></div>
+
+    <div class="closing-topbar reveal" style="--d:.08s">
+      <a class="release-toplink" data-external>GitHub</a>
+      <span class="release-pill">Public release soon</span>
+    </div>
+    <div class="closing-shell">
+      <header class="closing-head">
+        <h2 class="closing-title reveal" style="--d:.12s"><span>A GCM</span><em>made to be<br>understood.</em></h2>
+        <p class="closing-intro reveal" style="--d:.2s">We have developed PlaSiC, a new GCM designed for teaching, with more features to be added in the future.</p>
+      </header>
+
+      <div class="closing-grid">
+        <a class="closing-pillar reveal" href="source.html" style="--d:.24s" title="Open the source tree — every file of the PlaSiC codebase, annotated" aria-label="Open the source tree — every file of the PlaSiC codebase, with line counts and annotations">
+          <div class="pillar-meta"><span class="number">01</span><span>Source</span></div>
+          <div class="pillar-signal"><strong><span class="approx">≈</span>20,000</strong><span>lines<br>of C</span></div>
+          <h3>Open, end to end.</h3>
+          <p>Written entirely in C. Every part of the model will be released as open-source code.</p>
+          <span class="pillar-cta">Explore the source tree<i aria-hidden="true">→</i></span>
+        </a>
+
+        <a class="closing-pillar reveal" href="tutorial.html" style="--d:.3s" title="Open the PlaSiC model guide — a 400+page tutorial book" aria-label="Open the model guide — a detailed tutorial book for PlaSiC">
+          <div class="pillar-meta"><span class="number">02</span><span>Tutorial</span></div>
+          <div class="pillar-signal"><strong>Complete</strong><span>model guide</span></div>
+          <h3>Every equation made clear.</h3>
+          <p>A detailed tutorial explains all of the mathematics and physics behind the model.</p>
+          <span class="pillar-cta">Open the model guide<i aria-hidden="true">→</i></span>
+        </a>
+
+        <a class="closing-pillar reveal" href="software.html" style="--d:.36s" title="Open the PlaSiC graphical interface page" aria-label="Open the PlaSiC graphical interface page">
+          <div class="pillar-meta"><span class="number">03</span><span>Software</span></div>
+          <div class="pillar-signal"><strong>Modern</strong><span>graphical UI</span></div>
+          <h3>Run it from day one.</h3>
+          <p>A modern GUI helps first-time users configure and run climate experiments quickly.</p>
+          <span class="pillar-cta">See the graphical interface<i aria-hidden="true">→</i></span>
+        </a>
+      </div>
+
+      <footer class="closing-foot reveal" style="--d:.42s">
+        <p class="closing-scroll-note"><span class="scroll-line"></span><span>Scroll to explore</span></p>
+      </footer>
+    </div>
+  </section>
+
+  <!-- ================= SECTION 2 : MODEL LANDSCAPE ================= -->
+  <section id="s5" class="comparison" data-theme="theme-comparison" data-cloud="0.03" aria-labelledby="comparison-title">
+    <div class="comparison-shell">
+      <header class="comparison-head">
+        <div>
+          <p class="comparison-index reveal" style="--d:.08s">02 / Model landscape</p>
+          <h2 class="comparison-title reveal" id="comparison-title" style="--d:.14s">A complete, approachable starting point for <em>GCM learning</em> suitable for ML researchers &amp; fresh modellers.</h2>
+        </div>
+      </header>
+
+      <div class="comparison-table-wrap reveal" style="--d:.26s" tabindex="0" role="region" aria-label="Scrollable model comparison">
+        <table class="comparison-table">
+          <caption>Comparison of PlaSiC with related climate modelling and teaching systems</caption>
+          <colgroup><col><col><col><col><col></colgroup>
+          <thead>
+            <tr>
+              <th scope="col">Model</th>
+              <th scope="col">Original role</th>
+              <th scope="col">Model scope</th>
+              <th scope="col">Workflow</th>
+              <th scope="col">PlaSiC perspective</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">PUMA</th>
+              <td>University teaching in atmospheric dynamics and numerical methods.</td>
+              <td>3-D primitive equations with Newtonian cooling and Rayleigh friction; primarily a dry dynamical core.</td>
+              <td>Fortran with a traditional GUI.</td>
+              <td>Excellent for teaching primitive-equation dynamics, but with a lighter treatment of physical parameterizations and climate-system coupling.</td>
+            </tr>
+            <tr>
+              <th scope="row">PlaSim</th>
+              <td>Training in general circulation model development.</td>
+              <td>A primitive-equation AGCM with radiation, clouds, convection, land, a mixed-layer ocean, and sea ice.</td>
+              <td>Fortran with a GUI.</td>
+              <td>PlaSiC rebuilds this foundation in C, making the source more approachable to ML researchers and pairing it with detailed teaching material and a modern visualization app.</td>
+            </tr>
+            <tr>
+              <th scope="row">Isca</th>
+              <td>A climate-model hierarchy for graduate teaching and research.</td>
+              <td>Ranges from Held–Suarez experiments to moist GCMs with radiation, land, and a mixed-layer ocean.</td>
+              <td>Fortran core with Python tooling.</td>
+              <td>Its hierarchy is powerful for comparing model complexity. PlaSiC instead focuses on mastering one coherent, complete GCM with a smaller conceptual surface.</td>
+            </tr>
+            <tr>
+              <th scope="row">CliMT</th>
+              <td>A climate-modelling framework for students and researchers.</td>
+              <td>Independent components for dynamics, radiation, convection, surface processes, ice, and snow.</td>
+              <td>Python API and Jupyter.</td>
+              <td>CliMT excels as a modular construction kit. PlaSiC is designed to be read end to end—from governing equations and numerics to physics and coupled surfaces.</td>
+            </tr>
+            <tr>
+              <th scope="row">climlab</th>
+              <td>Undergraduate and graduate teaching in climate physics.</td>
+              <td>Energy-balance, radiative–convective, and 1-D/2-D process models rather than a full 3-D primitive-equation GCM.</td>
+              <td>Python and Jupyter.</td>
+              <td>A mature choice for explaining climate processes with low-dimensional models; PlaSiC reveals how those ideas operate inside a complete 3-D GCM.</td>
+            </tr>
+            <tr data-peer="closest">
+              <th scope="row">SpeedyWeather.jl<span class="peer-tag">Closest modern peer</span></th>
+              <td>Modern, interactive atmospheric and climate modelling for teaching and research.</td>
+              <td>Barotropic, shallow-water, and dry/moist primitive-equation models with convection, clouds, radiation, land, slab ocean, and sea ice.</td>
+              <td>Julia, REPL, and Pluto; highly modular.</td>
+              <td>The closest modern alternative in scope. PlaSiC differentiates itself through a C implementation and a dedicated graphical application.</td>
+            </tr>
+            <tr>
+              <th scope="row">EdGCM</th>
+              <td>Climate-change experiments with a real GCM for students.</td>
+              <td>Built on NASA GISS Model II rather than redesigned specifically for source-level comprehension.</td>
+              <td>Desktop GUI; now legacy software.</td>
+              <td>EdGCM lowers the barrier to running a professional GCM. PlaSiC also prioritizes understanding and modifying the model itself.</td>
+            </tr>
+            <tr>
+              <th scope="row">EzGCM</th>
+              <td>Cloud-based Earth-system modelling for education.</td>
+              <td>A web platform for running climate models and analysing their output.</td>
+              <td>Web GUI and cloud execution.</td>
+              <td>EzGCM minimizes installation and computing friction, with emphasis on simulation and visualization. PlaSiC extends the learning path into equations and source code.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SECTION 3 : DYNAMICAL CORE ================= -->
+  <section id="s1" data-theme="theme-sky" data-cloud="1.0">
+    <p class="sky-kicker reveal" style="--d:.02s">03 / Dynamical core</p>
+    <h1 class="sky-title">Dynamical core: 13 equations, 13 variables, one closed system of equations.</h1>
+    <div class="eq-cloud" id="eqwall">
+      <!-- five prognostic equations -->
+      <div class="eq f-fore" data-depth="1.15" style="--x:24%;--y:17%;--r:-2deg;--fs:clamp(1.42rem,2.22vw,2.3rem);--delay:.10s;--float:10.5s;--phase:-2s">
+        <span class="m"><span class="fr"><span class="fn">∂ζ</span><span class="fd">∂τ</span></span> = <span class="fr"><span class="fn">1</span><span class="fd">1−μ<sup>2</sup></span></span><span class="fr"><span class="fn">∂F<sub>V</sub></span><span class="fd">∂λ</span></span> − <span class="fr"><span class="fn">∂F<sub>U</sub></span><span class="fd">∂μ</span></span> + P<sub>ζ</sub></span>
+      </div>
+      <div class="eq f-fore" data-depth=".82" style="--x:68%;--y:12%;--r:1.4deg;--fs:clamp(1.24rem,1.92vw,1.98rem);--delay:.18s;--float:12s;--phase:-7s">
+        <span class="m"><span class="fr"><span class="fn">∂D</span><span class="fd">∂τ</span></span> = <span class="fr"><span class="fn">1</span><span class="fd">1−μ<sup>2</sup></span></span><span class="fr"><span class="fn">∂F<sub>U</sub></span><span class="fd">∂λ</span></span> + <span class="fr"><span class="fn">∂F<sub>V</sub></span><span class="fd">∂μ</span></span> − ∇<sub>h</sub><sup>2</sup>B + P<sub>D</sub></span>
+      </div>
+      <div class="eq f-fore" data-depth="1.38" style="--x:82%;--y:35%;--r:2.2deg;--fs:clamp(1.46rem,2.3vw,2.36rem);--delay:.26s;--float:9s;--phase:-4s">
+        <span class="m"><span class="fr"><span class="fn">∂π</span><span class="fd">∂τ</span></span> = −∫<sub>0</sub><sup>1</sup>A dσ</span>
+      </div>
+      <div class="eq f-fore" data-depth=".95" style="--x:38%;--y:43%;--r:-1deg;--fs:clamp(1.3rem,2.06vw,2.12rem);--delay:.34s;--float:11s;--phase:-8s">
+        <span class="m"><span class="fr"><span class="fn">∂T′</span><span class="fd">∂τ</span></span> = F<sub>T</sub> − <span class="g">σ̇</span><span class="fr"><span class="fn">∂T</span><span class="fd">∂σ</span></span> + κT<span class="fr"><span class="fn">ω</span><span class="fd">p</span></span> + P<sub>T</sub></span>
+      </div>
+      <div class="eq f-fore" data-depth="1.22" style="--x:70%;--y:59%;--r:-1.5deg;--fs:clamp(1.26rem,1.98vw,2.04rem);--delay:.42s;--float:13s;--phase:-5s">
+        <span class="m"><span class="fr"><span class="fn">∂χ</span><span class="fd">∂τ</span></span> + ∇<sub>h</sub>·(χ<i>v</i><sub>h</sub>) + <span class="fr"><span class="fn">∂(χ<span class="g">σ̇</span>)</span><span class="fd">∂σ</span></span> = <span class="fr"><span class="fn">p<sub>s</sub></span><span class="fd">p<sub>0</sub></span></span>S<sub>q</sub></span>
+      </div>
+
+      <!-- eight diagnostic equations -->
+      <div class="eq f-diag" data-depth=".58" style="--x:17%;--y:35%;--r:1.7deg;--fs:clamp(1.04rem,1.42vw,1.46rem);--delay:.50s;--float:14s;--phase:-3s">
+        <span class="m"><span class="fr"><span class="fn">∂Φ</span><span class="fd">∂lnσ</span></span> = −T<sub>v</sub> = T[1 + (<span class="fr"><span class="fn">R<sub>v</sub></span><span class="fd">R<sub>d</sub></span></span> − 1)q]</span>
+      </div>
+      <div class="eq f-diag" data-depth="1.02" style="--x:18%;--y:62%;--r:1.2deg;--fs:clamp(.98rem,1.28vw,1.32rem);--delay:.58s;--float:12.5s;--phase:-9s">
+        <span class="m">F<sub>U</sub> = (ζ + f)V − <span class="g">σ̇</span><span class="fr"><span class="fn">∂U</span><span class="fd">∂σ</span></span> − T′<span class="fr"><span class="fn">∂π</span><span class="fd">∂λ</span></span></span>
+      </div>
+      <div class="eq f-diag" data-depth=".66" style="--x:42%;--y:76%;--r:-1.8deg;--fs:clamp(.92rem,1.2vw,1.24rem);--delay:.66s;--float:15s;--phase:-4s">
+        <span class="m">F<sub>V</sub> = −(ζ + f)U − <span class="g">σ̇</span><span class="fr"><span class="fn">∂V</span><span class="fd">∂σ</span></span> − T′(1−μ<sup>2</sup>)<span class="fr"><span class="fn">∂π</span><span class="fd">∂μ</span></span></span>
+      </div>
+      <div class="eq f-diag" data-depth="1.28" style="--x:70%;--y:88%;--r:2.4deg;--fs:clamp(1.04rem,1.42vw,1.46rem);--delay:.74s;--float:10s;--phase:-1s">
+        <span class="m">B = K + Φ + T<sub>0</sub>π&nbsp; (K = <span class="fr"><span class="fn">U<sup>2</sup> + V<sup>2</sup></span><span class="fd">2(1−μ<sup>2</sup>)</span></span>)</span>
+      </div>
+      <div class="eq f-diag" data-depth=".72" style="--x:84%;--y:73%;--r:-1deg;--fs:clamp(1rem,1.32vw,1.36rem);--delay:.80s;--float:13.5s;--phase:-7s">
+        <span class="m">F<sub>T</sub> = −∇<sub>h</sub>·(<i>v</i><sub>h</sub>T′) + DT′</span>
+      </div>
+      <div class="eq f-diag" data-depth=".52" style="--x:20%;--y:89%;--r:-1deg;--fs:clamp(.88rem,1.14vw,1.18rem);--delay:.84s;--float:13.5s;--phase:-7s">
+        <span class="m">A = D + <i>v</i><sub>h</sub>·∇<sub>h</sub>π = <span class="fr"><span class="fn">1</span><span class="fd">p<sub>s</sub></span></span>∇<sub>h</sub>·(p<sub>s</sub><i>v</i><sub>h</sub>)</span>
+      </div>
+      <div class="eq f-diag" data-depth=".88" style="--x:53%;--y:27%;--r:-2deg;--fs:clamp(1.08rem,1.48vw,1.52rem);--delay:.88s;--float:9.5s;--phase:-5s">
+        <span class="m"><span class="g">σ̇</span>(σ) = σ∫<sub>0</sub><sup>1</sup>A(σ′)dσ′ − ∫<sub>0</sub><sup>σ</sup>A(σ′)dσ′</span>
+      </div>
+      <div class="eq f-diag" data-depth="1.12" style="--x:88%;--y:50%;--r:.8deg;--fs:clamp(.98rem,1.28vw,1.32rem);--delay:.94s;--float:12s;--phase:-2s">
+        <span class="m"><span class="fr"><span class="fn">ω</span><span class="fd">p</span></span> = <i>v</i><sub>h</sub>·∇<sub>h</sub>π − <span class="fr"><span class="fn">1</span><span class="fd">σ</span></span>∫<sub>0</sub><sup>σ</sup>A(σ′)dσ′</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SECTION 4 : PHYSICS ================= -->
+  <section id="s2" class="physics-scene" data-theme="theme-physics" data-cloud="0.04" data-icons="true">
+    <p class="physics-kicker reveal" style="--d:.08s">04 / Physical parameterization</p>
+    <figure class="physics-figure" aria-labelledby="physics-figure-title physics-figure-desc">
+      <svg class="physics-map" id="phScene" viewBox="0 0 2000 1350" preserveAspectRatio="xMidYMid meet" role="img">
+        <title id="physics-figure-title">Physical processes in PlaSiC</title>
+        <desc id="physics-figure-desc">一个立体的大气网格柱：太阳短波辐射从右上角进入大气，一部分被云反射，另一部分透射到地面；地表与云顶向外发射长波辐射；柱内可见不同类型的云、一座深对流云塔、上升气流与降水；近地面画出大气边界层，内部有湍流旋涡与流线；右下角的地球展示水平网格划分，虚线表示左上角的大气柱即其中一个网格的放大。地表与大气之间交换热量、水汽与动量。图中标注 PlaSiC 使用的四个物理参数化方案。</desc>
+
+        <defs>
+          <!-- 天空渐变（大气盒右侧面） -->
+          <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#7fb6d9" stop-opacity="0.92" />
+            <stop offset="1" stop-color="#e8f5fc" stop-opacity="0.38" />
+          </linearGradient>
+          <!-- 天空渐变（大气盒左侧面，略深以表现体积感） -->
+          <linearGradient id="skyGradL" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#6ea7cc" stop-opacity="0.92" />
+            <stop offset="1" stop-color="#dceffb" stop-opacity="0.42" />
+          </linearGradient>
+          <!-- 大气盒顶面 -->
+          <linearGradient id="topGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#5f8fb0" />
+            <stop offset="1" stop-color="#87b6d2" />
+          </linearGradient>
+          <!-- 云体渐变 -->
+          <linearGradient id="cloudP" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ffffff"/>
+            <stop offset=".62" stop-color="#ecf5f5"/>
+            <stop offset="1" stop-color="#b9d9e1"/>
+          </linearGradient>
+          <linearGradient id="stormP" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#fafdff"/>
+            <stop offset=".58" stop-color="#c8dce4"/>
+            <stop offset="1" stop-color="#7899aa"/>
+          </linearGradient>
+          <!-- 太阳本体 -->
+          <radialGradient id="sunCoreGrad" cx="42%" cy="38%">
+            <stop offset="0" stop-color="#fffbd5"/>
+            <stop offset=".58" stop-color="#ffd45f"/>
+            <stop offset="1" stop-color="#f5a63d"/>
+          </radialGradient>
+          <!-- 边界层色带（上透明、下暖色） -->
+          <linearGradient id="ablGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#d7f1e6" stop-opacity=".08"/>
+            <stop offset="1" stop-color="#f7c878" stop-opacity=".36"/>
+          </linearGradient>
+
+          <filter id="cloudShadow" x="-30%" y="-30%" width="160%" height="170%">
+            <feDropShadow dx="0" dy="13" stdDeviation="13" flood-color="#2d718d" flood-opacity=".22"/>
+          </filter>
+          <filter id="sunGlow" x="-80%" y="-80%" width="260%" height="260%">
+            <feGaussianBlur stdDeviation="18"/>
+          </filter>
+
+          <!-- 箭头标记 -->
+          <marker id="arrowDark" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#33505e" />
+          </marker>
+          <marker id="arrowSun" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#f4b83f" />
+          </marker>
+          <marker id="arrowHeat" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#e05a3a" />
+          </marker>
+          <marker id="arrowLW" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#e05a7a" />
+          </marker>
+          <marker id="arrowUp" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#8d97a1" />
+          </marker>
+          <marker id="arrowMoist" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#208fb1" />
+          </marker>
+          <marker id="arrowAir" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#297b8d" />
+          </marker>
+          <marker id="arrowMom" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#6e68ad" />
+          </marker>
+
+          <!-- 地球球面裁剪 -->
+          <clipPath id="globeClip"><circle cx="1652" cy="1005" r="260" /></clipPath>
+
+          <!-- 云朵 -->
+          <g id="cloudShape">
+            <g fill="#ffffff" stroke="#b9c6cf" stroke-width="3">
+              <ellipse cx="20" cy="14" rx="86" ry="22" />
+              <circle cx="-52" cy="6" r="24" />
+              <circle cx="-22" cy="-12" r="30" />
+              <circle cx="16" cy="-22" r="32" />
+              <circle cx="52" cy="-10" r="27" />
+              <circle cx="80" cy="4" r="20" />
+            </g>
+            <ellipse cx="20" cy="16" rx="80" ry="15" fill="#e4edf3" opacity="0.75" />
+          </g>
+
+          <!-- 针叶树 -->
+          <g id="pine">
+            <rect x="-5" y="-8" width="10" height="30" fill="#6d4c41" />
+            <polygon points="0,-52 42,0 -42,0" fill="#1f5c3a" stroke="#143f28" stroke-width="2.5" />
+            <polygon points="0,-76 36,-26 -36,-26" fill="#256b43" stroke="#143f28" stroke-width="2.5" />
+            <polygon points="0,-98 30,-48 -30,-48" fill="#2e7d4f" stroke="#143f28" stroke-width="2.5" />
+          </g>
+
+          <!-- 阔叶树 -->
+          <g id="broadleaf">
+            <path d="M0,0 L0,-46 M0,-24 L-16,-46 M0,-32 L14,-52" stroke="#5d4037" stroke-width="6" fill="none" stroke-linecap="round" />
+            <g stroke="#1c5433" stroke-width="2.5">
+              <circle cx="-20" cy="-58" r="24" fill="#2e7d4f" />
+              <circle cx="14" cy="-66" r="26" fill="#35965f" />
+              <circle cx="-2" cy="-86" r="24" fill="#43a86b" />
+              <circle cx="0" cy="-50" r="20" fill="#2e7d4f" />
+            </g>
+          </g>
+
+          <!-- 灌木 -->
+          <g id="bush">
+            <g fill="#35965f" stroke="#1c5433" stroke-width="2">
+              <circle cx="-16" cy="-8" r="13" />
+              <circle cx="0" cy="-14" r="16" />
+              <circle cx="17" cy="-8" r="12" />
+            </g>
+          </g>
+
+          <!-- 雨滴 -->
+          <symbol id="raindropP" viewBox="-12 -18 24 36">
+            <path d="M0-16C-3-9-9-1-9 7A9 9 0 009 7C9-1 3-9 0-16Z" fill="#2f94c5"/>
+          </symbol>
+        </defs>
+
+        <!-- ===== 大气网格柱（立体盒，沿用 demo 设计） ===== -->
+        <g id="phAtmoBox" stroke="#2c3e50" stroke-width="3" stroke-linejoin="round">
+          <!-- 顶面 -->
+          <path d="M45,158 L612,262 L1490,182 Q980,-8 380,72 Q160,108 45,158 Z" fill="url(#topGrad)" />
+          <!-- 左侧面 -->
+          <path d="M45,158 Q330,200 612,262 Q688,610 738,958 Q470,940 218,878 Q140,520 45,158 Z" fill="url(#skyGradL)" />
+          <!-- 右侧面 -->
+          <path d="M612,262 Q1050,145 1490,182 Q1435,545 1346,908 Q1042,982 738,958 Q688,610 612,262 Z" fill="url(#skyGrad)" />
+          <!-- 分格棱线 -->
+          <path d="M612,262 Q688,610 738,958" fill="none" stroke="#2c3e50" stroke-width="3" />
+        </g>
+
+        <!-- ===== 长波辐射（地表与云顶向外发射；先画，根部被云和地面遮住） ===== -->
+        <g fill="none" stroke="#e05a7a" stroke-width="7" stroke-linecap="round" marker-end="url(#arrowLW)" opacity=".82">
+          <path class="longwave" d="M690 380C700 300 780 225 765 180C752 142 778 118 770 80"/>
+          <path class="longwave" d="M1305 885C1275 790 1335 725 1308 640C1288 565 1338 500 1318 435"/>
+        </g>
+        <text x="790" y="160" class="micro-label light" style="fill:#e05a7a;stroke:rgba(255,255,255,.92)">LONGWAVE</text>
+
+        <!-- ===== 高层卷云（云型一） ===== -->
+        <g class="cloud-float-c" fill="none" stroke="#fff" stroke-linecap="round" opacity=".7">
+          <path d="M880 350C960 305 1030 345 1110 315" stroke-width="20"/>
+          <path d="M905 378C980 340 1040 372 1135 345" stroke-width="11"/>
+          <path d="M950 398C1010 375 1070 392 1120 375" stroke-width="6"/>
+        </g>
+
+        <!-- ===== 深对流云塔（砧顶 + 塔身 + 暗色云座） ===== -->
+        <g transform="translate(545 590) scale(0.68) translate(-545 -590)">
+          <g class="cloud-soft cloud-float-a">
+            <use href="#cloudShape" transform="translate(515 344) scale(2.55 1.16)"/>
+            <circle cx="575" cy="410" r="72" fill="url(#cloudP)"/>
+            <circle cx="470" cy="470" r="95" fill="url(#cloudP)"/>
+            <circle cx="590" cy="500" r="105" fill="url(#cloudP)"/>
+            <circle cx="500" cy="620" r="110" fill="url(#cloudP)"/>
+            <circle cx="620" cy="680" r="95" fill="url(#cloudP)"/>
+            <circle cx="420" cy="700" r="80" fill="url(#cloudP)"/>
+            <ellipse cx="520" cy="815" rx="250" ry="70" fill="#7899aa" opacity=".72"/>
+            <ellipse cx="515" cy="795" rx="215" ry="52" fill="url(#stormP)"/>
+          </g>
+          <text x="400" y="428" class="micro-label">DEEP CONVECTIVE TOWER</text>
+        </g>
+
+        <!-- ===== 中积云（不同云型，demo 云朵复用） ===== -->
+        <g class="clouds-drift">
+          <g class="cloud-float-c"><use href="#cloudShape" transform="translate(1120 520) scale(0.8)" /></g>
+        </g>
+
+        <!-- ===== 大气边界层（色带 + 虚线顶界） ===== -->
+        <path d="M250 712Q760 762 1320 700L1346 892Q790 952 235 868Z" fill="url(#ablGrad)"/>
+        <path d="M250 712Q760 762 1320 700" fill="none" stroke="#367e82" stroke-width="3" stroke-dasharray="7 11" opacity=".55"/>
+        <text x="1000" y="730" class="micro-label" opacity=".85" style="fill:#367e82">BOUNDARY LAYER</text>
+
+        <!-- ===== 地面 / 道路 / 森林（沿用 demo） ===== -->
+        <path id="phTerrain" d="M218,852 Q470,914 738,932 Q1042,956 1346,882 L1346,908 Q1042,982 738,958 Q470,940 218,878 Z"
+              fill="#cfe6c8" stroke="#8fbf87" stroke-width="2" />
+        <g id="phRoad">
+          <path d="M642,950 C600,928 560,924 548,904 C536,884 558,868 522,860"
+                fill="none" stroke="#7d8f9c" stroke-width="26" stroke-linecap="round" />
+          <path d="M642,950 C600,928 560,924 548,904 C536,884 558,868 522,860"
+                fill="none" stroke="#c3ced6" stroke-width="20" stroke-linecap="round" />
+          <path d="M642,950 C600,928 560,924 548,904 C536,884 558,868 522,860"
+                fill="none" stroke="#ffffff" stroke-width="2.8" stroke-dasharray="10 9" />
+        </g>
+        <g id="phTrees" transform="translate(150 327) scale(0.64)">
+          <use href="#bush" transform="translate(235,864)" />
+          <use href="#pine" transform="translate(255,869) scale(1.1)" />
+          <use href="#pine" transform="translate(300,874) scale(0.9)" />
+          <use href="#pine" transform="translate(345,884) scale(1.2)" />
+          <use href="#broadleaf" transform="translate(386,884) scale(0.8)" />
+          <use href="#broadleaf" transform="translate(428,892) scale(1.1)" />
+          <use href="#bush" transform="translate(330,882)" />
+          <use href="#bush" transform="translate(470,904)" />
+          <use href="#pine" transform="translate(520,909) scale(0.95)" />
+          <use href="#pine" transform="translate(556,916) scale(1.05)" />
+          <use href="#pine" transform="translate(600,920) scale(0.75)" />
+          <use href="#bush" transform="translate(585,922)" />
+        </g>
+        <!-- 城市建筑（缩小版，窗户由 JS 生成） -->
+        <g class="city-icon" transform="translate(714 549) scale(0.43)">
+          <g stroke="#37474f" stroke-width="5">
+            <rect x="1054" y="596" width="26" height="8" fill="#b0bec5" />
+            <rect x="1058" y="602" width="18" height="38" fill="#d7ccc8" />
+            <rect x="939" y="632" width="162" height="10" fill="#cfd8dc" />
+            <rect x="945" y="640" width="150" height="286" fill="#fdf6e3" />
+            <rect x="1105" y="690" width="105" height="218" fill="#f7ecd7" />
+            <rect x="916" y="712" width="12" height="36" fill="#d7ccc8" />
+            <rect x="905" y="748" width="52" height="176" fill="#fdf6e3" />
+            <g id="phWinB1"></g>
+            <g id="phWinB2"></g>
+            <g id="phWinB3"></g>
+            <rect x="1006" y="868" width="34" height="58" fill="#8d6e63" />
+            <rect x="1000" y="862" width="46" height="8" fill="#b0bec5" />
+          </g>
+        </g>
+        <!-- ===== 深对流云塔内的上升气流 ===== -->
+        <g fill="none" stroke="#8d97a1" stroke-width="8" stroke-linecap="round" marker-end="url(#arrowUp)">
+          <path class="updraft" d="M520 912C540 780 510 620 540 480"/>
+        </g>
+        <text x="565" y="520" class="micro-label" style="fill:#8d97a1;stroke:rgba(255,255,255,.9)">UPDRAFT</text>
+
+        <!-- ===== 降水（雨线 + JS 雨点 + 云下雨滴） ===== -->
+        <g stroke="#207fa8" stroke-width="6" stroke-linecap="round" opacity=".78">
+          <path class="rain-streak" d="M330 780L310 882"/>
+          <path class="rain-streak r2" d="M385 788L368 892"/>
+          <path class="rain-streak r3" d="M440 782L428 900"/>
+          <path class="rain-streak r2" d="M550 785L562 912"/>
+          <path class="rain-streak r3" d="M610 780L628 918"/>
+          <path class="rain-streak" d="M668 772L690 920"/>
+        </g>
+        <g id="phRainDots"></g>
+        <g aria-label="Raindrops below the deep convective cloud">
+          <use href="#raindropP" x="350" y="800" width="25" height="37" class="rain-drop"/>
+          <use href="#raindropP" x="455" y="830" width="22" height="33" class="rain-drop d2"/>
+          <use href="#raindropP" x="560" y="805" width="26" height="39" class="rain-drop d3"/>
+          <use href="#raindropP" x="660" y="835" width="21" height="32" class="rain-drop"/>
+          <use href="#raindropP" x="720" y="795" width="23" height="35" class="rain-drop d2"/>
+        </g>
+        <text x="238" y="764" class="micro-label" style="fill:#207fa8">PRECIPITATION</text>
+
+        <!-- ===== 边界层内的湍流混合：小型旋涡 + 流线 ===== -->
+        <g fill="none" stroke="#3a8b83" opacity=".58">
+          <g transform="translate(518 407) scale(0.6)"><path class="eddy" stroke-width="7" d="M1302 627C1327 593 1377 599 1386 635C1396 675 1350 700 1318 677C1295 660 1296 639 1310 622"/></g>
+        </g>
+        <g transform="translate(310 -10)" fill="none" stroke="#4a9d91" stroke-width="3.5" stroke-linecap="round" marker-end="url(#arrowAir)" opacity=".48">
+          <path class="mix-stream" d="M960 858C938 830 946 796 978 772"/>
+        </g>
+        <text x="1050" y="680" class="micro-label" style="fill:#4a9d91">TURBULENT MIXING</text>
+
+        <!-- ===== 地表—大气交换：heat / moisture / momentum ===== -->
+        <g fill="none" stroke-linecap="round" stroke-width="8">
+          <path class="flux-arrow" d="M770 936C766 885 768 830 782 775" stroke="#e05a3a" marker-end="url(#arrowHeat)"/>
+          <path class="flux-arrow" d="M890 944C884 888 890 832 902 772" stroke="#208fb1" marker-end="url(#arrowMoist)"/>
+          <path class="flux-arrow" d="M975 895C900 870 825 875 768 892" stroke="#6e68ad" marker-end="url(#arrowMom)"/>
+        </g>
+        <g font-size="28" font-weight="750" letter-spacing="1.5" paint-order="stroke" stroke="rgba(248,253,255,.88)" stroke-width="6" stroke-linejoin="round">
+          <text x="742" y="752" style="fill:#e05a3a">HEAT</text>
+          <text x="830" y="752" style="fill:#208fb1">MOISTURE</text>
+          <text x="895" y="912" style="fill:#6e68ad">MOMENTUM</text>
+        </g>
+
+        <!-- ===== 地球（经纬网地球图片 earth_grid.png，沿球缘裁剪） ===== -->
+        <g id="phGlobe">
+          <image href="earth_grid.png" x="1391.2" y="745" width="521.9" height="520" clip-path="url(#globeClip)" />
+          <circle cx="1652" cy="1005" r="260" fill="none" stroke="#123f63" stroke-width="4" />
+        </g>
+
+        <!-- ===== 放大示意：选中南美洲陆地网格，用两条黑色虚线包裹左上角整个大气柱（上至顶面右角、下至底面左角） ===== -->
+        <g fill="none" stroke="#111111" stroke-width="4.5" stroke-linecap="round">
+          <path id="phCone1" d="M1676.7 1089.7L1490 182" stroke-dasharray="13 11" class="flow" />
+          <path id="phCone2" d="M1682.4 1127.5Q950 1060 218 878" stroke-dasharray="13 11" class="flow" />
+        </g>
+        <path id="phCell" d="M1676.7 1089.7Q1701.5 1093.2 1727.4 1096.7Q1729.6 1116.2 1731.6 1135.6Q1706.2 1131.8 1682.4 1127.5Q1679.7 1108.6 1676.7 1089.7Z" fill="rgba(255,227,179,.72)" stroke="#111111" stroke-width="5" stroke-linejoin="round" />
+        <text x="1350" y="1010" text-anchor="middle" class="micro-label" style="fill:#111111;stroke:rgba(255,255,255,.92)">
+          <tspan x="1350" dy="0">ONE GRID CELL,</tspan>
+          <tspan x="1350" dy="34">ENLARGED</tspan>
+        </text>
+
+        <!-- ===== 太阳短波：一束被云反射，一束透射到地面 ===== -->
+        <g fill="none" stroke="#f5ba42" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowSun)" opacity=".9">
+          <path class="shortwave" d="M1725 265L1185 480L1385 245" aria-label="Shortwave radiation reflected by cloud"/>
+          <path class="shortwave" d="M1680 300L1110 890" aria-label="Shortwave radiation transmitted to the surface"/>
+        </g>
+        <text x="1495" y="230" class="micro-label" style="fill:#f5ba42;stroke:rgba(97,44,8,.55)">SHORTWAVE</text>
+        <g transform="translate(1830 185)">
+          <circle r="118" fill="#ffd66a" opacity=".26" filter="url(#sunGlow)"/>
+          <g class="sun-rays" stroke="#ffe486" stroke-width="6" stroke-linecap="round" opacity=".85">
+            <path d="M0-74V-98M52-52L70-70M74 0H99M52 52L70 70M0 74V99M-52 52L-70 70M-74 0H-99M-52-52L-70-70"/>
+          </g>
+          <circle class="sun-core" r="58" fill="url(#sunCoreGrad)"/>
+        </g>
+
+        <!-- ===== PlaSiC 参数化方案标签 ===== -->
+        <g class="process-label p1" transform="translate(70 990)">
+          <path class="label-link" d="M240 8C330 -35 400 -80 430 -133"/>
+          <rect class="label-panel" width="250" height="62" rx="20"/>
+          <circle cx="34" cy="31" r="21" fill="none" stroke="rgba(16,63,89,.38)" stroke-width="1.6"/>
+          <text class="label-index" x="34" y="32">01</text>
+          <text class="label-title" x="68" y="39">Moist Process</text>
+        </g>
+        <g class="process-label p2" transform="translate(1460 400)">
+          <path class="label-link" d="M0 31C-25 30 -45 20 -58 8"/>
+          <rect class="label-panel" width="250" height="62" rx="20"/>
+          <circle cx="34" cy="31" r="21" fill="none" stroke="rgba(16,63,89,.38)" stroke-width="1.6"/>
+          <text class="label-index" x="34" y="32">02</text>
+          <text class="label-title" x="68" y="39">Radiation</text>
+        </g>
+        <g class="process-label p3" transform="translate(520 1090)">
+          <path class="label-link" d="M200 0C220 -80 270 -185 320 -265"/>
+          <rect class="label-panel" width="300" height="62" rx="20"/>
+          <circle cx="34" cy="31" r="21" fill="none" stroke="rgba(16,63,89,.38)" stroke-width="1.6"/>
+          <text class="label-index" x="34" y="32">03</text>
+          <text class="label-title" x="68" y="39">Surface Fluxes</text>
+        </g>
+        <g class="process-label p4" transform="translate(980 1190)">
+          <path class="label-link" d="M190 0C215 -125 255 -270 285 -380"/>
+          <rect class="label-panel" width="360" height="62" rx="20"/>
+          <circle cx="34" cy="31" r="21" fill="none" stroke="rgba(16,63,89,.38)" stroke-width="1.6"/>
+          <text class="label-index" x="34" y="32">04</text>
+          <text class="label-title" x="68" y="39">Turbulent Diffusion</text>
+        </g>
+
+        <!-- ===== 标题框（最后绘制，置顶不被遮挡） ===== -->
+        <g id="phTitleBox">
+          <rect x="24" y="100" width="700" height="82" rx="6" fill="#ffffff" stroke="#16222c" stroke-width="3" />
+          <text x="50" y="158" font-size="44" font-weight="700" fill="#182530">Physical processes in PlaSiC</text>
+        </g>
+      </svg>
+    </figure>
+  </section>
+
+  <!-- ================= SECTION 5 : COUPLING ================= -->
+  <section id="s3" class="coupling-scene" data-theme="theme-coupling" data-cloud="0.04" aria-labelledby="coupling-title">
+    <div class="cx-shell">
+      <header class="cx-header reveal" style="--d:.08s">
+        <div>
+          <p class="cx-kicker">05 / Component coupling</p>
+          <h2 class="cx-title" id="coupling-title">Five components.<br><em>One evolving climate.</em></h2>
+        </div>
+      </header>
+
+      <figure class="cx-network reveal" style="--d:.18s" aria-label="PlaSiC component coupling" aria-describedby="coupling-summary">
+        <p class="sr-only" id="coupling-summary">The atmosphere exchanges forcing and surface boundary conditions with two branches: land, and the sea-surface interface. The sea-surface interface passes averaged forcing to sea ice and receives marine surface states. Sea ice exchanges forcing and ocean states with the atmosphere-facing mixed-layer ocean. An optional three-dimensional deep ocean sits below the mixed layer and exchanges heat flux with it while advancing temperature, salinity and currents through a user-configured number of vertical levels.</p>
+        <article class="cx-component cx-atmosphere">
+          <div class="cx-atmosphere-name"><span class="cx-symbol cx-symbol-atmosphere" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none">
+                <defs>
+                  <linearGradient id="cxIconAtmSky" x1="11" y1="8" x2="53" y2="57"><stop stop-color="#78cfff"/><stop offset="1" stop-color="#3477ed"/></linearGradient>
+                  <linearGradient id="cxIconAtmCloud" x1="18" y1="29" x2="43" y2="50"><stop stop-color="#fff"/><stop offset="1" stop-color="#d8ecff"/></linearGradient>
+                </defs>
+                <rect x="4" y="4" width="56" height="56" rx="18" fill="url(#cxIconAtmSky)"/>
+                <circle cx="45" cy="18" r="7" fill="#ffd66b"/>
+                <g stroke="#fff4b5" stroke-width="2" stroke-linecap="round"><path d="M45 7v3"/><path d="M45 26v3"/><path d="M34 18h3"/><path d="M53 18h3"/><path d="m37 10 2 2"/><path d="m51 24 2 2"/></g>
+                <path d="M14 43c0-5 4-9 9-9 2-5 6-8 11-8 7 0 12 5 12 12 4 0 7 3 7 7s-3 7-8 7H22c-5 0-8-4-8-9Z" fill="url(#cxIconAtmCloud)" stroke="#b9dafa" stroke-width="1.5"/>
+                <path d="M12 56c8-3 15-3 23 0 7 3 13 3 19 0" stroke="#bceaff" stroke-width="2.2" stroke-linecap="round"/>
+              </svg></span><div><span class="cx-number">01</span><h3>Atmosphere</h3></div></div>
+          <p>Circulation, radiation, clouds and precipitation generate the forcing felt at the surface.</p>
+        </article>
+
+        <div class="cx-branches">
+          <div class="cx-branch">
+            <div class="cx-exchange" aria-label="Atmosphere and land exchange">
+              <div class="cx-direction"><i class="cx-arrow" aria-hidden="true"></i><span class="cx-field-list"><strong>Surface forcing</strong><span>Sensible + latent heat</span><span>Net shortwave + longwave</span><span>Rain, snow &amp; evaporation</span><span>Surface pressure</span></span></div>
+              <div class="cx-direction return"><i class="cx-arrow" aria-hidden="true"></i><span class="cx-field-list"><strong>Atmospheric boundary</strong><span>Surface temperature</span><span>Saturation specific humidity</span><span>Moisture availability</span><span>Albedo &amp; roughness</span></span></div>
+            </div>
+            <article class="cx-component cx-land">
+              <div class="cx-component-head"><span class="cx-symbol cx-symbol-land" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none">
+                <defs>
+                  <linearGradient id="cxIconLandSky" x1="10" y1="7" x2="51" y2="57"><stop stop-color="#d9f7cc"/><stop offset="1" stop-color="#76c887"/></linearGradient>
+                  <linearGradient id="cxIconLandSoil" x1="20" y1="37" x2="45" y2="58"><stop stop-color="#b97943"/><stop offset="1" stop-color="#73452f"/></linearGradient>
+                </defs>
+                <rect x="4" y="4" width="56" height="56" rx="18" fill="url(#cxIconLandSky)"/>
+                <circle cx="46" cy="17" r="6" fill="#ffd467"/>
+                <path d="M4 37c10-7 19-8 28-3 10 5 18 4 28-2v28H4V37Z" fill="url(#cxIconLandSoil)"/>
+                <path d="M4 37c10-7 19-8 28-3 10 5 18 4 28-2" stroke="#3ba65d" stroke-width="5" stroke-linecap="round"/>
+                <path d="M33 47V25" stroke="#247b43" stroke-width="2.8" stroke-linecap="round"/>
+                <path d="M33 33c-7 0-10-4-10-9 7 0 11 3 10 9Z" fill="#3fbf69" stroke="#247b43" stroke-width="1.4"/>
+                <path d="M34 28c1-6 5-9 11-9 0 6-4 10-11 9Z" fill="#6bd184" stroke="#247b43" stroke-width="1.4"/>
+                <path d="M10 48c12-4 25-3 43 2M10 55c11-3 25-2 42 1" stroke="#e1b17d" stroke-width="1.5" stroke-linecap="round" opacity=".72"/>
+              </svg></span><div><span class="cx-number">02</span><h3>Land surface</h3></div></div>
+              <p>Surface and soil temperatures, soil moisture and snow evolve with the local energy and water balance.</p>
+            </article>
+          </div>
+
+          <div class="cx-branch">
+            <div class="cx-exchange" aria-label="Atmosphere and marine surface exchange">
+              <div class="cx-direction"><i class="cx-arrow" aria-hidden="true"></i><span class="cx-field-list"><strong>Surface forcing</strong><span>Sensible + latent heat</span><span>Net shortwave + longwave</span><span>Precipitation − evaporation</span><span>Snowfall · τ<sub>x</sub>, τ<sub>y</sub> · u<sub>∗</sub><sup>3</sup></span></span></div>
+              <div class="cx-direction return"><i class="cx-arrow" aria-hidden="true"></i><span class="cx-field-list"><strong>Atmospheric boundary</strong><span>Surface temperature</span><span>Saturation specific humidity</span><span>Moisture availability</span><span>Albedo &amp; roughness</span></span></div>
+            </div>
+            <div class="cx-marine">
+              <div class="cx-interface">
+                <div class="cx-interface-name"><span class="cx-symbol cx-symbol-interface" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none">
+                <defs>
+                  <linearGradient id="cxIconInterfaceSky" x1="12" y1="5" x2="47" y2="59"><stop stop-color="#c8f6ff"/><stop offset=".52" stop-color="#70d8eb"/><stop offset=".53" stop-color="#1fa8cb"/><stop offset="1" stop-color="#086f9d"/></linearGradient>
+                </defs>
+                <rect x="4" y="4" width="56" height="56" rx="18" fill="url(#cxIconInterfaceSky)"/>
+                <path d="M5 34c6-4 11-4 17 0s11 4 17 0 11-4 20 0" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+                <path d="M7 43c7-4 13-4 20 0s13 4 20 0 8-3 12-1" stroke="#8eeafa" stroke-width="2.2" stroke-linecap="round"/>
+                <path d="M22 28V14m0 0-5 5m5-5 5 5" stroke="#327ea6" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M43 13v15m0 0-5-5m5 5 5-5" stroke="#9b722f" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="22" cy="32" r="2.2" fill="#ffd07c"/><circle cx="43" cy="32" r="2.2" fill="#bfeeff"/>
+              </svg></span><div><h3>Sea-surface interface</h3><span class="cx-interface-tag">Exchange &amp; surface blending</span></div></div>
+                <p>Time-averages the forcing above; constructs the atmospheric boundary from sea ice and open water.</p>
+              </div>
+              <div class="cx-gateway" aria-label="Sea-surface interface exchanges averaged forcing and surface states with sea ice">
+                <i class="cx-arrow" aria-hidden="true"></i><span class="return"><i class="cx-arrow" aria-hidden="true"></i></span>
+                <span class="cx-gateway-label">Mean forcing ↓<br>Ice &amp; sea state ↑</span>
+              </div>
+              <div class="cx-marine-pair">
+                <article class="cx-component cx-ice">
+                  <div class="cx-component-head"><span class="cx-symbol cx-symbol-ice" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none">
+                <defs>
+                  <linearGradient id="cxIconIceSky" x1="13" y1="6" x2="50" y2="58"><stop stop-color="#e8e2ff"/><stop offset=".55" stop-color="#a998f4"/><stop offset=".56" stop-color="#5a55b9"/><stop offset="1" stop-color="#343d8e"/></linearGradient>
+                  <linearGradient id="cxIconIceFloe" x1="17" y1="29" x2="46" y2="47"><stop stop-color="#fff"/><stop offset="1" stop-color="#c8e4ff"/></linearGradient>
+                </defs>
+                <rect x="4" y="4" width="56" height="56" rx="18" fill="url(#cxIconIceSky)"/>
+                <path d="M8 45c7-3 13-3 20 0s13 3 20 0 8-3 12-1" stroke="#a4d8ff" stroke-width="2.2" stroke-linecap="round"/>
+                <path d="m13 37 10-10 13-2 15 8-6 11-21 2-11-9Z" fill="url(#cxIconIceFloe)" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/>
+                <path d="m24 46 5 7h10l6-9" fill="#86b9e9" opacity=".85"/>
+                <g stroke="#fff" stroke-width="1.8" stroke-linecap="round"><path d="M47 10v13"/><path d="M41.5 13 52.5 20"/><path d="m41.5 20 11-7"/></g>
+                <circle cx="47" cy="16.5" r="2.3" fill="#fff"/>
+              </svg></span><div><span class="cx-number">03</span><h3>Sea ice</h3></div></div>
+                  <p>Updates ice temperature, thickness, cover and snow amount; mediates ocean exchange.</p>
+                </article>
+                <div class="cx-bridge" aria-label="Sea ice sends heat, freshwater and stress to the ocean; the ocean returns sea-surface temperature, mixed-layer depth and heat flux">
+                  <i class="cx-horizontal" aria-hidden="true"></i>
+                  <small>Heat, P − E<br>τ<sub>x</sub>, τ<sub>y</sub>, u<sub>∗</sub><sup>3</sup></small>
+                  <i class="cx-horizontal back" aria-hidden="true"></i>
+                  <small>SST, MLD<br>&amp; heat flux</small>
+                </div>
+                <article class="cx-component cx-ocean">
+                  <div class="cx-component-head"><span class="cx-symbol cx-symbol-ocean" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none">
+                <defs>
+                  <linearGradient id="cxIconOceanSea" gradientUnits="userSpaceOnUse" x1="14" y1="6" x2="50" y2="58"><stop stop-color="#66d0f7"/><stop offset=".5" stop-color="#28a3dd"/><stop offset="1" stop-color="#0f7fbb"/></linearGradient>
+                  <linearGradient id="cxIconOceanWave" gradientUnits="userSpaceOnUse" x1="16" y1="14" x2="40" y2="48"><stop stop-color="#2b7d9c"/><stop offset="1" stop-color="#0c4d6d"/></linearGradient>
+                  <clipPath id="cxIconOceanClip"><circle cx="32" cy="32" r="29"/></clipPath>
+                </defs>
+                <circle cx="32" cy="32" r="29" fill="url(#cxIconOceanSea)"/>
+                <g clip-path="url(#cxIconOceanClip)">
+                  <path d="M2 14c10-4 18-4 28 0s20 4 32 0" stroke="#8fdcf9" stroke-width="2.6" opacity=".55" stroke-linecap="round"/>
+                  <path d="M2 22c10-4 18-4 28 0s20 4 32 0" stroke="#7ed4f6" stroke-width="2.4" opacity=".4" stroke-linecap="round"/>
+                  <path d="M4 42C3 28 12 15 24 12c9-2.2 17 3 18 11 .8 6.5-3.5 11.5-9.5 12.5 3 2.5 7.5 2.5 11 0 2.5-1.8 4-4.5 4.5-7.5l14 5v15H4V42Z" fill="url(#cxIconOceanWave)"/>
+                  <path d="M13 36c2-9 7-16 14-20" stroke="#3f92b0" stroke-width="2" opacity=".5" stroke-linecap="round"/>
+                  <path d="M19 40c2-8 6-14 12-18" stroke="#3f92b0" stroke-width="1.6" opacity=".35" stroke-linecap="round"/>
+                  <circle cx="29" cy="31" r="6" fill="url(#cxIconOceanSea)"/>
+                  <path d="M8 30C10 20 17 13 26 12c8-1 14 4 16 11" stroke="#f6fcff" stroke-width="7" stroke-linecap="round"/>
+                  <circle cx="14" cy="21" r="3" fill="#f6fcff"/>
+                  <circle cx="20" cy="15.5" r="3" fill="#f6fcff"/>
+                  <circle cx="27" cy="13" r="3" fill="#f6fcff"/>
+                  <circle cx="34" cy="14.5" r="3" fill="#f6fcff"/>
+                  <circle cx="39.5" cy="19" r="3" fill="#f6fcff"/>
+                  <circle cx="42" cy="24.5" r="2.6" fill="#f6fcff"/>
+                  <circle cx="37" cy="28" r="3.2" fill="#f6fcff"/>
+                  <circle cx="34.5" cy="31" r="2.4" fill="#f6fcff"/>
+                  <circle cx="18" cy="18" r="1.6" fill="#dff3fc"/>
+                  <circle cx="26" cy="15" r="1.4" fill="#eaf7fd"/>
+                  <circle cx="33" cy="17" r="1.5" fill="#dff3fc"/>
+                  <path d="M44 30c1.5-4.5 5.5-7 10-6 3.5 .8 6 3.5 7 7-3-1.6-6.5-1.6-9.5 0-2.5 1.2-5.5 1-7.5-1Z" fill="#f6fcff"/>
+                  <path d="M2 44c10-3 19-3 30 0s20 3 30 0v18H2V44Z" fill="#0a4a6c"/>
+                  <path d="M2 44c10-3 19-3 30 0s20 3 30 0" stroke="#eaf7fd" stroke-width="2.2" stroke-linecap="round"/>
+                  <path d="M2 50c10-3 19-3 30 0s20 3 30 0" stroke="#17688f" stroke-width="2.2" opacity=".85"/>
+                  <path d="M2 56c10-3 19-3 30 0s20 3 30 0" stroke="#083c59" stroke-width="2.2"/>
+                </g>
+              </svg></span><div><span class="cx-number">04</span><h3>Mixed-layer ocean</h3></div></div>
+                  <p>Updates SST; returns MLD and ocean heat flux.</p>
+                </article>
+              </div>
+              <div class="cx-deep-link" aria-label="Mixed-layer ocean couples to the optional three-dimensional deep ocean">
+                <i class="cx-deep-arrow" aria-hidden="true"></i>
+                <span><strong>Optional deep-ocean coupling</strong><br>mixed-layer SST ↓ · deep-ocean heat flux ↑</span>
+              </div>
+              <article class="cx-component cx-deep-ocean">
+                <div class="cx-component-head"><span class="cx-symbol cx-symbol-deep-ocean" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none">
+                  <defs>
+                    <linearGradient id="cxIconDeepOcean" x1="11" y1="8" x2="52" y2="57"><stop stop-color="#9cecff"/><stop offset=".5" stop-color="#2e9ed1"/><stop offset="1" stop-color="#15517f"/></linearGradient>
+                    <linearGradient id="cxIconDeepLayer" x1="13" y1="18" x2="50" y2="49"><stop stop-color="#d9f8ff"/><stop offset="1" stop-color="#67bce0"/></linearGradient>
+                  </defs>
+                  <rect x="4" y="4" width="56" height="56" rx="18" fill="url(#cxIconDeepOcean)"/>
+                  <path d="M10 18c8-4 14-4 22 0s14 4 22 0" stroke="#effcff" stroke-width="2.4" stroke-linecap="round" opacity=".82"/>
+                  <path d="M10 28c8-4 14-4 22 0s14 4 22 0" stroke="#bdefff" stroke-width="2" stroke-linecap="round" opacity=".64"/>
+                  <path d="M10 38c8-4 14-4 22 0s14 4 22 0" stroke="#91d6f0" stroke-width="2" stroke-linecap="round" opacity=".52"/>
+                  <path d="M10 48c8-4 14-4 22 0s14 4 22 0" stroke="#5fa9d3" stroke-width="2" stroke-linecap="round" opacity=".44"/>
+                  <path d="M18 23v23m0 0-4-5m4 5 4-5M34 33v18m0 0-4-5m4 5 4-5M48 25v21m0 0-4-5m4 5 4-5" stroke="url(#cxIconDeepLayer)" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+                  <circle cx="18" cy="23" r="2.4" fill="#fff"/><circle cx="34" cy="33" r="2.4" fill="#e3fbff"/><circle cx="48" cy="25" r="2.4" fill="#d3f7ff"/>
+                </svg></span><div><span class="cx-number">05</span><h3>3D deep ocean</h3></div></div>
+                <p>Resets its top layer from mixed-layer SST, advances temperature, salinity and currents through vertical levels, and returns a deep-ocean heat flux.</p>
+                <div class="cx-deep-specs" aria-label="Three-dimensional ocean fields"><span>configurable levels</span><span>T · S · u · v · w</span><span>heat-flux coupling</span></div>
+              </article>
+            </div>
+          </div>
+        </div>
+
+        <figcaption class="cx-caption">
+          <div><p><strong><span class="cx-grid-mark" aria-hidden="true"></span>A shared horizontal grid</strong></p><p>Land and marine surfaces occupy different grid cells. Fields pass directly between modules in a fixed sequence.</p></div>
+          <div><p><strong>Surface change becomes atmospheric feedback.</strong></p><p>Updated surface states affect the next atmospheric step’s fluxes and radiation.</p></div>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ================= SECTION 6 : HISTORICAL EXPERIMENT ================= -->
+  <section id="s6" class="historical" data-theme="theme-historical" data-cloud="0.02" aria-labelledby="historical-title">
+    <div class="historical-shell">
+      <header class="historical-head">
+        <div>
+          <p class="historical-index reveal" style="--d:.08s">06 / Historical experiment</p>
+          <h2 class="historical-title reveal" id="historical-title" style="--d:.14s">Historical experiment.<br><em>One warming curve.</em></h2>
+          <p class="historical-lead reveal" style="--d:.2s">With only atmospheric CO₂ prescribed, PlaSiC’s coarse T21 atmosphere reproduces the shape and scale of industrial-era warming. A run covering more than 150 model years fits into roughly three hours.</p>
+        </div>
+        <div class="historical-badges reveal" style="--d:.26s" aria-label="Historical experiment configuration">
+          <span class="historical-badge"><strong>CO₂</strong> only</span>
+          <span class="historical-badge"><strong>T21</strong> · 64 × 32</span>
+          <span class="historical-badge"><strong>≈150</strong> model years</span>
+          <span class="historical-badge"><strong>≈3 h</strong> runtime</span>
+        </div>
+      </header>
+
+      <div class="historical-content">
+        <figure class="historical-chart-card reveal" style="--d:.3s" aria-labelledby="historical-chart-title historical-chart-caption">
+          <div class="historical-chart-top">
+            <h3 class="historical-chart-title" id="historical-chart-title">Forced surface warming relative to control</h3>
+            <div class="historical-legend" aria-label="Chart legend">
+              <span><i class="legend-swatch branch" aria-hidden="true"></i>branch range</span>
+              <span><i class="legend-swatch" aria-hidden="true"></i>9-year mean</span>
+              <span><i class="legend-swatch observed" aria-hidden="true"></i>observed estimate</span>
+            </div>
+          </div>
+          <svg id="historicalChart" viewBox="0 0 1000 520" role="img" aria-labelledby="historical-chart-title historical-chart-caption"></svg>
+          <figcaption id="historical-chart-caption"><strong>Annual global near-surface air-temperature anomalies.</strong> Thin lines are two equilibrated branches; the bold line is their smoothed ensemble response.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   CONSTANTS + SITE WIDE
+   ============================================================ */
+// Central link registry — replace a URL once and the whole site updates.
+var LINKS = {
+  github:   "#",   // e.g. "https://github.com/<owner>/PlaSiC"
+  textbook: "#"    // e.g. "https://plasic.readthedocs.io"
+};
+
+var reduceMotion = window.matchMedia &&
+                   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+var docHidden = false;
+document.addEventListener("visibilitychange", function(){
+  docHidden = document.hidden;
+});
+
+function lerp(a,b,t){ return a + (b - a) * t; }
+function clamp(v,lo,hi){ return v < lo ? lo : (v > hi ? hi : v); }
+function rand(seed){ // small deterministic PRNG
+  var s = seed;
+  return function(){ s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; };
+}
+
+// Apply link URLs from the registry.
+function applyLinks(){
+  document.querySelectorAll("a[data-external]").forEach(function(a,i){
+    var url = (i===0) ? LINKS.github : LINKS.textbook;
+    a.setAttribute("href", url);
+    if (url === "#"){
+      a.setAttribute("aria-disabled", "true");
+      a.addEventListener("click", function(e){ e.preventDefault(); });
+    }
+  });
+}
+applyLinks();
+
+/* ============================================================
+   DPR + CANVAS HELPERS
+   ============================================================ */
+function dpr(){ return clamp(window.devicePixelRatio || 1, 1, 2); }
+function fitCanvas(cv){
+  var r = cv.getBoundingClientRect();
+  var d = dpr();
+  var w = Math.max(1, Math.round(r.width * d));
+  var h = Math.max(1, Math.round(r.height * d));
+  if (cv.width !== w || cv.height !== h){ cv.width = w; cv.height = h; }
+  return { w:cv.width, h:cv.height, d:d };
+}
+
+/* ============================================================
+   SECTION OBSERVER (active state, nav sync, per-section triggers)
+   ============================================================ */
+var sections = Array.prototype.slice.call(document.querySelectorAll("section"));
+var navDots  = Array.prototype.slice.call(document.querySelectorAll("#nav .dot"));
+var activeIndex = 0;
+
+// Theme + cloud brightness + per-section behaviour are declared on each
+// <section> (data-theme / data-cloud / data-icons), so reordering sections in
+// the markup never desynchronises the fixed chrome from its section.
+var themes = sections.map(function(section){ return section.getAttribute("data-theme"); });
+var cloudTarget = sections.map(function(section){
+  var v = parseFloat(section.getAttribute("data-cloud"));
+  return isNaN(v) ? 0 : v;
+});
+function sectionHas(section, attr){ return section && section.getAttribute(attr) === "true"; }
+
+// Select the section at the viewport midpoint, including sections taller
+// than the viewport on mobile or when text is enlarged.
+function syncActiveSection(){
+  var viewport = document.getElementById("scroll").getBoundingClientRect();
+  var midpoint = viewport.top + viewport.height / 2;
+  var idx = sections.findIndex(function(section){
+    var bounds = section.getBoundingClientRect();
+    return bounds.top <= midpoint && bounds.bottom > midpoint;
+  });
+  if (idx < 0 || (idx === activeIndex && sections[idx].classList.contains("active"))) return;
+  activeIndex = idx;
+  themes.forEach(function(name,i){
+    if (name) document.body.classList.toggle(name, i === idx);
+  });
+  sections.forEach(function(section,i){ section.classList.toggle("active", i === idx); });
+  navDots.forEach(function(dot,i){ dot.classList.toggle("active", i === idx); });
+  if (Plugin && typeof Plugin.onSection === "function") Plugin.onSection(idx);
+}
+var sectionSyncFrame = null;
+function scheduleSectionSync(){
+  if (sectionSyncFrame !== null) return;
+  sectionSyncFrame = requestAnimationFrame(function(){
+    sectionSyncFrame = null;
+    syncActiveSection();
+  });
+}
+document.getElementById("scroll").addEventListener("scroll", scheduleSectionSync, {passive:true});
+window.addEventListener("resize", scheduleSectionSync);
+
+/* ============================================================
+   NAV DOTS (click-to-jump) + logo
+   ============================================================ */
+var scrollEl = document.getElementById("scroll");
+navDots.forEach(function(dm){
+  dm.addEventListener("click", function(){
+    var t = document.getElementById(dm.getAttribute("data-target"));
+    if (t) t.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block:"start" });
+  });
+});
+document.querySelector(".logo").addEventListener("click", function(){
+  // the logo always returns to whichever section is currently first
+  sections[0].scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block:"start" });
+});
+
+/* ============================================================
+   CLOUDS (fixed backdrop, brightest behind the equation section)
+   ============================================================ */
+var Clouds = (function(){
+  var cv = document.getElementById("clouds");
+  var ctx, W, H, D;
+  var intensity = 1.0;
+  var layers = [];
+  var sprites = [];
+
+  function cloudCanvas(w,h){
+    var c = document.createElement("canvas");
+    c.width = w; c.height = h;
+    return c;
+  }
+
+  function puff(g,x,y,rx,ry,bright,shade){
+    var grad = g.createRadialGradient(x-rx*.18,y-ry*.28,0,x,y,Math.max(rx,ry));
+    grad.addColorStop(0,"rgba(255,255,255,"+bright+")");
+    grad.addColorStop(.52,"rgba(255,239,255,"+(bright*.88)+")");
+    grad.addColorStop(.82,"rgba(211,191,246,"+shade+")");
+    grad.addColorStop(1,"rgba(175,177,235,0)");
+    g.fillStyle = grad;
+    g.beginPath(); g.ellipse(x,y,rx,ry,0,0,Math.PI*2); g.fill();
+  }
+
+  function makeCumulus(seed){
+    var c = cloudCanvas(360,190), g = c.getContext("2d"), rnd = rand(seed);
+    g.filter = "blur(2px)";
+    for (var i=0;i<15;i++){
+      var x = 58 + rnd()*246;
+      var ridge = Math.sin((x-45)/275*Math.PI);
+      var y = 125 - ridge*(30+rnd()*40) + (rnd()-.5)*16;
+      puff(g,x,y,30+rnd()*40,20+rnd()*28,.72+rnd()*.24,.28+rnd()*.18);
+    }
+    var base = g.createLinearGradient(0,105,0,168);
+    base.addColorStop(0,"rgba(255,245,255,.8)");
+    base.addColorStop(.62,"rgba(211,186,244,.36)");
+    base.addColorStop(1,"rgba(170,178,233,0)");
+    g.fillStyle=base;g.beginPath();g.ellipse(180,132,132,36,0,0,Math.PI*2);g.fill();
+    return c;
+  }
+
+  function makeCirrus(seed){
+    var c = cloudCanvas(430,150), g = c.getContext("2d"), rnd = rand(seed);
+    g.lineCap="round";g.filter="blur(3px)";
+    for (var i=0;i<9;i++){
+      var y=34+i*8+rnd()*10;
+      g.strokeStyle="rgba(255,239,255,"+(0.2+rnd()*.24)+")";
+      g.lineWidth=3+rnd()*7;
+      g.beginPath();g.moveTo(22+rnd()*45,y+20);
+      g.bezierCurveTo(130,y-28-rnd()*18,258,y+25+rnd()*12,410-rnd()*30,y-4);
+      g.stroke();
+    }
+    return c;
+  }
+
+  function makeCumulonimbus(seed){
+    var c = cloudCanvas(390,330), g = c.getContext("2d"), rnd = rand(seed);
+    g.filter="blur(2.4px)";
+    for (var i=0;i<22;i++){
+      var band=i/22, spread=40+band*112;
+      var x=195+(rnd()-.5)*spread*1.55;
+      var y=58+band*188+(rnd()-.5)*24;
+      puff(g,x,y,34+rnd()*42,25+rnd()*35,.72+rnd()*.25,.32+rnd()*.2);
+    }
+    for (var j=0;j<8;j++){
+      puff(g,92+j*31+(rnd()-.5)*16,55+rnd()*22,48+rnd()*28,18+rnd()*12,.55+rnd()*.22,.18);
+    }
+    var base=g.createLinearGradient(0,235,0,310);
+    base.addColorStop(0,"rgba(247,228,255,.62)");
+    base.addColorStop(.48,"rgba(154,145,218,.34)");
+    base.addColorStop(1,"rgba(111,131,205,0)");
+    g.fillStyle=base;g.beginPath();g.ellipse(195,260,132,42,0,0,Math.PI*2);g.fill();
+    return c;
+  }
+
+  function makeStratus(seed){
+    var c=cloudCanvas(560,170),g=c.getContext("2d"),rnd=rand(seed);
+    g.filter="blur(5px)";
+    for(var i=0;i<9;i++){
+      var x=45+rnd()*470,y=66+i*7+(rnd()-.5)*14;
+      var rx=75+rnd()*115,ry=12+rnd()*17;
+      var grad=g.createRadialGradient(x,y,0,x,y,rx);
+      grad.addColorStop(0,"rgba(255,244,255,"+(.24+rnd()*.2)+")");
+      grad.addColorStop(.68,"rgba(224,207,248,.18)");
+      grad.addColorStop(1,"rgba(185,188,235,0)");
+      g.fillStyle=grad;g.beginPath();g.ellipse(x,y,rx,ry,0,0,Math.PI*2);g.fill();
+    }
+    return c;
+  }
+
+  function makeLenticular(seed){
+    var c=cloudCanvas(390,190),g=c.getContext("2d"),rnd=rand(seed);
+    g.filter="blur(2.2px)";
+    for(var i=0;i<4;i++){
+      var y=116-i*24,rx=142-i*20,ry=25-i*2;
+      var grad=g.createLinearGradient(0,y-ry,0,y+ry);
+      grad.addColorStop(0,"rgba(255,255,255,"+(.7-i*.08)+")");
+      grad.addColorStop(.5,"rgba(248,222,255,"+(.55-i*.06)+")");
+      grad.addColorStop(1,"rgba(162,164,226,0)");
+      g.fillStyle=grad;g.beginPath();g.ellipse(195+(rnd()-.5)*7,y,rx,ry,0,0,Math.PI*2);g.fill();
+    }
+    return c;
+  }
+
+  function makeKelvinHelmholtz(seed){
+    var c=cloudCanvas(510,210),g=c.getContext("2d"),rnd=rand(seed);
+    g.lineCap="round";g.lineJoin="round";g.filter="blur(2px)";
+    for(var i=0;i<5;i++){
+      var x=28+i*100,y=142+(rnd()-.5)*8;
+      g.strokeStyle="rgba(245,220,255,.5)";g.lineWidth=24;
+      g.beginPath();g.moveTo(x,y);
+      g.bezierCurveTo(x+24,y-4,x+32,y-80,x+70,y-73);
+      g.bezierCurveTo(x+100,y-68,x+92,y-28,x+66,y-38);
+      g.stroke();
+      g.strokeStyle="rgba(255,255,255,.56)";g.lineWidth=7;
+      g.beginPath();g.moveTo(x+2,y-5);
+      g.bezierCurveTo(x+25,y-14,x+31,y-70,x+68,y-67);
+      g.bezierCurveTo(x+88,y-65,x+88,y-42,x+69,y-42);
+      g.stroke();
+    }
+    return c;
+  }
+
+  function build(){
+    // The six cloud forms featured in the China Daily guide.
+    sprites = [
+      makeCirrus(17),
+      makeCumulus(31),
+      makeCumulonimbus(53),
+      makeStratus(67),
+      makeLenticular(79),
+      makeKelvinHelmholtz(97)
+    ];
+    var cfgs = [
+      // high to low: cirrus, stratus, lenticular, wave, cumulus, cumulonimbus
+      { n:3, sprite:0, scale:1.00, alpha:.38, speed:.0030, y0:.04, yr:.28, bob:15 },
+      { n:2, sprite:3, scale:1.18, alpha:.30, speed:.0024, y0:.48, yr:.25, bob:12 },
+      { n:2, sprite:4, scale:.76, alpha:.44, speed:.0042, y0:.16, yr:.42, bob:18 },
+      { n:1, sprite:5, scale:.82, alpha:.40, speed:.0050, y0:.22, yr:.28, bob:20 },
+      { n:4, sprite:1, scale:.76, alpha:.54, speed:.0058, y0:.25, yr:.48, bob:21 },
+      { n:2, sprite:2, scale:.76, alpha:.46, speed:.0048, y0:.25, yr:.48, bob:27 }
+    ];
+    var rnd = rand(99);
+    layers = cfgs.map(function(cfg){
+      var arr = [];
+      for (var i=0;i<cfg.n;i++){
+        arr.push({
+          x: rnd()*1.18,
+          y: cfg.y0 + rnd()*cfg.yr,
+          sp: cfg.sprite,
+          sc: cfg.scale*(0.7+rnd()*0.6),
+          a: cfg.alpha*(0.6+rnd()*0.6),
+          bob: cfg.bob*(.78+rnd()*.44),
+          phase: rnd()*Math.PI*2
+        });
+      }
+      return { arr:arr, speed:cfg.speed };
+    });
+  }
+
+  function resize(){
+    D = dpr();
+    W = window.innerWidth; H = window.innerHeight;
+    cv.width = Math.round(W*D); cv.height = Math.round(H*D);
+  }
+
+  function drawStatic(){
+    time = 8.0;                 // one representative frame
+    render(time);
+  }
+
+  function render(t){
+    var d = D;
+    ctx.clearRect(0,0, W*d, H*d);
+    ctx.save();
+    ctx.scale(d,d);
+    ctx.globalCompositeOperation = "source-over";
+    for (var L=0; L<layers.length; L++){
+      var lay = layers[L];
+      for (var i=0;i<lay.arr.length;i++){
+        var p = lay.arr[i];
+        var sp = sprites[p.sp];
+        ctx.globalAlpha = intensity*p.a;
+        var offx = (p.x + t*lay.speed) % 1.18;
+        var x = offx * (W + sp.width*p.sc) - sp.width*p.sc*.78 + pointerX*(L+1)*11;
+        var y = p.y*H + Math.sin(t*(.16+L*.018) + p.phase)*p.bob + pointerY*(L+1)*5;
+        var w = sp.width*p.sc, h = sp.height*p.sc;
+        ctx.drawImage(sp, x, y, w, h);
+      }
+    }
+    ctx.restore();
+  }
+
+  var time = 0, pointerX = 0, pointerY = 0, targetX = 0, targetY = 0;
+  var running = false, rafId = null;
+  function frame(){
+    if (docHidden || !running){ rafId = null; return; }
+    time += 0.016;
+    pointerX=lerp(pointerX,targetX,.025);pointerY=lerp(pointerY,targetY,.025);
+    render(time);
+    rafId = requestAnimationFrame(frame);
+  }
+  function start(){ if (running) return; running = true; rafId = requestAnimationFrame(frame); }
+  function stop(){ running = false; if (rafId) cancelAnimationFrame(rafId); rafId = null; }
+
+  function setIntensity(v){ intensity = v; }
+
+  function init(){
+    ctx = cv.getContext("2d");
+    build(); resize();
+    if (reduceMotion){ drawStatic(); }
+    else { start(); }
+  }
+
+  window.addEventListener("resize", function(){ resize(); if (reduceMotion) drawStatic(); });
+  window.addEventListener("pointermove",function(e){
+    if (reduceMotion) return;
+    targetX=(e.clientX/Math.max(1,W)-.5)*2;
+    targetY=(e.clientY/Math.max(1,H)-.5)*2;
+  },{passive:true});
+
+  return { init:init, start:start, stop:stop, setIntensity:setIntensity, reduce:reduceMotion };
+})();
+
+/* subtle pointer depth for the equation constellation */
+(function equationParallax(){
+  if (reduceMotion) return;
+  var wall=document.getElementById("eqwall");
+  var equations=Array.prototype.slice.call(wall.querySelectorAll(".eq"));
+  var px=0,py=0,tx=0,ty=0,raf=null;
+  function paint(){
+    px=lerp(px,tx,.075);py=lerp(py,ty,.075);
+    equations.forEach(function(eq){
+      var depth=parseFloat(eq.getAttribute("data-depth"))||1;
+      eq.style.setProperty("--tx",(px*depth*13).toFixed(2)+"px");
+      eq.style.setProperty("--ty",(py*depth*8).toFixed(2)+"px");
+    });
+    if (Math.abs(px-tx)>.002 || Math.abs(py-ty)>.002) raf=requestAnimationFrame(paint);
+    else raf=null;
+  }
+  wall.addEventListener("pointermove",function(e){
+    var r=wall.getBoundingClientRect();
+    tx=(e.clientX-r.left)/Math.max(1,r.width)-.5;
+    ty=(e.clientY-r.top)/Math.max(1,r.height)-.5;
+    if(!raf) raf=requestAnimationFrame(paint);
+  },{passive:true});
+  wall.addEventListener("pointerleave",function(){tx=0;ty=0;if(!raf)raf=requestAnimationFrame(paint);});
+})();
+
+/* ============================================================
+   PLUGIN DISPATCHER — calls onSection per active index
+   ============================================================ */
+var Plugin = (function(){
+  var subs = [];
+  function onSection(idx){ subs.forEach(function(f){ f(idx); }); }
+  function regist(f){ subs.push(f); }
+  return { onSection:onSection, regist:regist };
+})();
+
+// cloud intensity follows active section (lerped each frame)
+var currentCloud = 1.0;
+(function loopCloud(ts){
+  currentCloud = lerp(currentCloud, cloudTarget[activeIndex], 0.04);
+  Clouds.setIntensity(currentCloud);
+  if (!reduceMotion) requestAnimationFrame(loopCloud);
+})(0);
+
+/* ============================================================
+   PHYSICS-SCENE ICON ANIMATIONS (page 4; only run on screen)
+   ============================================================ */
+var IconFarm = (function(){
+  var items = []; // { cv, draw, visible, raf }
+
+  function make(id, drawFn){
+    var cv = document.getElementById(id);
+    if (!cv) return null;
+    var it = { cv:cv, draw:drawFn, visible:false, raf:null, t:0 };
+    items.push(it);
+    return it;
+  }
+
+  function startDraw(it){
+    if (it.raf) return;
+    var loop = function(now){
+      if (docHidden || !it.visible){ it.raf = null; return; }
+      it.t += 0.016;
+      var r = fitCanvas(it.cv);
+      var g = it.cv.getContext("2d");
+      g.setTransform(r.d,0,0,r.d,0,0);
+      it.draw(g, r.w/r.d, r.h/r.d, it.t);
+      it.raf = requestAnimationFrame(loop);
+    };
+    it.raf = requestAnimationFrame(loop);
+  }
+
+  // start/stop with the visibility of the section that owns the canvases
+  // (the physics scene, flagged with data-icons), animate only when not reduced
+  Plugin.regist(function(idx){
+    var on = sectionHas(sections[idx], "data-icons");
+    items.forEach(function(it){
+      it.visible = on;
+      if (on && !reduceMotion){ startDraw(it); }
+      else if (it.raf){ cancelAnimationFrame(it.raf); it.raf = null; }
+    });
+  });
+
+  // static preview frame (kept even before the section animates)
+  function preview(){
+    items.forEach(function(it){
+      var r = fitCanvas(it.cv); var g = it.cv.getContext("2d");
+      g.setTransform(r.d,0,0,r.d,0,0);
+      it.draw(g, r.w/r.d, r.h/r.d, 0);
+    });
+  }
+
+  window.addEventListener("resize", function(){ if (!sectionHas(sections[activeIndex], "data-icons")) preview(); });
+
+  return { make:make, preview:preview };
+})();
+
+/* ---- icon 1 : moist convection ---- */
+IconFarm.make("ico-conv", function(g,w,h,t){
+  // ground
+  g.strokeStyle = "rgba(127,224,242,.22)";
+  g.lineWidth = 1.4;
+  g.beginPath(); g.moveTo(w*0.06,h*0.9); g.lineTo(w*0.94,h*0.9); g.stroke();
+
+  // deep convective cloud column (left)
+  var cx = w*0.36;
+  for (var i=0;i<5;i++){
+    var y = h*0.9 - i*h*0.16;
+    var rad = h*0.09*(1 + i*0.18);
+    var grad = g.createRadialGradient(cx, y-rad*0.3, rad*0.1, cx, y, rad);
+    grad.addColorStop(0,"rgba(210,228,244,.55)");
+    grad.addColorStop(0.6,"rgba(180,210,235,.16)");
+    grad.addColorStop(1,"rgba(170,205,235,0)");
+    g.fillStyle = grad; g.beginPath(); g.arc(cx,y,rad,0,Math.PI*2); g.fill();
+  }
+  // rising warm parcel inside column
+  var py = h*0.9 - ((t*0.5) % 1.0)*h*0.8;
+  g.fillStyle = "rgba(127,224,242,.9)";
+  g.beginPath(); g.arc(cx+ (Math.sin(t*2)*2), py, 2.4, 0, Math.PI*2); g.fill();
+
+  // shallow cumulus + low-level mixing (right, low)
+  var sx = w*0.72;
+  var sy = h*0.74;
+  var sg = g.createRadialGradient(sx,sy,2,sx,sy,h*0.1);
+  sg.addColorStop(0,"rgba(200,222,240,.5)");
+  sg.addColorStop(1,"rgba(180,210,235,0)");
+  g.fillStyle = sg; g.beginPath(); g.ellipse(sx,sy,h*0.14,h*0.06,0,0,Math.PI*2); g.fill();
+  for (var k=0;k<6;k++){
+    var a = t*1.6 + k;
+    var px = sx + Math.sin(a*1.7)*h*0.16;
+    var pyy = sy + Math.cos(a*1.3)*h*0.05;
+    g.fillStyle = "rgba(201,169,230,.7)";
+    g.beginPath(); g.arc(px,pyy,1.4,0,Math.PI*2); g.fill();
+  }
+
+  // convective rain falling + virga (evaporating) in a fan
+  for (var r=0;r<12;r++){
+    var phase = (t*0.55 + r*0.37) % 1.0;
+    var rx = cx + (r-6)*w*0.016 + Math.sin(r)*2;
+    var ry = h*0.42 + phase*h*0.46;
+    var alpha = (1 - phase) * 0.85;
+    if (phase > 0.72) alpha *= (1 - (phase-0.72)/0.28); // evaporate toward ground
+    g.fillStyle = "rgba(214,236,248," + alpha + ")";
+    g.fillRect(rx, ry, 1.4, 5.6);
+  }
+});
+
+/* ---- icon 2 : radiation ---- */
+IconFarm.make("ico-rad", function(g,w,h,t){
+  // atmosphere boundary (subtle top) and surface at bottom
+  var ySurf = h*0.84;
+  g.strokeStyle = "rgba(127,224,242,.25)"; g.lineWidth=1.2;
+  g.beginPath(); g.moveTo(w*0.05,ySurf); g.lineTo(w*0.95,ySurf); g.stroke();
+
+  // sun glow top-left
+  var sg = g.createRadialGradient(w*0.2,h*0.16,2,w*0.2,h*0.16,h*0.32);
+  sg.addColorStop(0,"rgba(231,196,137,.4)"); sg.addColorStop(1,"rgba(231,196,137,0)");
+  g.fillStyle=sg; g.beginPath(); g.arc(w*0.2,h*0.16,h*0.32,0,Math.PI*2); g.fill();
+
+  // shortwave: incoming parallel beams top-left -> down
+  for (var i=0;i<6;i++){
+    var t0 = (t*0.25 + i*0.17) % 1.0;
+    var x = w*0.08 + i*w*0.055;
+    var y = h*0.06 + t0*h*0.78;
+    var adeg = 42;
+    var dx = Math.sin(adeg*Math.PI/180)*9, dy = Math.cos(adeg*Math.PI/180)*9;
+    if (y > ySurf){ // reflect back up, shorter
+      var ph = clamp((y - ySurf)/(h*0.14),0,1);
+      y = ySurf + (1-ph)*h*0.0;
+      dx = Math.sin(adeg*Math.PI/180)*7; dy = -Math.cos(adeg*Math.PI/180)*7*(0.5);
+      g.strokeStyle = "rgba(231,196,137," + (0.7*(1-ph)) + ")";
+    } else {
+      g.strokeStyle = "rgba(127,224,242,.8)";
+    }
+    g.lineWidth=1.6;
+    g.beginPath(); g.moveTo(x,y); g.lineTo(x+dx, y+dy);
+    g.stroke();
+  }
+
+  // longwave: surface emission upward (left of fan)
+  for (var j=0;j<5;j++){
+    var lx = w*0.62 + j*w*0.055;
+    var lph = (t*0.2 + j*0.2) % 1.0;
+    var ly = ySurf - lph*h*0.6;
+    g.strokeStyle = "rgba(231,196,137,.55)";
+    g.lineWidth=1.2;
+    g.beginPath(); g.moveTo(lx, ly); g.lineTo(lx, ly - 7); g.stroke();
+    // wavy transverse tick
+    g.beginPath(); g.moveTo(lx-2.5, ly-3); g.lineTo(lx+2.5, ly-3); g.stroke();
+  }
+});
+
+/* ---- icon 3 : surface fluxes ---- */
+IconFarm.make("ico-flux", function(g,w,h,t){
+  var ySurf = h*0.5;
+  g.strokeStyle = "rgba(127,224,242,.28)"; g.lineWidth=1.4;
+  g.beginPath(); g.moveTo(w*0.06,ySurf); g.lineTo(w*0.94,ySurf); g.stroke();
+
+  // air layer marker
+  g.fillStyle = "rgba(201,169,230,.55)";
+  g.font = w>220 ? "11px serif" : "9px serif";
+  g.textAlign="center";
+
+  // left : upward sensible heat H (warm)
+  var hx = w*0.28, hy = hx;
+  for (var i=0;i<7;i++){
+    var ph=(t*0.35+i*0.14)%1.0;
+    var y=ySurf - ph*h*0.4 - 2;
+    var grad = g.createLinearGradient(0,y,0,y+12);
+    grad.addColorStop(0,"rgba(231,196,137,.0)");
+    grad.addColorStop(1,"rgba(231,196,137,.75)");
+    g.fillStyle=grad;
+    g.beginPath(); g.moveTo(hx-3,y+8); g.lineTo(hx+3,y+8); g.lineTo(hx, y); g.closePath(); g.fill();
+  }
+  g.fillStyle="rgba(231,196,137,.85)"; g.fillText("H", hx, ySurf - h*0.5);
+
+  // middle: upward latent heat LE (cyan, moisture), wavy
+  var mx = w*0.55, my=mx;
+  for (var j=0;j<8;j++){
+    var ph2=(t*0.3+j*0.13)%1.0;
+    var y2=ySurf - ph2*h*0.42 - 2;
+    g.strokeStyle="rgba(127,224,242,"+(0.65*(1-ph2))+")";
+    g.lineWidth=1.5;
+    g.beginPath();
+    for (var s=0;s<=6;s++){ var xx=mx + s*2 - 6; var yy=y2 + Math.sin(s*1.6 - t*3)*2.4; if(s===0)g.moveTo(xx,yy); else g.lineTo(xx,yy);}
+    g.stroke();
+  }
+  g.fillStyle="rgba(127,224,242,.9)"; g.fillText("LE", mx, ySurf - h*0.5 - 2);
+
+  // right: downward momentum tau
+  var rx=w*0.8;
+  for (var k=0;k<6;k++){
+    var ph3=(t*0.4+k*0.16)%1.0;
+    var y3=ySurf - h*0.28 + ph3*h*0.28;
+    if(y3>ySurf) y3=ySurf;
+    g.strokeStyle="rgba(143,214,201,"+(0.6*(1-ph3))+")";g.lineWidth=1.3;
+    g.beginPath(); g.moveTo(rx,y3-6); g.lineTo(rx,y3+5); g.stroke();
+    g.beginPath(); g.moveTo(rx-3,y3+1); g.lineTo(rx,y3+5); g.lineTo(rx+3,y3+1); g.stroke();
+  }
+  g.fillStyle="rgba(143,214,201,.9)"; g.fillText("τ", rx, ySurf + h*0.12);
+});
+
+/* ---- icon 4 : diffusion ---- */
+IconFarm.make("ico-diff", function(g,w,h,t){
+  // faint horizontal stability lines (vertical mixing domain)
+  g.strokeStyle = "rgba(127,224,242,.08)"; g.lineWidth=1;
+  for (var y0=0.16;y0<0.9;y0+=0.16){ g.beginPath(); g.moveTo(w*0.06,h*y0); g.lineTo(w*0.94,h*y0); g.stroke(); }
+
+  // turbulent particle cloud diffusing outward from a corner seed
+  var cx=w*0.2, cy=h*0.35;
+  for (var i=0;i<46;i++){
+    var a = i*2.399;                       // golden angle => even spread
+    var spread = 0.06 + (t*0.03 + (i%7)*0.012) % 0.5; // growing radius
+    var x = cx + Math.cos(a)*spread*w*0.9;
+    var y = cy + Math.sin(a)*spread*h*0.7;
+    // turbulence wobble
+    x += Math.sin(t*2 + i)*3; y += Math.cos(t*1.7 + i)*3;
+    g.fillStyle = "rgba(127,224,242," + (0.5*(1-spread/0.6)) + ")";
+    g.beginPath(); g.arc(x,y,1.6,0,Math.PI*2); g.fill();
+  }
+  // a secondary swirling eddy
+  for (var k=0;k<24;k++){
+    var aa = t*1.4 + k*0.26;
+    var rr = h*0.16*(1 + Math.sin(t*0.8+k)*0.1);
+    var ex = w*0.72 + Math.cos(aa)*rr, ey = h*0.6 + Math.sin(aa)*rr*0.7;
+    g.fillStyle = "rgba(201,169,230,.45)";
+    g.beginPath(); g.arc(ex,ey,1.4,0,Math.PI*2); g.fill();
+  }
+});
+
+/* ============================================================
+   HISTORICAL EXPERIMENT — inline data-driven chart
+   ============================================================ */
+var HISTORICAL_DATA = [[1850,0.050141,-0.034916],[1851,-0.011192,0.008344],[1852,0.071402,0.081529],[1853,0.118544,0.08916],[1854,0.009148,0.030857],[1855,0.060802,0.024608],[1856,0.020718,0.07954],[1857,0.067017,0.048915],[1858,0.074823,0.091204],[1859,0.054781,0.098187],[1860,-0.007999,0.029445],[1861,0.063754,0.057476],[1862,-0.032777,0.059782],[1863,0.098446,0.110503],[1864,0.073867,0.062456],[1865,0.096294,0.117499],[1866,0.074587,0.028501],[1867,0.055803,0.140489],[1868,0.05306,0.086218],[1869,0.070531,0.176836],[1870,0.119358,0.201947],[1871,0.091901,0.105705],[1872,0.036986,0.008229],[1873,0.044607,0.036109],[1874,0.218002,-0.024055],[1875,0.17088,-0.06521],[1876,0.20655,0.032],[1877,0.291697,0.126402],[1878,0.273743,0.053137],[1879,0.188998,0.112755],[1880,0.132172,0.097186],[1881,0.159254,0.159869],[1882,-0.012043,0.075053],[1883,0.081325,0.048103],[1884,0.123922,0.177393],[1885,0.150357,0.178463],[1886,0.003447,0.063768],[1887,-0.014641,0.12894],[1888,0.126248,0.130736],[1889,0.017089,0.040134],[1890,0.08657,0.16414],[1891,0.065304,0.179263],[1892,0.130741,0.114661],[1893,0.203331,0.122109],[1894,0.149147,0.12155],[1895,0.090323,0.198865],[1896,0.1072,0.182748],[1897,0.121986,0.134903],[1898,0.136845,0.24075],[1899,0.187604,0.118392],[1900,0.092211,0.135998],[1901,0.114551,0.104196],[1902,0.160348,0.11501],[1903,0.221659,0.137314],[1904,0.177533,0.109967],[1905,0.127051,0.082539],[1906,0.050585,0.059026],[1907,0.105817,0.143041],[1908,0.092808,0.055422],[1909,0.01151,0.158476],[1910,0.028278,0.149759],[1911,0.100362,0.17549],[1912,-0.024331,0.163576],[1913,0.05015,0.108835],[1914,0.099168,0.172549],[1915,0.096188,0.075491],[1916,0.094263,0.230541],[1917,0.15519,0.142848],[1918,0.143687,0.200888],[1919,0.114211,0.308245],[1920,0.313505,0.160628],[1921,0.261127,0.195987],[1922,0.285115,0.127407],[1923,0.384574,0.180506],[1924,0.46803,0.144357],[1925,0.403993,0.201023],[1926,0.359876,0.142417],[1927,0.266721,0.21238],[1928,0.355529,0.192835],[1929,0.391073,0.235454],[1930,0.360769,0.302537],[1931,0.369347,0.251121],[1932,0.428745,0.241715],[1933,0.349252,0.231056],[1934,0.21763,0.322247],[1935,0.216426,0.266378],[1936,0.193,0.456583],[1937,0.332298,0.292466],[1938,0.191717,0.22392],[1939,0.178111,0.280505],[1940,0.167001,0.312032],[1941,0.357389,0.236658],[1942,0.250523,0.318246],[1943,0.277774,0.176591],[1944,0.259599,0.39438],[1945,0.385631,0.250003],[1946,0.369157,0.368373],[1947,0.380486,0.299649],[1948,0.377936,0.381382],[1949,0.454419,0.271775],[1950,0.415877,0.236005],[1951,0.578021,0.300299],[1952,0.367899,0.421805],[1953,0.280185,0.363797],[1954,0.369741,0.29915],[1955,0.364178,0.350682],[1956,0.396845,0.21929],[1957,0.427722,0.261528],[1958,0.299431,0.416135],[1959,0.404537,0.444371],[1960,0.381078,0.482948],[1961,0.378911,0.509531],[1962,0.432329,0.439979],[1963,0.520741,0.35953],[1964,0.524971,0.388882],[1965,0.45958,0.384839],[1966,0.362169,0.49512],[1967,0.359267,0.441174],[1968,0.319001,0.387473],[1969,0.312524,0.448451],[1970,0.255692,0.297285],[1971,0.381918,0.309279],[1972,0.386267,0.415235],[1973,0.440206,0.509852],[1974,0.434843,0.449315],[1975,0.450845,0.462321],[1976,0.469969,0.574477],[1977,0.464593,0.46631],[1978,0.50176,0.616936],[1979,0.408584,0.505716],[1980,0.533136,0.560645],[1981,0.470472,0.724555],[1982,0.550664,0.664727],[1983,0.552845,0.648289],[1984,0.591341,0.633233],[1985,0.475556,0.579264],[1986,0.561592,0.590338],[1987,0.559957,0.690256],[1988,0.520838,0.687541],[1989,0.627475,0.796654],[1990,0.506712,0.655997],[1991,0.560547,0.73077],[1992,0.57238,0.656082],[1993,0.591494,0.666712],[1994,0.608077,0.737536],[1995,0.644275,0.726872],[1996,0.743678,0.665444],[1997,0.686003,0.852718],[1998,0.676289,0.958126],[1999,0.718617,0.845808],[2000,0.752411,0.826793],[2001,0.687237,0.847988],[2002,0.732267,0.79137],[2003,0.743783,0.88085],[2004,0.775873,0.870926],[2005,0.823734,0.933146],[2006,0.915787,0.792947],[2007,0.9059,0.890795],[2008,0.943747,0.93348],[2009,0.862069,0.977364],[2010,0.827416,1.071172],[2011,0.920289,1.02749],[2012,1.057867,0.993624],[2013,0.93904,0.93387],[2014,1.059263,1.023993]];
+var HISTORICAL_CO2_DATA = [
+  [1850,284.3],[1851,284.5],[1852,284.6],[1853,284.7],[1854,284.8],[1855,284.9],[1856,285.0],[1857,285.2],
+  [1858,285.4],[1859,285.5],[1860,285.7],[1861,285.9],[1862,286.1],[1863,286.3],[1864,286.4],[1865,286.6],
+  [1866,286.8],[1867,287.0],[1868,287.1],[1869,287.2],[1870,287.4],[1871,287.5],[1872,287.7],[1873,287.9],
+  [1874,288.1],[1875,288.3],[1876,288.5],[1877,288.8],[1878,289.0],[1879,289.2],[1880,289.5],[1881,289.7],
+  [1882,290.0],[1883,290.3],[1884,290.5],[1885,290.8],[1886,291.1],[1887,291.4],[1888,291.8],[1889,292.1],
+  [1890,292.5],[1891,292.8],[1892,293.2],[1893,293.5],[1894,293.8],[1895,294.1],[1896,294.4],[1897,294.6],
+  [1898,295.0],[1899,295.3],[1900,295.7],[1901,296.0],[1902,296.3],[1903,296.7],[1904,297.0],[1905,297.3],
+  [1906,297.7],[1907,298.1],[1908,298.5],[1909,298.9],[1910,299.4],[1911,299.8],[1912,300.4],[1913,300.9],
+  [1914,301.4],[1915,301.9],[1916,302.5],[1917,303.0],[1918,303.4],[1919,303.8],[1920,304.2],[1921,304.6],
+  [1922,304.9],[1923,305.3],[1924,305.6],[1925,305.8],[1926,306.0],[1927,306.2],[1928,306.3],[1929,306.5],
+  [1930,306.6],[1931,306.8],[1932,307.1],[1933,307.4],[1934,307.8],[1935,308.2],[1936,309.0],[1937,309.8],
+  [1938,310.3],[1939,310.9],[1940,311.4],[1941,311.8],[1942,312.2],[1943,312.4],[1944,312.4],[1945,312.4],
+  [1946,312.4],[1947,312.5],[1948,312.5],[1949,312.6],[1950,312.8],[1951,313.0],[1952,313.3],[1953,313.7],
+  [1954,314.1],[1955,314.4],[1956,314.7],[1957,315.0],[1958,315.3],[1959,315.8],[1960,316.6],[1961,317.3],
+  [1962,318.0],[1963,318.6],[1964,319.3],[1965,319.8],[1966,320.9],[1967,321.5],[1968,322.4],[1969,323.3],
+  [1970,324.8],[1971,325.4],[1972,327.3],[1973,329.9],[1974,330.8],[1975,330.8],[1976,331.5],[1977,333.4],
+  [1978,335.0],[1979,336.6],[1980,338.7],[1981,340.1],[1982,340.6],[1983,342.3],[1984,344.0],[1985,345.5],
+  [1986,346.9],[1987,348.8],[1988,351.3],[1989,352.9],[1990,354.1],[1991,355.4],[1992,356.2],[1993,356.9],
+  [1994,358.3],[1995,360.2],[1996,362.0],[1997,363.3],[1998,365.9],[1999,367.8],[2000,369.1],[2001,370.7],
+  [2002,372.8],[2003,375.4],[2004,377.0],[2005,378.9],[2006,381.0],[2007,382.6],[2008,384.7],[2009,386.3],
+  [2010,388.7],[2011,390.9],[2012,393.0],[2013,395.7],[2014,397.5]
+];
+function historicalSvg(name, attrs, parent, textContent){
+  var el = document.createElementNS("http://www.w3.org/2000/svg", name);
+  for (var key in attrs) el.setAttribute(key, attrs[key]);
+  if (textContent !== undefined) el.textContent = textContent;
+  if (parent) parent.appendChild(el);
+  return el;
+}
+function drawHistoricalChart(){
+  var svg = document.getElementById("historicalChart");
+  if (!svg || svg.getAttribute("data-ready") === "true") return;
+  var W = 1000, H = 520;
+  var plot = { left:76, right:968, top:28, bottom:438 };
+  var yMin = -0.2, yMax = 1.3;
+  var x = function(year){ return plot.left + (year - 1850) / (2014 - 1850) * (plot.right - plot.left); };
+  var y = function(value){ return plot.bottom - (value - yMin) / (yMax - yMin) * (plot.bottom - plot.top); };
+  var years = HISTORICAL_DATA.map(function(row){ return row[0]; });
+  var branchA = HISTORICAL_DATA.map(function(row){ return row[1]; });
+  var branchB = HISTORICAL_DATA.map(function(row){ return row[2]; });
+  var mean = HISTORICAL_DATA.map(function(row,i){
+    var total = 0, count = 0;
+    for (var j = Math.max(0,i-4); j <= Math.min(HISTORICAL_DATA.length-1,i+4); j++){
+      total += (HISTORICAL_DATA[j][1] + HISTORICAL_DATA[j][2]) / 2;
+      count++;
+    }
+    return total / count;
+  });
+  function linePath(values){
+    return values.map(function(value,i){ return (i ? "L" : "M") + x(years[i]).toFixed(2) + " " + y(value).toFixed(2); }).join(" ");
+  }
+  function areaPath(){
+    var upper = HISTORICAL_DATA.map(function(row){ return Math.max(row[1],row[2]); });
+    var lower = HISTORICAL_DATA.map(function(row){ return Math.min(row[1],row[2]); });
+    var d = linePath(upper);
+    for (var i=lower.length-1;i>=0;i--) d += " L" + x(years[i]).toFixed(2) + " " + y(lower[i]).toFixed(2);
+    return d + " Z";
+  }
+  var defs = historicalSvg("defs",{},svg);
+  var pattern = historicalSvg("pattern",{id:"historicalHatch",width:"12",height:"12",patternUnits:"userSpaceOnUse",patternTransform:"rotate(45)"},defs);
+  historicalSvg("line",{x1:"0",y1:"0",x2:"0",y2:"12",stroke:"#7f9aab","stroke-width":"3","stroke-opacity":".28"},pattern);
+  historicalSvg("rect",{x:plot.left,y:plot.top,width:plot.right-plot.left,height:plot.bottom-plot.top,fill:"rgba(255,255,255,.012)"},svg);
+  historicalSvg("rect",{x:x(2005),y:y(1.1),width:x(2014)-x(2005),height:y(.8)-y(1.1),fill:"url(#historicalHatch)",stroke:"#7892a5","stroke-opacity":".3"},svg);
+  [-.2,0,.2,.4,.6,.8,1,1.2].forEach(function(tick){
+    historicalSvg("line",{x1:plot.left,y1:y(tick),x2:plot.right,y2:y(tick),stroke:tick===0?"#47647b":"#5b7890","stroke-opacity":tick===0?".48":".2","stroke-dasharray":tick===0?"":"2 7"},svg);
+    historicalSvg("text",{x:plot.left-14,y:y(tick)+5,"text-anchor":"end",fill:"#59758c","font-size":"16","font-family":"-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif"},svg,(tick === 0 ? "0.0" : tick.toFixed(1)));
+  });
+  [1860,1880,1900,1920,1940,1960,1980,2000,2014].forEach(function(tick){
+    historicalSvg("line",{x1:x(tick),y1:plot.top,x2:x(tick),y2:plot.bottom,stroke:"#5b7890","stroke-opacity":".15","stroke-dasharray":"2 7"},svg);
+    historicalSvg("text",{x:x(tick),y:plot.bottom+30,"text-anchor":"middle",fill:"#59758c","font-size":"16","font-family":"-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif"},svg,String(tick));
+  });
+  historicalSvg("line",{x1:plot.left,y1:plot.top,x2:plot.left,y2:plot.bottom,stroke:"#47647b","stroke-opacity":".74","stroke-width":"1.5"},svg);
+  historicalSvg("line",{x1:plot.left,y1:plot.bottom,x2:plot.right,y2:plot.bottom,stroke:"#47647b","stroke-opacity":".74","stroke-width":"1.5"},svg);
+  // Inset chart: the CO₂ concentration prescribed by the Historical experiment.
+  // Values are annual global means derived from the CMIP6 forcing table bundled with PlaSiC.
+  var inset = { left:102, top:16, right:480, bottom:194 };
+  var co2Plot = { left:inset.left+45, right:inset.right-16, top:inset.top+41, bottom:inset.bottom-30 };
+  var co2X = function(year){ return co2Plot.left + (year-1850)/(2014-1850) * (co2Plot.right-co2Plot.left); };
+  var co2Y = function(value){ return co2Plot.bottom - (value-280)/(410-280) * (co2Plot.bottom-co2Plot.top); };
+  var co2Inset = historicalSvg("g",{class:"historical-co2-inset"},svg);
+  historicalSvg("title",{},co2Inset,"Historical experiment atmospheric CO₂ concentration");
+  historicalSvg("rect",{x:inset.left,y:inset.top,width:inset.right-inset.left,height:inset.bottom-inset.top,rx:"12",fill:"#f5fbfe","fill-opacity":".9",stroke:"#6d91a7","stroke-opacity":".42","stroke-width":"1.2"},co2Inset);
+  historicalSvg("text",{x:inset.left+16,y:inset.top+23,fill:"#244c67","font-size":"15","font-weight":"500","font-family":"-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif"},co2Inset,"Atmospheric CO₂");
+  historicalSvg("text",{x:inset.right-15,y:inset.top+23,"text-anchor":"end",fill:"#6a8293","font-size":"12","letter-spacing":"1.2","font-family":"-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif"},co2Inset,"ppm");
+  [280,320,360,400].forEach(function(tick){
+    historicalSvg("line",{x1:co2Plot.left,y1:co2Y(tick),x2:co2Plot.right,y2:co2Y(tick),stroke:"#6a8da2","stroke-opacity":".2","stroke-dasharray":"2 5"},co2Inset);
+    historicalSvg("text",{x:co2Plot.left-8,y:co2Y(tick)+4,"text-anchor":"end",fill:"#688397","font-size":"11","font-family":"-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif"},co2Inset,String(tick));
+  });
+  [1850,1900,1950,2000,2014].forEach(function(tick){
+    var anchor = tick === 2000 || tick === 2014 ? "end" : "middle";
+    var labelX = tick === 2000 ? co2X(tick) - 5 : co2X(tick);
+    historicalSvg("line",{x1:co2X(tick),y1:co2Plot.top,x2:co2X(tick),y2:co2Plot.bottom,stroke:"#6a8da2","stroke-opacity":".12","stroke-dasharray":"2 5"},co2Inset);
+    historicalSvg("text",{x:labelX,y:co2Plot.bottom+20,"text-anchor":anchor,fill:"#688397","font-size":"11","font-family":"-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif"},co2Inset,String(tick));
+  });
+  historicalSvg("line",{x1:co2Plot.left,y1:co2Plot.bottom,x2:co2Plot.right,y2:co2Plot.bottom,stroke:"#517389","stroke-opacity":".6","stroke-width":"1"},co2Inset);
+  var co2Fill = historicalSvg("linearGradient",{id:"historicalCo2Fill",x1:"0",x2:"0",y1:"0",y2:"1"},defs);
+  historicalSvg("stop",{offset:"0%","stop-color":"#d59a5c","stop-opacity":".32"},co2Fill);
+  historicalSvg("stop",{offset:"100%","stop-color":"#d59a5c","stop-opacity":".04"},co2Fill);
+  var co2Path = HISTORICAL_CO2_DATA.map(function(row,i){ return (i ? "L" : "M") + co2X(row[0]).toFixed(2) + " " + co2Y(row[1]).toFixed(2); }).join(" ");
+  var co2AreaPath = co2Path + " L" + co2X(2014).toFixed(2) + " " + co2Plot.bottom + " L" + co2X(1850).toFixed(2) + " " + co2Plot.bottom + " Z";
+  historicalSvg("path",{d:co2AreaPath,fill:"url(#historicalCo2Fill)"},co2Inset);
+  historicalSvg("path",{d:co2Path,class:"historical-co2-line",fill:"none",stroke:"#c47a38","stroke-width":"2.8","stroke-linecap":"round","stroke-linejoin":"round"},co2Inset);
+  historicalSvg("circle",{cx:co2X(2014),cy:co2Y(HISTORICAL_CO2_DATA[HISTORICAL_CO2_DATA.length-1][1]),r:"3.8",fill:"#c47a38",stroke:"#fff7eb","stroke-width":"1.5"},co2Inset);
+  historicalSvg("text",{x:co2Plot.right-3,y:co2Y(397.5)-9,"text-anchor":"end",fill:"#a35f2c","font-size":"12","font-weight":"500","font-family":"-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif"},co2Inset,"397.5");
+  var branchFill = historicalSvg("linearGradient",{id:"historicalBranchFill",x1:"0",x2:"0",y1:"0",y2:"1"},defs);
+  historicalSvg("stop",{offset:"0%","stop-color":"#78b7f0","stop-opacity":".65"},branchFill);
+  historicalSvg("stop",{offset:"100%","stop-color":"#e18282","stop-opacity":".12"},branchFill);
+  historicalSvg("path",{d:areaPath(),fill:"url(#historicalBranchFill)",opacity:".38"},svg);
+  historicalSvg("path",{d:linePath(branchA),fill:"none",stroke:"#78b7f0","stroke-width":"2.2","stroke-opacity":".7"},svg);
+  historicalSvg("path",{d:linePath(branchB),fill:"none",stroke:"#e18282","stroke-width":"2.2","stroke-opacity":".7"},svg);
+  historicalSvg("path",{d:linePath(mean),class:"historical-mean",fill:"none",stroke:"#193b56","stroke-width":"4.6","stroke-linecap":"round","stroke-linejoin":"round"},svg);
+  historicalSvg("circle",{cx:x(2014),cy:y((branchA[branchA.length-1]+branchB[branchB.length-1])/2),r:"5.5",fill:"#c47a38",stroke:"#fff4e5","stroke-width":"2"},svg);
+  historicalSvg("line",{x1:x(2014)-10,y1:y(1.04)-6,x2:x(2014)-88,y2:y(1.04)-48,stroke:"#b86f32","stroke-opacity":".8","stroke-width":"1.2"},svg);
+  historicalSvg("text",{x:x(2014)-92,y:y(1.04)-54,"text-anchor":"end",fill:"#a35f2c","font-size":"17","font-family":"-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif"},svg,"2014  +1.04 K");
+  historicalSvg("text",{x:plot.left+(plot.right-plot.left)/2,y:H-10,"text-anchor":"middle",fill:"#59758c","font-size":"17","font-family":"-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif"},svg,"Year");
+  historicalSvg("text",{x:19,y:plot.top+(plot.bottom-plot.top)/2,transform:"rotate(-90 19 "+(plot.top+(plot.bottom-plot.top)/2)+")","text-anchor":"middle",fill:"#59758c","font-size":"17","font-family":"-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif"},svg,"TAS anomaly (K)");
+  historicalSvg("text",{x:plot.right-10,y:y(1.1)+21,"text-anchor":"end",fill:"#607b90","font-size":"14","font-family":"-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif"},svg,"observed estimate");
+  svg.setAttribute("data-ready","true");
+}
+
+/* ============================================================
+   WELCOME: build CTA links from registry (two buttons already wired
+   via data-external ordering). No further action required.
+   ============================================================ */
+
+/* ============================================================
+   INIT
+   ============================================================ */
+function boot(){
+  Clouds.init();
+  IconFarm.preview();               // static frames until their section animates
+  drawHistoricalChart();
+  // ensure first section labelled active on load
+  sections.forEach(function(s,i){ s.classList.toggle("active", i===0); });
+  navDots.forEach(function(dm,i){ dm.classList.toggle("active", i===0); });
+  scheduleSectionSync();
+}
+
+if (document.readyState === "loading"){ document.addEventListener("DOMContentLoaded", boot); }
+else { boot(); }
+
+})();
+
+/* ============================================================
+   PHYSICS SCENE (page 4) — procedural parts, adapted from
+   website/demo: rain dots below the convective tower,
+   building windows
+   ============================================================ */
+(function(){
+"use strict";
+
+if (!document.getElementById("phScene")) return;
+var NS = "http://www.w3.org/2000/svg";
+
+function mk(name, attrs, parent){
+  var el = document.createElementNS(NS, name);
+  for (var k in attrs) el.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(el);
+  return el;
+}
+
+/* ---------- 1. 深对流云塔下方的雨点 ---------- */
+var i, j, n, x, y, c;
+var dots = document.getElementById("phRainDots");
+for (i = 0; i < 5; i++){
+  y = 706 + i * 30;
+  n = 8;
+  for (j = 0; j < n; j++){
+    x = 348 + j * 48 + (i % 2) * 24;
+    c = mk("circle", { cx:x, cy:y, r:5, "class":"rain-dot" }, dots);
+    c.style.animationDelay = (((i * 7 + j * 3) % 12) * 0.12).toFixed(2) + "s";
+  }
+}
+
+/* ---------- 2. 城市建筑窗户（在缩小分组的本地坐标系内生成） ---------- */
+function makeWindows(id, x0, y0, cols, rows, w, h, gx, gy){
+  var g = document.getElementById(id);
+  for (var r = 0; r < rows; r++){
+    for (var c2 = 0; c2 < cols; c2++){
+      mk("rect", {
+        x:x0 + c2 * (w + gx), y:y0 + r * (h + gy),
+        width:w, height:h,
+        fill:"#90b8d4", stroke:"#37474f", "stroke-width":2
+      }, g);
+    }
+  }
+}
+makeWindows("phWinB1", 959, 658, 4, 5, 20, 30, 14, 16);
+makeWindows("phWinB2", 1117, 704, 3, 5, 18, 26, 10, 10);
+makeWindows("phWinB3", 922, 764, 1, 4, 18, 26, 0, 12);
+
+})();
+</script>
+</body>
+</html>
