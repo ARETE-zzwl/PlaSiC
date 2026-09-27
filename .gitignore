@@ -9,3 +9,6 @@ site/
 # Python 缓存
 __pycache__/
 *.pyc
+
+# 本地工具缓存（OpenChamber 截图等）
+.openchamber/
