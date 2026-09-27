@@ -5,7 +5,7 @@
 
   <p><b>Planet Simulator in C</b> &nbsp;·&nbsp; <i>a general circulation model made to be understood.</i></p>
 
-  <p>A fully coupled climate system in ~20,000 lines of C11,<br>
+  <p>A fully coupled GCM in ~20,000 lines of C11,<br>
   with a 400+ page textbook, CMIP-style experiments and a modern desktop interface.</p>
 </div>
 
@@ -13,6 +13,7 @@
   <a href="https://sunmoumou1.github.io/PlaSiC/"><img src="https://img.shields.io/badge/Project%20website-visit-1f4e79?style=for-the-badge" alt="Project website"></a>
   <a href="https://sunmoumou1.github.io/PlaSiC/tutorial/"><img src="https://img.shields.io/badge/Tutorial-read%20online-0f766e?style=for-the-badge" alt="Read the tutorial online"></a>
   <a href="https://drive.usercontent.google.com/download?id=1PaMNy_Bc8rSRLUIjQizExJ17wFgWT9Ag&amp;export=download&amp;confirm=t"><img src="https://img.shields.io/badge/PDF-download%20(63%20MB)-b45309?style=for-the-badge" alt="Download the tutorial PDF"></a>
+  <a href="https://www.bilibili.com/video/BV1Q4h26FELk/"><img src="https://img.shields.io/badge/Bilibili-%E2%96%B6%20watch%20the%20Studio%20walkthrough-FB7299?style=for-the-badge&amp;logo=bilibili&amp;logoColor=white" alt="Watch the PlaSiC Studio interface walkthrough on Bilibili"></a>
 </p>
 
 <p align="center">
@@ -30,6 +31,7 @@
 |---|---|
 | **Read the book** | [Online tutorial](https://sunmoumou1.github.io/PlaSiC/tutorial/) · [PDF, 63 MB](https://drive.usercontent.google.com/download?id=1PaMNy_Bc8rSRLUIjQizExJ17wFgWT9Ag&export=download&confirm=t) · [Preface](https://sunmoumou1.github.io/PlaSiC/tutorial/preface/) |
 | **Run the model** | [Quick start](#quick-start) · [PlaSiC Studio](#plasic-studio) · [Experiments](#experiments-out-of-the-box) · [Build dependencies](#build-dependencies) |
+| **Watch the video** | **▶ [PlaSiC Studio interface walkthrough on Bilibili](https://www.bilibili.com/video/BV1Q4h26FELk/)** |
 | **Understand the design** | [Project website](https://sunmoumou1.github.io/PlaSiC/) · [Source tour](https://sunmoumou1.github.io/PlaSiC/source.html) · [Benchmarks](#benchmarks) |
 | **Join in** | [Roadmap](#roadmap) · [Contributing](#contributing) · [Citing PlaSiC](#citing-plasic) · [About the author](#about-the-author) |
 
@@ -38,31 +40,28 @@
 **PlaSiC** (*Planet Simulator in C*) is a general circulation model of intermediate
 complexity: a fully coupled atmosphere–land–ocean–sea-ice climate system that is
 detailed enough to reproduce the essential behavior of the climate, yet compact
-enough for one reader to study from the first line to the last. It is an
-independent C11 re-implementation of [PlaSim](https://github.com/HartmutBorth/PLASIM)
-(Fraedrich et al., 2005) that has grown into a self-contained model, textbook and
-desktop application.
+enough for one reader to study from the first line to the last. 
 
 The project exists for two audiences:
 
-- **Students and new modellers** who want to understand how a climate model is
+- **Students and new modellers** who want to understand how a GCM is
   actually built, not only how to run one. The tutorial derives every equation in
   the code and maps it onto the file and function that implements it.
-- **Machine-learning researchers** entering AI for weather and climate, who need
+- **Machine-learning researchers** entering AI for weather and climate (AIWC), who need
   the domain background that only a complete numerical model can provide.
 
 | | At a glance |
 |---|---|
 | **Language** | C11 — about 20,000 lines of C in `src/`, no Fortran |
 | **Dynamical core** | Primitive equations in σ coordinates; spectral transform via [SHTns](https://nschaeff.bitbucket.io/shtns/); leapfrog time stepping with a semi-implicit gravity-wave solver and Robert–Asselin filtering |
-| **Resolution** | T21 / T31 / T42 / T85 (64 × 32 → 256 × 128 Gaussian grids), 10–25 σ levels |
+| **Resolution** | T21 / T31 / T42 / T85 (64 × 32 → 256 × 128 Gaussian grids), user-defined σ levels |
 | **Physics** | Radiation, clouds, moist convection and precipitation, surface fluxes, horizontal and vertical diffusion |
-| **Coupled surfaces** | Land surface, thermodynamic sea ice, slab ocean, 16-level three-dimensional ocean |
-| **Parallelism** | MPI; 4 processes are the practical optimum on a laptop (up to ~3× faster than 1) |
+| **Coupled surfaces** | Land surface, thermodynamic sea ice, slab ocean, user-defined three-dimensional ocean |
+| **Parallelism** | MPI; 4 processes are the practical optimum on m5 macbook 32G memory) (up to ~3× faster than 1) |
 | **Interfaces** | `plasic.x` command-line model · PlaSiC Studio (PySide6) desktop front end |
-| **Experiments** | CMIP6-style historical 1850–2014, `1pctCO2`, `abrupt-4xCO2` — all reproducible from this repository |
+| **Experiments** | CMIP6-style `historical`, `1pctCO2`, `abrupt-4xCO2` — all reproducible from this repository |
 | **Documentation** | 400+ page tutorial: [read online](https://sunmoumou1.github.io/PlaSiC/tutorial/) or [download the PDF](https://drive.usercontent.google.com/download?id=1PaMNy_Bc8rSRLUIjQizExJ17wFgWT9Ag&export=download&confirm=t) |
-| **License** | `GPL-3.0-or-later` — a derivative of PlaSim, with upstream notices preserved |
+| **License** | `GPL-3.0-or-later` |
 
 ## Highlights
 
@@ -75,11 +74,14 @@ The project exists for two audiences:
   effects; moist convection and large-scale precipitation; surface fluxes over
   land and sea; horizontal and vertical diffusion.
 - Coupled spheres: a land-surface model with soil temperature, moisture and snow;
-  thermodynamic sea ice; a 50 m mixed-layer ocean; and a 16-level three-dimensional
+  thermodynamic sea ice; a 50 m mixed-layer ocean; and a user-defined three-dimensional
   ocean whose top layer aligns with that mixed layer.
 - CMIP6-style experiments out of the box — a historical 1850–2014 simulation and
-  the idealized `1pctCO2` and `abrupt-4xCO2` projections, with the analysis scripts
-  and restart files included. See [Experiments](#experiments-out-of-the-box).
+  the idealized `1pctCO2` and `abrupt-4xCO2` projections. See [Experiments](#experiments-out-of-the-box).
+
+<p align="center">
+  <img src="docs-site/docs/tutorial/assets/images/plasic_atmospheric_parameterizations.png" width="880" alt="PlaSiC atmospheric physics and coupled surface processes, showing their call order and exchanges">
+</p>
 
 **Built for reading**
 
@@ -99,8 +101,8 @@ The project exists for two audiences:
   format for analysis pipelines.
 - **PlaSiC Studio**, a graphical front end that builds, launches, monitors and
   visualizes the model — 2-D fields on a rotatable globe, or 3-D volumes over a
-  selected region. An interface walkthrough is available on
-  [Bilibili](https://www.bilibili.com/video/BV1Q4h26FELk/).
+  selected region. ▶ **Watch the full interface walkthrough on
+  [Bilibili](https://www.bilibili.com/video/BV1Q4h26FELk/)**.
 
 ## PlaSiC Studio
 
@@ -131,8 +133,11 @@ The app finds the C model in `../src`; set `PLASIC_C_ROOT` if the model lives
 elsewhere. A guided tour of the interface — with the full walkthrough video — is on
 the [software page](https://sunmoumou1.github.io/PlaSiC/software.html), and
 [Chapter 8](https://sunmoumou1.github.io/PlaSiC/tutorial/8-desktop-app/8.1-plasic-app-architecture-guide/)
-of the tutorial describes how the app is put together — UI, controller, run manager
-and incremental readers.
+of the tutorial describes how the app is put together.
+
+<p align="center">
+  <a href="https://www.bilibili.com/video/BV1Q4h26FELk/"><img src="https://img.shields.io/badge/Bilibili-%E2%96%B6%20watch%20the%20full%20interface%20walkthrough-FB7299?style=for-the-badge&amp;logo=bilibili&amp;logoColor=white" alt="Watch the full PlaSiC Studio interface walkthrough on Bilibili"></a>
+</p>
 
 ## Quick start
 
@@ -186,18 +191,31 @@ make -C src historical INITIAL_CONDITION=data/earth_t21_l10.restart
 
 → [Chapter 6.2, Historical experiment](https://sunmoumou1.github.io/PlaSiC/tutorial/6-experiments/6.2-historical-experiment-1850-2014/)
 
-**`1pctCO2` and `abrupt-4xCO2`** — the CMIP6 DECK experiments, run with a coupled
-ocean from the same equilibrated initial state. PlaSiC's transient climate response
-is **TCR = 3.26 K** and the effective equilibrium climate sensitivity from a Gregory
-regression is **ECS = 5.79 K** (R² = 0.89).
-
-→ [Chapter 6.3, Idealized CO₂ experiments](https://sunmoumou1.github.io/PlaSiC/tutorial/6-experiments/6.3-idealized-co2-experiments-tcr-ecs/)
-
 <p align="center">
   <img src="docs-site/docs/tutorial/assets/images/historical-experiment/fig3_surface_temperature.png" width="880" alt="Forced surface warming relative to control, 1850–2014, compared with the observed estimate">
 </p>
 
 <p align="center"><sub><b>Forced surface warming relative to control.</b> Annual global near-surface air-temperature anomalies for two branches, their smoothed ensemble mean, and the observed estimate.</sub></p>
+
+**`1pctCO2` and `abrupt-4xCO2`** — the CMIP6 DECK experiments, run with a coupled
+ocean from the same equilibrated initial state. In `1pctCO2` the CO₂ rises by
+1% yr⁻¹ and reaches about 4× pre-industrial after 140 years; the model warms by
+**+5.37 K in year 140**, with a transient climate response of **TCR = 3.26 K**
+around the CO₂-doubling period. In `abrupt-4xCO2` an immediate step to 4× CO₂
+warms the model by **+5.91 K by year 150** and still leaves a top-of-atmosphere
+imbalance of about 4.8 W m⁻², so the run has not reached equilibrium. A Gregory
+regression gives an effective 4× forcing of **8.95 W m⁻²**, a feedback parameter
+of **λ = −0.77 W m⁻² K⁻¹**, and an effective equilibrium climate sensitivity of
+**ECS = 5.79 K** (R² = 0.89) — slightly above the CMIP6 sample maxima (TCR
+1.31–3.06 K from 31 models; effective ECS 1.83–5.62 K from 30).
+
+→ [Chapter 6.3, Idealized CO₂ experiments](https://sunmoumou1.github.io/PlaSiC/tutorial/6-experiments/6.3-idealized-co2-experiments-tcr-ecs/)
+
+<p align="center">
+  <img src="docs-site/docs/tutorial/assets/images/co2-experiment/cmip6_sensitivity_distributions.png" width="880" alt="PlaSiC's transient climate response and effective ECS compared with the CMIP6 model distributions">
+</p>
+
+<p align="center"><sub><b>Climate sensitivity compared with CMIP6.</b> Transient climate response (TCR, left) and effective ECS (right): grey points and violins are CMIP6 models, red diamonds are PlaSiC's single-member values. CMIP6 diagnostics from <a href="https://github.com/mark-ringer/cmip6">mark-ringer/cmip6</a> (CC BY-SA 4.0).</sub></p>
 
 ## Benchmarks
 
@@ -224,13 +242,11 @@ processes. The full study — speed-up, parallel efficiency and a memory model �
 
 <table>
 <tr>
-<td width="230"><img src="docs-site/docs/pdf1.png" width="210" alt="Cover of the PlaSiC tutorial book"></td>
+<td width="530"><img src="docs-site/docs/pdf1.png" width="500" alt="Cover of the PlaSiC tutorial book"></td>
 <td>
 <b>A GCM model made to be understood.</b><br>
 The PlaSiC tutorial is a complete, self-contained textbook: 400+ pages across
-eight chapters and six appendices, from the governing equations through the
-numerics, the parameterizations and the coupled ocean to the desktop app. Every
-chapter ends by pointing at the code that implements it.<br><br>
+eight chapters and six appendices.<br><br>
 <a href="https://sunmoumou1.github.io/PlaSiC/tutorial/">Read online</a> &nbsp;·&nbsp;
 <a href="https://drive.usercontent.google.com/download?id=1PaMNy_Bc8rSRLUIjQizExJ17wFgWT9Ag&export=download&confirm=t">Download PDF (63 MB)</a> &nbsp;·&nbsp;
 <a href="https://sunmoumou1.github.io/PlaSiC/tutorial.html">Book landing page</a>
@@ -260,12 +276,23 @@ python3 -m venv .venv
 .venv/bin/mkdocs serve -f mkdocs.yml
 ```
 
-Then open <http://127.0.0.1:8000/PlaSiC/>. The site is rebuilt and deployed to
-GitHub Pages automatically by [`.github/workflows/docs.yml`](.github/workflows/docs.yml).
-
 ## Roadmap
 
-PlaSiC is actively developed. Planned for future releases:
+> [!IMPORTANT]
+> **🚀 PlaSiC is a living project — the code, the
+> [tutorial](https://sunmoumou1.github.io/PlaSiC/tutorial/) and the
+> [desktop app](https://sunmoumou1.github.io/PlaSiC/software.html) are all under
+> rapid development, and I will keep maintaining them for years to come.**
+>
+> **Come back to this repository often** — fixes, new physics, new experiments,
+> new chapters and new app features all land here first.
+
+<p align="center">
+  <a href="https://github.com/sunmoumou1/PlaSiC/commits/main"><img src="https://img.shields.io/github/last-commit/sunmoumou1/PlaSiC?style=for-the-badge&amp;label=last%20update&amp;color=0f766e" alt="Latest update"></a>
+  <a href="https://github.com/sunmoumou1/PlaSiC/commits/main"><img src="https://img.shields.io/github/commit-activity/m/sunmoumou1/PlaSiC?style=for-the-badge&amp;color=2f855a" alt="Commit activity per month"></a>
+</p>
+
+Planned for future releases:
 
 - **Aerosol-related physical processes.**
 - **External ozone forcing** — ozone will be read from external data rather than
@@ -297,16 +324,8 @@ PlaSiC is an open project and contributions of every size are useful:
 
 ## Citing PlaSiC
 
-PlaSiC is a derivative of PlaSim. For scientific attribution, please cite the
-upstream model description:
-
-> Fraedrich, K., Jansen, H., Kirk, E., Luksch, U., & Lunkeit, F. (2005).
-> The Planet Simulator: Towards a user friendly model.
-> *Meteorologische Zeitschrift*, *14*(3), 299–304.
-> [https://doi.org/10.1127/0941-2948/2005/0043](https://doi.org/10.1127/0941-2948/2005/0043)
-
-If you use the C implementation, the tutorial or the desktop application, please
-also mention the project:
+We plan to submit a paper describing PlaSiC. Once it is accepted, we will add a
+link to the paper here. In the meantime, please cite the project as follows:
 
 ```bibtex
 @misc{PlaSiC2026,
@@ -363,7 +382,7 @@ Without these two resources, PlaSiC could not have been designed.
 <b>Sencan Sun (孙森灿)</b><br>
 Doctoral student in Atmospheric Science<br>
 Department of Earth System Science, Tsinghua University<br><br>
-His research sits where machine learning meets atmospheric science: <b>AI for operational
+My research sits where machine learning meets atmospheric science: <b>AI for operational
 forecasting</b>, spanning data assimilation, weather, subseasonal-to-seasonal and climate
 prediction. PlaSiC is the teaching model he built to close the gap between the two
 disciplines.<br><br>
@@ -373,6 +392,10 @@ disciplines.<br><br>
 </td>
 </tr>
 </table>
+
+<p align="center">
+  <img src="docs-site/docs/tutorial/assets/images/my_research_interest_plain.png" width="360" alt="Research interests spanning data assimilation, weather forecasting, and subseasonal-to-seasonal and climate prediction">
+</p>
 
 > *"Good educational models — models that come with complete source code and a
 > complete tutorial, that are small enough to understand yet complete in all their
