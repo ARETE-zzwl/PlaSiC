@@ -1,14 +1,12 @@
-# macOS
 .DS_Store
 
-# MkDocs 本地预览虚拟环境与构建产物
 docs-site/.venv/
 docs-site/site/
 site/
 
-# Python 缓存
 __pycache__/
 *.pyc
 
-# 本地工具缓存（OpenChamber 截图等）
 .openchamber/
+
+JOSS_paper/

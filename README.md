@@ -302,6 +302,7 @@ Planned for future releases:
   the simulated circulation, with visualization support.
 - **Weather simulation experiments** — initialize from an observed weather state and
   integrate forward, quantifying forecast-error growth from day 0 to day 10.
+- **More grid** - Despite of conventional Gaussian grid, I plan to support the Octahedral Gaussian grid (Malardel, Sylvie, et al. "A new grid for the IFS." ECMWF newsletter 146.23-28 (2016): 321.) and the HEALPix grid (Gorski, Krzysztof M., et al. "HEALPix: A framework for high-resolution discretization and fast analysis of data distributed on the sphere." The Astrophysical Journal 622.2 (2005): 759-771.).
 
 Ideas, feature requests and contributions are welcome — see below.
 
