@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
-<meta name="description" content="PlaSiC experiments: a 1850–2014 historical simulation and the idealized 1pctCO2 and abrupt-4xCO2 climate-sensitivity experiments.">
+<meta name="description" content="PlaSiC experiments: a 1850–2014 historical simulation, the idealized 1pctCO2 and abrupt-4xCO2 climate-sensitivity experiments, and an ERA5-initialized 10-day forecast case.">
 <meta name="theme-color" content="#0a0f1d">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3CradialGradient id='g' cx='35%25' cy='28%25'%3E%3Cstop stop-color='%23dffaff'/%3E%3Cstop offset='.48' stop-color='%237fe0f2'/%3E%3Cstop offset='1' stop-color='%231d5d7c'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='32' cy='32' r='25' fill='url(%23g)'/%3E%3Cpath d='M12 34c13-9 27-11 40-4' fill='none' stroke='%23fff' stroke-opacity='.7' stroke-width='2'/%3E%3C/svg%3E">
-<title>PlaSiC — Historical and CO₂ experiments</title>
+<title>PlaSiC — Historical, CO₂ and forecast experiments</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&amp;family=STIX+Two+Text:ital,wght@0,400;0,500;1,400&amp;display=swap" rel="stylesheet">
@@ -944,7 +944,8 @@ body.theme-physics .nav .dot::after,
 body.theme-coupling .nav .dot::after,
 body.theme-closing .nav .dot::after,
 body.theme-historical .nav .dot::after,
-body.theme-sensitivity .nav .dot::after{
+body.theme-sensitivity .nav .dot::after,
+body.theme-forecast .nav .dot::after{
   border-color:rgba(39,91,127,.18);
   background:rgba(248,253,255,.92);
   color:#315570;
@@ -1189,6 +1190,91 @@ body.theme-sensitivity .nav .tick{background:rgba(45,98,128,.25)}
   .sensitivity-legend{gap:.7rem;font-size:.78rem}
   .sensitivity-source{font-size:.6rem;padding:0 .3rem}
 }
+
+/* ============================================================
+   16. PAGE 8 — ERA5-INITIALIZED 10-DAY FORECASTS
+   ============================================================ */
+#s8.forecast{
+  --fc-ink:#17344d;
+  --fc-muted:#58728b;
+  --fc-line:rgba(45,98,128,.2);
+  --fc-accent:#2f7fa8;
+  position:relative;isolation:isolate;overflow:hidden;align-items:stretch;justify-content:flex-start;
+  padding:clamp(4.05rem,5.9vh,5.5rem) clamp(1.2rem,5vw,5.5rem) clamp(1.4rem,3vh,2.5rem);
+  color:var(--fc-ink);
+  background:
+    radial-gradient(66% 95% at 92% 8%,rgba(91,157,211,.3),transparent 68%),
+    radial-gradient(55% 75% at 8% 96%,rgba(127,224,242,.18),transparent 70%),
+    linear-gradient(137deg,#edf6fb 0%,#dcecf5 52%,#c6dfeb 100%);
+}
+#s8.forecast::before{
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.4;
+  background-image:linear-gradient(rgba(55,107,139,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(55,107,139,.08) 1px,transparent 1px);
+  background-size:76px 76px;
+  -webkit-mask-image:linear-gradient(155deg,#000 0%,transparent 72%);mask-image:linear-gradient(155deg,#000 0%,transparent 72%);
+}
+.forecast-shell{width:min(100%,1640px);height:100%;margin:0 auto;display:grid;grid-template-rows:auto minmax(0,1fr);gap:clamp(1.05rem,2.3vh,1.75rem)}
+.forecast-index{margin-bottom:.7rem;font-family:var(--font-mono);font-size:.72rem;letter-spacing:.25em;text-transform:uppercase;color:#3e7798}
+.forecast-title{max-width:26ch;font-family:var(--font-elegant);font-size:clamp(2.65rem,4.8vw,5.2rem);font-weight:400;line-height:.9;letter-spacing:-.045em;text-wrap:balance}
+.forecast-title em{color:var(--fc-accent);font-weight:400}
+.forecast-lead{max-width:58ch;margin-top:1rem;color:var(--fc-muted);font-size:clamp(.98rem,1.05vw,1.15rem);line-height:1.55}
+.forecast-content{display:grid;grid-template-columns:minmax(0,1fr);min-height:0}
+.forecast-chart-card{display:flex;flex-direction:column;min-height:0;width:100%;margin:0 auto;padding:clamp(.85rem,1.4vw,1.2rem) clamp(.65rem,.95vw,.95rem) .8rem;overflow:hidden;border:1px solid var(--fc-line);border-radius:22px;background:linear-gradient(145deg,rgba(250,254,255,.88),rgba(228,241,249,.76));box-shadow:0 28px 75px rgba(56,102,131,.16),inset 0 1px 0 rgba(255,255,255,.86);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+.forecast-chart-title{margin-bottom:.45rem;font-family:var(--font-elegant);font-size:clamp(1.45rem,1.95vw,1.95rem);font-weight:400;color:#17344d}
+.fc-tabs{display:flex;flex-wrap:wrap;gap:.42rem;margin-bottom:.5rem}
+.fc-tab{padding:.46rem .74rem;border:1px solid rgba(45,98,128,.24);border-radius:999px;background:rgba(255,255,255,.5);font-family:Arial,Helvetica,sans-serif;font-size:clamp(.7rem,.8vw,.8rem);letter-spacing:.05em;text-transform:uppercase;color:#4b6c85;white-space:nowrap;transition:background .25s ease,border-color .25s ease,color .25s ease,box-shadow .25s ease}
+.fc-tab:hover{border-color:#4b91b5;color:#2b6f92}
+.fc-tab:focus-visible{outline:2px solid rgba(47,127,168,.5);outline-offset:2px}
+.fc-tab .fc-unit{text-transform:none}
+.fc-tab[aria-selected="true"]{background:#2f7fa8;border-color:#2f7fa8;color:#f4fbfe;box-shadow:0 8px 20px rgba(47,127,168,.28)}
+.fc-band-scroll{min-width:0}
+.fc-band-head{position:relative;height:1.25rem;margin:0 0 .18rem}
+.fc-band-head span{position:absolute;top:0;transform:translateX(-50%);font-family:var(--font-mono);font-size:clamp(.56rem,.7vw,.68rem);letter-spacing:.1em;text-transform:uppercase;color:#64829a;white-space:nowrap}
+.fc-band{position:relative;overflow:hidden;border:1px solid rgba(45,98,128,.18);border-radius:14px;background:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.9)}
+.fc-band-body{display:grid;grid-template-columns:minmax(0,1fr) 6.44%}
+.fc-band-maps{display:flex;flex-direction:column;min-width:0}
+.fc-band-cbar{position:relative;overflow:hidden;align-self:start;aspect-ratio:184/440}
+.fc-row{position:relative;overflow:hidden}
+.fc-row img,.fc-band-cbar img{display:block;height:auto;max-width:none}
+.fc-row img{width:calc(3012 / 2674 * 100%)}
+.fc-row-era5{aspect-ratio:2674/256}
+.fc-row-era5 img{transform:translate(calc(150 / 3012 * -100%),calc(var(--y1,184) / 5127 * -100%))}
+.fc-row-plasic{aspect-ratio:2674/256;margin-top:clamp(11px,1.15%,26px)}
+.fc-row-plasic img{transform:translate(calc(150 / 3012 * -100%),calc(var(--y2,453) / 5127 * -100%))}
+.fc-row-lon{aspect-ratio:2674/82}
+.fc-row-lon img{transform:translate(calc(150 / 3012 * -100%),calc(var(--y3,5004) / 5127 * -100%))}
+.fc-band-cbar img{width:calc(3012 / 184 * 100%);transform:translate(calc(2824 / 3012 * -100%),calc(var(--y1,184) / 5127 * -100%))}
+.forecast-chart-card figcaption{padding:.45rem .15rem 0;font-size:clamp(.96rem,1.08vw,1.1rem);line-height:1.45;color:#57728b}
+.forecast-chart-card figcaption strong{color:#2c4a62;font-weight:500}
+.forecast-source{margin-top:.4rem;text-align:center;font-family:var(--font-mono);font-size:clamp(.62rem,.74vw,.74rem);letter-spacing:.05em;line-height:1.55;color:#6a8293}
+.forecast-source a{color:#2f6d9c;border-bottom:1px solid rgba(47,109,156,.32);transition:border-color .25s ease,color .25s ease}
+.forecast-source a:hover{border-bottom-color:#2f6d9c;color:#1f5d8c}
+.forecast-note{margin:.5rem 0 .08rem;padding:.66rem 1.25rem;border:1px solid rgba(37,111,155,.34);border-radius:16px;background:linear-gradient(118deg,rgba(203,235,250,.96),rgba(243,250,254,.55) 52%,rgba(208,235,249,.92));box-shadow:inset 0 1px 0 rgba(255,255,255,.92),0 14px 30px rgba(44,96,132,.14);text-align:center;font-family:var(--font-elegant);font-style:italic;font-size:clamp(1.15rem,1.65vw,1.45rem);line-height:1.4;color:#0e4a72;text-wrap:balance}
+.forecast-note strong{font-style:normal;font-weight:500;color:#b5551f}
+body.theme-forecast .logo{color:#173b58;text-shadow:none}
+body.theme-forecast .logo .sub{color:rgba(35,77,105,.68)}
+body.theme-forecast .logo .mark{background:radial-gradient(circle at 35% 30%,#fff 0%,#b9ecf5 38%,#3f8fb1 72%,transparent 78%);box-shadow:0 0 18px rgba(90,164,191,.34)}
+body.theme-forecast .logo{background:rgba(248,253,255,.72);border-color:rgba(45,98,128,.16);box-shadow:0 12px 28px rgba(47,91,119,.12),inset 0 1px 0 rgba(255,255,255,.9)}
+body.theme-forecast .nav{background:rgba(248,253,255,.62);border-color:rgba(45,98,128,.16);box-shadow:0 16px 34px rgba(47,91,119,.12),inset 0 1px 0 rgba(255,255,255,.86)}
+body.theme-forecast .nav .dot{border-color:rgba(45,98,128,.35);background:rgba(255,255,255,.48)}
+body.theme-forecast .nav .dot.active{background:#2f7fa8;border-color:#2f7fa8;box-shadow:0 0 0 5px rgba(47,127,168,.14),0 0 20px rgba(47,127,168,.44)}
+body.theme-forecast .nav .tick{background:rgba(45,98,128,.25)}
+
+@media (max-width:1180px){
+  #s8.forecast{height:auto;min-height:100dvh;overflow:visible}
+  .fc-band-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:.4rem}
+  .fc-band-scroll .fc-band-head,.fc-band-scroll .fc-band{width:980px;max-width:none}
+}
+@media (max-width:680px){
+  #s8.forecast{padding:5.7rem 1.05rem 2.2rem}
+  .forecast-title{font-size:clamp(2.55rem,13vw,4.2rem)}
+  .forecast-lead{font-size:.96rem}
+  .forecast-chart-card{padding:.75rem .55rem .7rem;border-radius:16px}
+  .fc-tab{font-size:.66rem;padding:.42rem .58rem}
+  .forecast-chart-card figcaption{padding:.5rem .2rem 0;font-size:.9rem}
+  .forecast-source{font-size:.6rem;padding:0 .3rem}
+  .forecast-note{font-size:1.02rem;padding:.6rem .8rem;border-radius:12px}
+}
 </style>
 </head>
 <body class="theme-closing">
@@ -1214,6 +1300,7 @@ body.theme-sensitivity .nav .tick{background:rgba(45,98,128,.25)}
   <button class="dot" data-target="s3" aria-label="Component coupling"></button>
   <button class="dot" data-target="s6" aria-label="Historical experiment"></button>
   <button class="dot" data-target="s7" aria-label="CO₂ sensitivity experiments"></button>
+  <button class="dot" data-target="s8" aria-label="ERA5-initialized forecasts"></button>
 </nav>
 
 <main class="scroll" id="scroll">
@@ -1968,6 +2055,66 @@ body.theme-sensitivity .nav .tick{background:rgba(45,98,128,.25)}
           </div>
           <svg id="sensitivityChart" viewBox="0 0 1240 520" role="img" aria-labelledby="sensitivity-chart-title"></svg>
           <p class="sensitivity-source">Source: CMIP6 diagnostics from <a href="https://github.com/mark-ringer/cmip6" target="_blank" rel="noopener">github.com/mark-ringer/cmip6</a> (CC BY-SA 4.0); PlaSiC values from its own 1pctCO2 and abrupt-4xCO2 runs.</p>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SECTION 8 : ERA5-INITIALIZED FORECASTS ================= -->
+  <section id="s8" class="forecast" data-theme="theme-forecast" data-cloud="0.02" aria-labelledby="forecast-title">
+    <div class="forecast-shell">
+      <header class="forecast-head">
+        <div>
+          <p class="forecast-index reveal" style="--d:.08s">08 / ERA5-initialized forecasts</p>
+          <h2 class="forecast-title reveal" id="forecast-title" style="--d:.14s">10-day forecasts.<br><em>Real weather, ten days out.</em></h2>
+          <p class="forecast-lead reveal" style="--d:.2s">Initialized from an ERA5 analysis, PlaSiC is run as a free T85/L25 forecast for ten days. The case below follows Typhoon Maysak (2020) across the western North Pacific, verified against ERA5 at matching valid times.</p>
+        </div>
+      </header>
+
+      <div class="forecast-content">
+        <figure class="forecast-chart-card reveal" style="--d:.3s" aria-labelledby="forecast-chart-title">
+          <h3 class="forecast-chart-title" id="forecast-chart-title">Typhoon Maysak (2020) · western North Pacific</h3>
+          <div class="fc-tabs" role="tablist" aria-label="Forecast diagnostics">
+            <button class="fc-tab" role="tab" id="fc-tab-mslp" aria-selected="true" tabindex="0" aria-controls="fc-band" data-band="mslp">Mean sea-level pressure</button>
+            <button class="fc-tab" role="tab" id="fc-tab-vort850" aria-selected="false" tabindex="-1" aria-controls="fc-band" data-band="vort850">850 <span class="fc-unit">hPa</span> vorticity</button>
+            <button class="fc-tab" role="tab" id="fc-tab-t500" aria-selected="false" tabindex="-1" aria-controls="fc-band" data-band="t500">500 <span class="fc-unit">hPa</span> temperature</button>
+            <button class="fc-tab" role="tab" id="fc-tab-z500" aria-selected="false" tabindex="-1" aria-controls="fc-band" data-band="z500">500 <span class="fc-unit">hPa</span> height</button>
+            <button class="fc-tab" role="tab" id="fc-tab-wind250" aria-selected="false" tabindex="-1" aria-controls="fc-band" data-band="wind250">250 <span class="fc-unit">hPa</span> wind speed</button>
+            <button class="fc-tab" role="tab" id="fc-tab-q700" aria-selected="false" tabindex="-1" aria-controls="fc-band" data-band="q700">700 <span class="fc-unit">hPa</span> specific humidity</button>
+            <button class="fc-tab" role="tab" id="fc-tab-cloud" aria-selected="false" tabindex="-1" aria-controls="fc-band" data-band="cloud">Total cloud cover</button>
+          </div>
+          <div class="fc-band-scroll">
+            <div class="fc-band-head" aria-hidden="true">
+              <span style="left:14.94%">2020-09-01 00 UTC</span>
+              <span style="left:26.98%">+24 h</span>
+              <span style="left:38.98%">+48 h</span>
+              <span style="left:50.98%">+72 h</span>
+              <span style="left:63.02%">+120 h</span>
+              <span style="left:75.02%">+168 h</span>
+              <span style="left:87.02%">+240 h</span>
+            </div>
+            <div class="fc-band" id="fc-band" role="tabpanel" aria-labelledby="fc-tab-mslp" tabindex="0" style="--y1:184;--y2:453">
+              <div class="fc-band-body">
+                <div class="fc-band-maps">
+                  <div class="fc-row fc-row-era5">
+                    <img src="tutorial/assets/images/era5-forecast/zoom_typhoon2020.png" width="3012" height="5127" loading="lazy" decoding="async" alt="ERA5 analysis or verification maps at seven lead times">
+                  </div>
+                  <div class="fc-row fc-row-plasic">
+                    <img src="tutorial/assets/images/era5-forecast/zoom_typhoon2020.png" width="3012" height="5127" loading="lazy" decoding="async" alt="PlaSiC forecast maps at seven lead times">
+                  </div>
+                  <div class="fc-row fc-row-lon">
+                    <img src="tutorial/assets/images/era5-forecast/zoom_typhoon2020.png" width="3012" height="5127" loading="lazy" decoding="async" alt="Longitude axis labels, 110°E to 170°E every 20 degrees">
+                  </div>
+                </div>
+                <div class="fc-band-cbar">
+                  <img src="tutorial/assets/images/era5-forecast/zoom_typhoon2020.png" width="3012" height="5127" loading="lazy" decoding="async" alt="Colour scale for the selected diagnostic">
+                </div>
+              </div>
+            </div>
+          </div>
+          <figcaption id="forecast-chart-caption"><strong>ERA5 vs PlaSiC.</strong> Each diagnostic stacks the ERA5 analysis or verification (top) above the corresponding PlaSiC forecast (bottom) at seven lead times. The forecast starts from a 12-hour ERA5 nudging window and is verified against ERA5 at matching valid times; the maps cover 100–180°E, 0–60°N on the model’s 128 × 256 Gaussian grid.</figcaption>
+          <p class="forecast-source">From the <a href="tutorial/6-experiments/6.6-era5-initialized-10day-forecasts/">ERA5-initialized 10-day forecast experiment</a> · <a href="tutorial/assets/images/era5-forecast/zoom_typhoon2020.png" target="_blank" rel="noopener">open the full-resolution figure</a></p>
+          <p class="forecast-note">PlaSiC has not yet been through careful engineering tuning — <strong>further optimisation is expected to improve these forecasts</strong>.</p>
         </figure>
       </div>
     </div>
@@ -2982,6 +3129,56 @@ window.addEventListener("resize", function(){
 });
 
 /* ============================================================
+   FORECAST BANDS — zoom_typhoon2020.png is one tall comparison
+   figure (3012 x 5127): nine diagnostics, each two map rows
+   (ERA5 above, PlaSiC below). Each tab shows the band of one
+   diagnostic; y1/y2 are the pixel offsets of the two map rows
+   in that source. x=150 trims the rotated group label, and the
+   longitude strip (y=5004) sits under every band.
+   ============================================================ */
+var FORECAST_BANDS = {
+  mslp:    { y1: 184,  y2: 453 },
+  vort850: { y1: 720,  y2: 989 },
+  t500:    { y1: 2330, y2: 2599 },
+  z500:    { y1: 1793, y2: 2062 },
+  wind250: { y1: 2867, y2: 3136 },
+  q700:    { y1: 3403, y2: 3672 },
+  cloud:   { y1: 3940, y2: 4209 }
+};
+function initForecastTabs(){
+  var tablist = document.querySelector(".fc-tabs");
+  var band = document.getElementById("fc-band");
+  if (!tablist || !band) return;
+  var tabs = Array.prototype.slice.call(tablist.querySelectorAll(".fc-tab"));
+  function select(key, focus){
+    var b = FORECAST_BANDS[key];
+    if (!b) return;
+    band.style.setProperty("--y1", b.y1);
+    band.style.setProperty("--y2", b.y2);
+    band.setAttribute("aria-labelledby", "fc-tab-" + key);
+    tabs.forEach(function(tab){
+      var on = tab.getAttribute("data-band") === key;
+      tab.setAttribute("aria-selected", on ? "true" : "false");
+      tab.setAttribute("tabindex", on ? "0" : "-1");
+      if (on && focus) tab.focus();
+    });
+  }
+  tabs.forEach(function(tab, i){
+    tab.addEventListener("click", function(){ select(tab.getAttribute("data-band")); });
+    tab.addEventListener("keydown", function(e){
+      var key = e.key;
+      var next = key === "ArrowRight" ? i + 1 :
+                 key === "ArrowLeft"  ? i - 1 :
+                 key === "Home"       ? 0 :
+                 key === "End"        ? tabs.length - 1 : -1;
+      if (next < 0 || next >= tabs.length) return;
+      e.preventDefault();
+      select(tabs[next].getAttribute("data-band"), true);
+    });
+  });
+}
+
+/* ============================================================
    WELCOME: build CTA links from registry (two buttons already wired
    via data-external ordering). No further action required.
    ============================================================ */
@@ -2995,6 +3192,7 @@ function boot(){
   drawHistoricalChart();
   drawSensitivityChart();
   drawSensitivityTimeseries();
+  initForecastTabs();
   // ensure first section labelled active on load
   sections.forEach(function(s,i){ s.classList.toggle("active", i===0); });
   navDots.forEach(function(dm,i){ dm.classList.toggle("active", i===0); });

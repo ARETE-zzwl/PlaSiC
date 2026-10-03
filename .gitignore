@@ -10,3 +10,10 @@ __pycache__/
 .openchamber/
 
 JOSS_paper/
+
+experiments/forecast_era5/data/
+experiments/forecast_era5/figures/
+experiments/forecast_era5/frames/
+experiments/forecast_era5/runs/
+
+
