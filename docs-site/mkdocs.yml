@@ -199,6 +199,7 @@ nav:
   - 6.3 1pctCO₂ and abrupt-4×CO₂ experiments: tutorial/6-experiments/6.3-idealized-co2-experiments-tcr-ecs.md
   - 6.4 Inside a Restart File: tutorial/6-experiments/6.4-restart-file-format.md
   - 6.5 Cold-Start Surface Boundary Fields at T42: tutorial/6-experiments/6.5-cold-start-surface-fields-t42.md
+  - 6.6 ERA5-Initialized 10-Day Forecasts: tutorial/6-experiments/6.6-era5-initialized-10day-forecasts.md
 - 7 Parallel:
   - 7.1 MPI Parallel Basics: tutorial/7-parallel/7.1-mpi-parallel-basics.md
 - 8 Desktop App:
