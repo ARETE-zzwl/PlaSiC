@@ -17,17 +17,21 @@ For these learners, this tutorial provides an accessible entry point. It include
 - The second group consists of machine learning researchers who plan to work on ML for climate. These researchers may want to develop data-driven AI models for applications such as weather forecasting and climate simulation. While they are often highly skilled in machine learning and computer science, they may lack sufficient domain knowledge in atmospheric science and numerical modeling.
 PlaSiC is therefore a useful starting point for this audience as well. It can help ML researchers quickly become familiar with numerical model development while developing a deeper understanding of how numerical weather and climate models are implemented in practice.
 
+![The two kinds of readers this tutorial addresses: climate-science students and machine-learning researchers entering AI for weather and climate](assets/images/user_portrait.png)
+
+Fig. 0.2.1. **The two kinds of readers this tutorial addresses.** The first group, on the left, wants to understand how a GCM is actually built rather than only how to run one; the second, on the right, enters AI for weather and climate (AIWC) and needs the domain background that only a complete numerical model can provide.
+
 ## Key features of PlaSiC
 
 - **A model of moderate complexity.** PlaSiC is a fully coupled climate system model written in about 20,000 lines of code. It is detailed enough to reproduce the essential behaviour of the climate system, yet compact enough for a single reader to study from beginning to end. The tutorial therefore follows the model module by module, from the spectral dynamical core to the physical parameterizations, in the exact order in which they are called within one time step.
 
     ![Call order of the dynamical core and the physical parameterizations within one PlaSiC time step](assets/images/plasic_atmospheric_parameterizations.png)
 
-    Fig. 0.2.1. **Structure of a PlaSiC time step.** We will cover the all the modules in detail in the next chapters.
+    Fig. 0.2.2. **Structure of a PlaSiC time step.** We will cover the all the modules in detail in the next chapters.
 
     ![Word cloud of the governing equations used by the PlaSiC dynamical core and physical parameterizations](assets/images/equations_word_cloud.png)
 
-    Fig. 0.2.2. **The mathematics behind the model.** A word cloud of the governing equations covered by this tutorial. There are a total of thirteen equations and thirteen unknowns, forming a closed equation system.
+    Fig. 0.2.3. **The mathematics behind the model.** A word cloud of the governing equations covered by this tutorial. There are a total of thirteen equations and thirteen unknowns, forming a closed equation system.
 
 - **A complete and detailed textbook.** These online materials are more than a user manual: every component is derived from its governing equations and then mapped onto the corresponding source files, so that the reader learns both the physics and its implementation. Note that this textbook will be updated as the model evolves, so it is not a static document.
 
@@ -35,11 +39,11 @@ PlaSiC is therefore a useful starting point for this audience as well. It can he
 
     ![PlaSiC Studio: experiment configuration on the left and the live climate field on an interactive globe on the right](assets/images/app1.png)
 
-    Fig. 0.2.3. **PlaSiC Studio: configuration and live 2-D visualization.** The left panel controls the build and run; the right panel shows a selected field, here wind speed, evolving on the globe.
+    Fig. 0.2.4. **PlaSiC Studio: configuration and live 2-D visualization.** The left panel controls the build and run; the right panel shows a selected field, here wind speed, evolving on the globe.
 
     ![PlaSiC Studio: 3-D volume rendering of the wind field over a selected longitude-latitude-sigma region](assets/images/app2.png)
 
-    Fig. 0.2.4. **PlaSiC Studio: 3-D visualization.** The same run can be explored as a volume rendering over a chosen region and vertical extent.
+    Fig. 0.2.5. **PlaSiC Studio: 3-D visualization.** The same run can be explored as a volume rendering over a chosen region and vertical extent.
 
 - **CMIP-style experiments out of the box.** PlaSiC can be used to carry out standard climate experiments such as the historical 1850–2014 simulation, including the spin-up and control runs required to interpret the forced response. The experiment scripts are provided, so that each experiment documented in [Chapter 6](6-experiments/6.2-historical-experiment-1850-2014.md) can be reproduced with a single command.
 

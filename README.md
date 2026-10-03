@@ -44,11 +44,9 @@ enough for one reader to study from the first line to the last.
 
 The project exists for two audiences:
 
-- **Students and new modellers** who want to understand how a GCM is
-  actually built, not only how to run one. The tutorial derives every equation in
-  the code and maps it onto the file and function that implements it.
-- **Machine-learning researchers** entering AI for weather and climate (AIWC), who need
-  the domain background that only a complete numerical model can provide.
+<p align="center">
+  <img src="docs-site/docs/tutorial/assets/images/user_portrait.png" width="880" alt="The two audiences PlaSiC is written for: students of climate science who want to understand how a GCM is actually built, and machine-learning researchers entering AI for weather and climate who need the domain background of a complete numerical model">
+</p>
 
 | | At a glance |
 |---|---|
