@@ -560,6 +560,14 @@ The Makefile locates FFTW3 with `pkg-config` when possible; `SHTNS_CFLAGS`/`SHTN
 and `FFTW_CFLAGS`/`FFTW_LIBS` can also be overridden directly. Because `libshtns.a`
 is linked statically, running PlaSiC does not require setting `DYLD_LIBRARY_PATH`.
 
+## Star history
+
+<p align="center">
+  <a href="https://star-history.com/#sunmoumou1/PlaSiC&amp;Date">
+    <img src="https://api.star-history.com/svg?repos=sunmoumou1/PlaSiC&amp;type=Date" width="880" alt="Star history of sunmoumou1/PlaSiC over time">
+  </a>
+</p>
+
 ---
 
 <p align="center"><sub>PlaSiC — Planet Simulator in C · <a href="https://sunmoumou1.github.io/PlaSiC/">project website</a> · <a href="https://sunmoumou1.github.io/PlaSiC/tutorial/">online tutorial</a> · <a href="https://sunmoumou1.github.io">author</a></sub></p>
