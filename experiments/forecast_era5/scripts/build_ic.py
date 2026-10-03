@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
-"""Build PlaSiC T85/L25 initial conditions and nudging targets from ERA5.
+"""Build PlaSiC initial conditions and nudging targets from ERA5.
+
+The grid and atmospheric level count follow :mod:`common`, so the same code
+works with T85/L25 by default and with another compiled model configuration.
 
 Pipeline per case:
 1. load ERA5 pressure-level and single-level NetCDF files;
 2. regrid every field bilinearly from the 1.5 deg regular grid to the model's
-   T85 Gaussian grid (north -> south, longitude fastest);
+   Gaussian grid (north -> south, longitude fastest);
 3. correct the ERA5 surface pressure hydrostatically to the model orography;
-4. interpolate T, q, u, v from ERA5 pressure levels to the model's 25 sigma
+4. interpolate T, q, u, v from ERA5 pressure levels to the configured sigma
    levels;
 5. analyse the grid fields into PlaSiC spectra with the model's own SHTns
    kernels (``tools/plasic_era5_tools``);
@@ -34,8 +37,13 @@ import common  # noqa: E402
 import restart_io  # noqa: E402
 
 TOOL = common.TOOLS_ROOT / "plasic_era5_tools"                # 谱分析辅助工具 / spectral helper tool
-TEMPLATE_RESTART = common.SRC_ROOT / "data/earth_t85_l25.restart"  # 模式自带 T85/L25 模板重启文件 / packaged template restart
+TEMPLATE_RESTART = common.TEMPLATE_RESTART  # 与模式网格/层数匹配的模板重启文件 / matching template restart
 
+# ERA5 ``swvl1..4`` are volumetric soil-water fractions (m³/m³).  These are
+# the thicknesses of the four ERA5 soil layers, in metres; multiplying a
+# fraction by a layer thickness therefore gives water-equivalent depth in m.
+# 中文说明：ERA5 ``swvl1..4`` 是体积含水量（m³/m³），这里的数值是四层
+# 土壤层厚度（m）；体积含水量乘以层厚后得到水当量厚度（m）。
 ERA5_SOIL_DEPTHS = np.array([0.07, 0.21, 0.72, 1.89])
 
 
@@ -71,9 +79,27 @@ def model_orography() -> tuple[np.ndarray, float]:
     ``data/`` for subsequent runs.
     中文说明：首次调用时会运行一次辅助工具，结果缓存到 ``data/`` 目录供后续运行复用。
     """
-    cache = common.DATA_ROOT / "model_orography.bin"
-    meta_cache = common.DATA_ROOT / "model_orography.txt"
-    if not cache.exists() or not meta_cache.exists():
+    # Include the horizontal grid in the cache name.  A cache generated for
+    # another T resolution cannot be reshaped safely into this configuration.
+    # 中文说明：缓存文件名包含水平网格尺寸；其他 T 分辨率生成的缓存不能直接
+    # reshape 到当前配置，避免切换网格后误用旧地形。
+    cache = common.DATA_ROOT / (
+        f"model_orography_t{common.NTRU}_nlat{common.NLAT}.bin"
+    )
+    meta_cache = common.DATA_ROOT / (
+        f"model_orography_t{common.NTRU}_nlat{common.NLAT}.txt"
+    )
+    expected_bytes = common.NLAT * common.NLON * np.dtype("<f4").itemsize
+    if common.NTRU == 85 and common.NLAT == 128:
+        # Reuse the original untagged T85 cache when it has the expected size,
+        # preserving existing archives while keeping custom grids isolated.
+        legacy_cache = common.DATA_ROOT / "model_orography.bin"
+        legacy_meta = common.DATA_ROOT / "model_orography.txt"
+        if (legacy_cache.exists() and legacy_meta.exists()
+                and legacy_cache.stat().st_size == expected_bytes):
+            cache, meta_cache = legacy_cache, legacy_meta
+    if (not cache.exists() or not meta_cache.exists()
+            or cache.stat().st_size != expected_bytes):
         subprocess.run(
             [str(TOOL), "orography", str(TEMPLATE_RESTART), str(cache), str(meta_cache)],
             check=True,
@@ -117,7 +143,7 @@ def blend_top_levels(spectra: dict, background: dict, weights: np.ndarray) -> di
 
     中文说明：把模式顶部的谱系数向模式背景场混合。
 
-    The top three sigma levels sit near 15-100 hPa, where are not suitable to accept an analysis increment; inserting the full ERA5 truncation there excites a grid-scale computational mode that grows within a few hours. Above the blend depth the model background (the packaged T85/L25 restart) is therefore kept, with a short taper back to the ERA5 analysis.
+    The upper sigma levels are not suitable to accept a full analysis increment; inserting the full ERA5 truncation there can excite a grid-scale computational mode. Above the blend depth the model background from the configured template restart is therefore kept, with a short taper back to the ERA5 analysis.
     """
     blended = {}
     for name, values in spectra.items():
@@ -136,7 +162,7 @@ def blend_top_levels(spectra: dict, background: dict, weights: np.ndarray) -> di
 
 
 def background_spectra() -> dict:
-    """The packaged T85/L25 restart spectra, used as the top-level background.
+    """Read the configured template restart for the top-level background.
     """
     records = dict(restart_io.read_raw_records(TEMPLATE_RESTART))
     return {
@@ -347,8 +373,9 @@ class CaseBuilder:
             "ice": ice,
             "ps_era5": ps_era5,
             "orog_era5": orog_era5,
-            # 四层土壤温度 (stl1..4) 与土壤含水量 (swvl1..4)
-            # four soil temperature layers (stl1..4) and soil water layers (swvl1..4)
+            # 四层土壤温度 (stl1..4) 与体积含水量 (swvl1..4, m³/m³)。
+            # Four soil-temperature layers (stl1..4) and volumetric soil-water
+            # fractions (swvl1..4, m³/m³).
             "soil_temperature": [
                 to_model_grid(sl_sel[f"stl{level}"]).astype(np.float64) for level in range(1, 5)
             ],
@@ -465,15 +492,20 @@ class CaseBuilder:
             soil_layers.append(land_or_sentinel(source, 1.0e20))
         arrays["dsoilt"] = np.concatenate([x.ravel() for x in soil_layers])
 
-        # 把分层土壤含水量按厚度积分为总柱含水量（kg/m²，即 mm）。
-        # Integrate layered volumetric soil water into a total column amount (kg/m2).
+        # ERA5 swvl1..4 are m³/m³.  Integrating each fraction over its layer
+        # thickness (m) gives the column water-equivalent depth (m).  This is
+        # the unit used by PlaSiC's dwatc/dwmax records, so no factor of 1000
+        # is applied here.
+        # 中文说明：ERA5 swvl1..4 的单位是 m³/m³，乘以各层厚度（m）后得到
+        # 柱状水当量厚度（m）。PlaSiC 的 dwatc/dwmax 也使用 m，因此不乘 1000。
         soil_water = np.zeros((common.NLAT, common.NLON))
         for layer, depth in zip(state.surface["soil_water"], ERA5_SOIL_DEPTHS):
-            soil_water += layer * depth # 注意这里应该是不能乘以 1000 的
+            soil_water += layer * depth
         dwmax = restart_io.decode_float(dict(template_records)["dwmax"]).reshape(common.NLAT, common.NLON)
         soil_water = np.clip(soil_water, 0.0, np.maximum(dwmax, 1.0))
         soil_water[~land] = 0.0
-        arrays["dwatc"] = soil_water  # 土壤柱含水量 / column soil water
+        # 柱状土壤水当量厚度（m）/ column soil-water equivalent depth (m)
+        arrays["dwatc"] = soil_water
 
         snow = np.clip(state.surface["snow_depth"], 0.0, 5.0)
         snow[~land] = 0.0
@@ -538,19 +570,24 @@ def write_nudge_file(path: Path, entries: "list[tuple[int, dict[str, np.ndarray]
 
 def read_nudge_file(path: Path) -> "list[tuple[int, dict[str, np.ndarray]]]":
     """Read a nudging target file written by :func:`write_nudge_file`.
-
-    中文说明：读取 :func:`write_nudge_file` 写出的松弛目标文件。
     """
     with path.open("rb") as stream:
         if stream.read(8) != NUDGE_MAGIC:
             raise ValueError("not a PlaSiC nudging file")
         version, ntimes, nlev, nrsp = np.frombuffer(stream.read(16), dtype="<i4")
+        if int(nlev) != common.NLEV or int(nrsp) != common.NRSP:
+            raise ValueError(
+                "nudging archive grid mismatch: "
+                f"archive has nlev={int(nlev)}, nrsp={int(nrsp)}; "
+                f"configured model has nlev={common.NLEV}, nrsp={common.NRSP}"
+            )
         entries = []
         for _ in range(int(ntimes)):
             step = int(np.frombuffer(stream.read(8), dtype="<i8")[0])
             spectra = {}
             for name in ("sp", "st", "sq", "sz", "sd"):
-                # sp 为单层谱，其余变量为逐层谱 / sp is a single-level spectrum; others are level stacks
+                # sp 为单层谱，其余变量为逐层谱
+                # sp is a single-level spectrum; others are level stacks
                 count = nrsp if name == "sp" else nrsp * nlev
                 spectra[name] = np.frombuffer(stream.read(4 * count), dtype="<f4").copy()
             entries.append((step, spectra))
@@ -560,22 +597,42 @@ def read_nudge_file(path: Path) -> "list[tuple[int, dict[str, np.ndarray]]]":
 def write_surface_targets(path: Path, entries: "list[tuple[int, dict[str, np.ndarray]]]") -> None:
     """Store gridded surface targets for the slow part of initialization.
 
-    中文说明：保存格点地表目标场，供初始化的慢变部分使用。
+    中文说明：将初始化过程中变化较慢的地表目标场保存为压缩 ``.npz`` 文件。
+    ``entries`` 中的每一项是 ``(step, fields)``：``step`` 是模式时间步，
+    ``fields`` 是“字段名 → 格点数组”的映射。写出的文件包含一个一维的
+    ``step`` 数组，以及每个地表字段对应的三维数组，数组维度统一为
+    ``(time, nlat, nlon)``，这样读取程序可以按时间索引直接取得完整格点场。
+
+    English: Save the slowly varying surface target fields used during
+    initialization to a compressed ``.npz`` archive. Each item in ``entries``
+    is ``(step, fields)``, where ``step`` is the model time step and ``fields``
+    maps a field name to its gridded array. The archive stores one one-dimensional
+    ``step`` array plus one three-dimensional array per field. The field arrays
+    use the common layout ``(time, nlat, nlon)``, allowing the reader to select
+    one complete grid at a time with a single time index.
     """
     if not entries:
         raise ValueError("surface target list is empty")
+
+    # 所有时刻应包含同一组字段；字段名按字典序固定，保证输出顺序稳定，
+    # 也便于比较不同个例生成的文件。
+    # Every time entry is expected to contain the same fields. Sorting the names
+    # fixes a deterministic output order and makes files from different cases
+    # easier to inspect and compare.
     names = sorted(entries[0][1])
+
+    # 时间步使用 64 位整数保存，避免较长积分或较大时间步发生溢出。
+    # Store steps as int64 so long integrations and large step numbers are safe.
     payload = {"step": np.asarray([step for step, _ in entries], dtype=np.int64)}
+
     for name in names:
-        # 每个变量堆叠为 (时刻, nlat, nlon) / stack each variable as (time, nlat, nlon)
         payload[name] = np.stack([np.asarray(values[name], dtype="<f4") for _, values in entries])
+
     np.savez_compressed(path, **payload)
 
 
 def read_surface_targets(path: Path) -> list[tuple[int, dict[str, np.ndarray]]]:
     """Read the ``.npz`` surface targets into (step, fields) entries.
-
-    中文说明：读取 ``.npz`` 地表目标文件，返回 (步数, 场字典) 列表。
     """
     archive = np.load(path)
     steps = np.asarray(archive["step"], dtype=np.int64)
@@ -591,12 +648,8 @@ def read_surface_targets(path: Path) -> list[tuple[int, dict[str, np.ndarray]]]:
 def build_case(case: common.ForecastCase, nudge: bool = True) -> None:
     """Build every initial-condition product for one case.
 
-    中文说明：为单个个例构建全部初始条件产品。
-
     Writes ``direct.restart`` and, when ``nudge`` is true,
     ``nudge_start.restart`` plus the hourly nudging targets.
-    中文说明：写出 ``direct.restart``；当 ``nudge`` 为真时，还写出
-    ``nudge_start.restart`` 以及逐小时松弛目标文件。
     """
     builder = CaseBuilder(case)
     out_dir = common.IC_ROOT / case.key

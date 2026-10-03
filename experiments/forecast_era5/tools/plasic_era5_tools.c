@@ -1,8 +1,8 @@
 /*
- * 中文：plasic_era5_tools 是一个离线辅助程序，用于把 ERA5 等规则网格分析资料转换为 PlaSiC T85/L25 初始场。它在模式运行时之外编译和执行，但直接链接 PlaSiC 自身的 libplasic.a 与球谐变换内核，从而使离线的球谐分析/综合与模式内部使用的数值算法保持一致。
+ * 中文：plasic_era5_tools 是一个离线辅助程序，用于把 ERA5 等规则网格分析资料转换为 PlaSiC 模式配置网格的初始场。它在模式运行时之外编译和执行，但直接链接 PlaSiC 自身的 libplasic.a 与球谐变换内核，从而使离线的球谐分析/综合与模式内部使用的数值算法保持一致。
 主要子命令：info 打印编译期网格/谱空间维度与派生常数；orography 从 restart 中读取谱空间地形 so，综合到高斯网格，并按 (a*Omega)^2 恢复量纲，同时复现参考表面气压修正；analyse 将 T/U/V/Q/PS 网格场转换为 st/sd/sz/sq/sp 谱系数；synth 将这些谱系数重新综合回网格场，用于往返一致性检查。
 本程序中的 .bin 文件按 float32 存储，逻辑布局为 [level][lat][lon]，其中 level 为最外层、纬度由北到南、经度索引变化最快；原始说明要求 little-endian。
- * English: plasic_era5_tools is an offline helper that converts gridded analyses such as ERA5 into PlaSiC T85/L25 initial fields. It is compiled and executed outside the model runtime, but it links directly against PlaSiC's own libplasic.a and spherical-harmonic kernels so that the offline spectral analysis/synthesis uses the same numerical algorithms as the model.
+ * English: plasic_era5_tools is an offline helper that converts gridded analyses such as ERA5 into PlaSiC configured model grid initial fields. It is compiled and executed outside the model runtime, but it links directly against PlaSiC's own libplasic.a and spherical-harmonic kernels so that the offline spectral analysis/synthesis uses the same numerical algorithms as the model.
 Main subcommands: info prints compile-time grid/spectral dimensions and derived constants; orography reads spectral orography so from a restart file, synthesizes it to the Gaussian grid, restores dimensions with (a*Omega)^2, and reproduces the reference surface-pressure correction; analyse converts gridded T/U/V/Q/PS fields into st/sd/sz/sq/sp spectral coefficients; synth converts those spectra back to grid space for round-trip consistency checks.
 The .bin files store float32 values with logical layout [level][lat][lon], with level outermost, latitude ordered north-to-south, and longitude varying fastest; the original format description requires little-endian storage.
  */

@@ -70,9 +70,9 @@ LEADS_HOURS = np.arange(6, 240 + 6, 6)  # 6 小时间隔的预报时效 / 6-hour
 
 
 def to_model_grid(field: xr.DataArray) -> np.ndarray:
-    """Bilinear map one (latitude, longitude) field to the T85 grid.
+    """Bilinear map one (latitude, longitude) field to the configured model grid.
 
-    中文说明：把单个 (纬度, 经度) 场双线性插值到 T85 模式网格。
+    中文说明：把单个 (纬度, 经度) 场双线性插值到模式目标网格。
     """
     if field.dims != ("latitude", "longitude"):
         field = field.transpose("latitude", "longitude")

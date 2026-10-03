@@ -1,30 +1,19 @@
 #!/usr/bin/env python3
 """Download the ERA5 fields needed by the PlaSiC forecast experiment.
 
-中文说明：下载 PlaSiC 预报试验所需的 ERA5 场。
-
 Three jobs per case:
-
-中文说明：每个个例包含三类下载任务：
 
 * ``nudge``   hourly pressure-level fields over the nudging window
               [t0 - 12 h, t0] (t, u, v, q on 32 levels);
-  中文说明：``nudge``——松弛同化窗口 [t0-12 h, t0] 内逐小时的气压层场
-  （32 层上的 t、u、v、q）；
 * ``verif``   6-hourly pressure-level fields over [t0, t0 + 10 d]
               (t, u, v, q, z on 25 levels);
   中文说明：``verif``——[t0, t0+10 d] 内每 6 小时的气压层场
   （25 层上的 t、u、v、q、z）；
 * ``surface`` single-level fields at t0 - 12 h and t0 (initial surface state)
               and 6-hourly over [t0, t0 + 10 d] (verification surface state).
-  中文说明：``surface``——t0-12 h 与 t0 的单层场（初始地表状态），以及
-  [t0, t0+10 d] 内每 6 小时的场（检验用地表状态）。
 
-Everything is downloaded on a 1.5 deg global grid, which is close to the T85
-model resolution and keeps the archive small.  Existing files are skipped.
-
-中文说明：所有数据都下载到 1.5° 的全球网格上，该分辨率接近 T85 模式网格，
-同时能让归档体积保持在较小规模。已存在且校验通过的文件会被跳过。
+Everything is downloaded on a 1.5 deg global grid, which is close to the
+default model resolution and keeps the archive small.  Existing files are skipped.
 """
 from __future__ import annotations
 
@@ -39,24 +28,18 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import common  # noqa: E402
 
-DATASET_PL = "reanalysis-era5-pressure-levels"  # 气压层数据集 / pressure-level dataset
-DATASET_SL = "reanalysis-era5-single-levels"    # 单层数据集 / single-level dataset
+DATASET_PL = "reanalysis-era5-pressure-levels"
+DATASET_SL = "reanalysis-era5-single-levels"
 
-# 中文说明：松弛窗口使用的气压层变量（t、u、v、q）。
-# English: pressure-level variables used inside the nudging window (t, u, v, q).
 PL_VARIABLES = [
     "temperature",
     "u_component_of_wind",
     "v_component_of_wind",
     "specific_humidity",
 ]
-# 中文说明：检验额外需要位势（z），用于 Z500 检验。
-# English: verification additionally needs geopotential (z) for Z500 scores.
+
 PL_VARIABLES_VERIF = PL_VARIABLES + ["geopotential"]
 
-# 中文说明：构建初始地表状态所需的单层变量（土壤温湿、海温、海冰、积雪等）。
-# English: single-level variables needed to build the initial surface state
-# (soil temperature/moisture, SST, sea ice, snow depth, ...).
 SL_VARIABLES_IC = [
     "surface_pressure",
     "geopotential",
@@ -74,9 +57,6 @@ SL_VARIABLES_IC = [
     "snow_depth",
     "sea_ice_cover",
 ]
-# 中文说明：检验所需的单层变量（含降水、总云量、10 m 风等）。
-# English: single-level variables needed for verification (precipitation,
-# total cloud cover, 10 m wind, ...).
 SL_VARIABLES_VERIF = [
     "2m_temperature",
     "surface_pressure",
@@ -93,8 +73,6 @@ SL_VARIABLES_VERIF = [
 # CDS uses long variable names in requests, while the NetCDF files returned by
 # ERA5 normally use their GRIB short names.  Keeping this mapping here lets us
 # validate an existing file before deciding that it is safe to skip.
-# 中文说明：CDS 请求使用变量的长名称，而 ERA5 返回的 NetCDF 文件通常使用
-# GRIB 短名。把映射关系集中在这里，就能在决定“可以跳过”之前校验已有文件。
 NETCDF_NAMES = {
     "temperature": "t",
     "u_component_of_wind": "u",
@@ -114,10 +92,6 @@ NETCDF_NAMES = {
     "volumetric_soil_water_layer_3": "swvl3",
     "volumetric_soil_water_layer_4": "swvl4",
     "snow_depth": "sd",
-    # CDS has used both ``ci`` and ``siconc`` for this field in NetCDF
-    # exports; accept either short name when validating a completed file.
-    # 中文说明：CDS 在 NetCDF 导出中对该变量既用过 ``ci`` 也用过 ``siconc``，
-    # 校验完整文件时两种短名都接受。
     "sea_ice_cover": "ci",
     "mean_sea_level_pressure": "msl",
     "10m_u_component_of_wind": "u10",
@@ -131,9 +105,6 @@ AREA = [90.0, -180.0, -90.0, 180.0]  # CDS 区域顺序 [北, 西, 南, 东] / C
 
 def request_times(times: "list[dt.datetime]") -> dict:
     """Group datetimes into CDS {year, month, day, time} lists.
-
-    中文说明：把日期时间列表整理为 CDS 请求所需的
-    {year, month, day, time} 列表，并去重、排序。
     """
     years, months, days, hours = set(), set(), set(), set()
     for when in times:
@@ -152,12 +123,10 @@ def request_times(times: "list[dt.datetime]") -> dict:
 def normalize_download(target: Path) -> None:
     """CDS returns a zip when a request mixes instantaneous and accumulated
     variables; merge the members into a single NetCDF file.
-
-    中文说明：当请求同时包含瞬时量和累积量时，CDS 会返回 zip 压缩包；本函数
-    把压缩包内的各个成员合并为单个 NetCDF 文件。
     """
     with target.open("rb") as stream:
         if stream.read(2) != b"PK":
+            # 读取文件最前面的两个字节，如果它们不是 PK，就执行下面的代码。
             return  # 不是 zip，无需处理 / not a zip archive, nothing to do
     import tempfile
 
@@ -169,11 +138,10 @@ def normalize_download(target: Path) -> None:
         members = sorted(Path(tmp).rglob("*.nc"))
         if not members:
             raise RuntimeError(f"CDS archive {target} contains no NetCDF member")
+        
         datasets = [xr.open_dataset(member) for member in members]
         try:
             merged = xr.merge(datasets, compat="override")
-            # Keep a .nc suffix so xarray/netCDF4 can select its writer.
-            # 中文说明：临时文件名保留 .nc 后缀，便于 xarray/netCDF4 选择写出后端。
             temporary = target.with_name(f".{target.name}.normalized-{os.getpid()}.tmp.nc")
             try:
                 merged.to_netcdf(temporary)
@@ -188,8 +156,6 @@ def normalize_download(target: Path) -> None:
 
 def _time_coordinate(dataset):
     """Name of the time coordinate, supporting CDS ``time``/``valid_time``.
-
-    中文说明：返回时间坐标的名称，兼容 CDS 的 ``time``/``valid_time`` 两种写法。
     """
     for name in ("valid_time", "time"):
         if name in dataset.coords:
@@ -201,20 +167,15 @@ def _validate_file(path: Path, expected_times=None, required_variables=None,
                    pressure_levels=None) -> None:
     """Validate a completed CDS file before it can be skipped.
 
-    中文说明：在允许跳过已有文件之前，先校验该 CDS 文件确实完整。
-
     CDS jobs can leave a non-empty partial file after a network failure.  A
-    non-empty check is therefore insufficient: verify the time axis, required
-    variables, and (for pressure-level requests) the requested levels.
-
-    中文说明：CDS 任务在网络故障后可能留下“非空但不完整”的文件，因此仅检查
-    文件非空是不够的：还要校验时间轴、必需变量，以及气压层请求中的层次列表。
+    non-empty check is therefore insufficient.
     """
     import numpy as np
     import xarray as xr
 
     with xr.open_dataset(path) as dataset:
         time_name = _time_coordinate(dataset)
+        
         if expected_times is not None:
             actual = np.asarray(dataset[time_name].values).astype("datetime64[ns]")
             expected = np.asarray(
@@ -225,10 +186,10 @@ def _validate_file(path: Path, expected_times=None, required_variables=None,
                     f"time axis mismatch: expected {len(expected)} timestamps, "
                     f"found {len(actual)}"
                 )
+            
         if required_variables:
             names = set(dataset.data_vars)
-            # 中文说明：海冰变量在 CDS 导出中可能叫 ci 或 siconc，需要同时接受。
-            # English: the sea-ice variable may be called ci or siconc.
+            # The sea-ice variable may be called ci or siconc.
             aliases = {"sea_ice_cover": ("ci", "siconc")}
             missing = [
                 variable for variable in required_variables
@@ -241,6 +202,7 @@ def _validate_file(path: Path, expected_times=None, required_variables=None,
             ]
             if missing:
                 raise ValueError(f"missing variables: {', '.join(missing)}")
+            
         if pressure_levels is not None:
             level_name = next(
                 (name for name in ("pressure_level", "level") if name in dataset.coords),
@@ -261,29 +223,19 @@ def download(client: cdsapi.Client, dataset: str, request: dict, target: Path,
              pressure_levels=None, retries: int = 3) -> None:
     """Retrieve one file atomically and validate its exact contents.
 
-    中文说明：以原子方式获取单个文件，并校验其内容完全符合预期。
-
-    ``cdsapi`` writes directly to the path it is given.  We instead download
+    ``cdsapi`` writes directly to the path it is given. We instead download
     to a hidden sibling and replace the destination only after normalization
     and validation succeed.  This prevents interrupted downloads from being
     mistaken for complete archives on the next run.
-
-    中文说明：``cdsapi`` 原本直接写入给定路径；这里改为先下载到隐藏的临时
-    文件，只有归一化和校验都通过后才替换目标文件。这样可以防止中断的下载
-    在下次运行时被误认为是完整归档。
     """
     if retries < 1:
         raise ValueError("retries must be at least one")
     target.parent.mkdir(parents=True, exist_ok=True)
     if target.exists() and target.stat().st_size > 0 and not force:
         try:
-            # Legacy files may still be zip archives.  Normalize them before
-            # validation; corrupt archives fall through to a clean download.
-            # 中文说明：旧文件可能仍是 zip 归档，校验前先归一化；损坏的归档会
-            # 落到下面重新下载。
             normalize_download(target)
             _validate_file(target, expected_times, required_variables, pressure_levels)
-        except Exception as exc:  # noqa: BLE001 - stale files must be replaced
+        except Exception as exc:
             print(f"[redo ] {target.name}: {exc}", flush=True)
         else:
             print(f"[skip] {target.name} ({target.stat().st_size / 1e6:.1f} MB)")
@@ -318,9 +270,7 @@ def download(client: cdsapi.Client, dataset: str, request: dict, target: Path,
 def _daily_times(times: "list[dt.datetime]") -> dict[dt.date, list[dt.datetime]]:
     """Group exact requested timestamps by day.
 
-    中文说明：把请求的精确时刻按“天”分组。
-
-    CDS treats the ``day`` and ``time`` arrays as a Cartesian product.  A
+    CDS treats the ``day`` and ``time`` arrays as a Cartesian product. A
     single request spanning several days therefore silently downloads hours
     that were never requested.  Daily requests are a little more numerous,
     but preserve the exact time axis and make custom cases reproducible.
@@ -340,8 +290,6 @@ def _download_exact_days(client: cdsapi.Client, dataset: str, base_request: dict
                          force: bool = False, required_variables=None,
                          pressure_levels=None) -> None:
     """Download exact timestamps day by day, one CDS request per day.
-
-    中文说明：按天逐个下载精确时刻，每天一个 CDS 请求。
 
     A single-day request keeps the original file name; multi-day requests are
     split into ``stem_YYYYMMDD.suffix`` files.
@@ -367,8 +315,6 @@ def _download_exact_days(client: cdsapi.Client, dataset: str, base_request: dict
 
 def run_case(client: cdsapi.Client, case: common.ForecastCase, force: bool = False) -> None:
     """Download every ERA5 product required by one forecast case.
-
-    中文说明：下载单个预报个例所需的全部 ERA5 数据产品。
     """
     t0 = common.init_datetime(case)
     directory = common.ERA5_ROOT / case.key
@@ -416,8 +362,6 @@ def run_case(client: cdsapi.Client, case: common.ForecastCase, force: bool = Fal
     }
     # Keep a distinct stem so an older 12-hour archive cannot be mistaken for
     # the new cadence.  The verifier prefers these files when present.
-    # 中文说明：使用独立的文件名，使旧的 12 小时归档不会被误当成新的 6 小时
-    # 节奏；检验脚本在存在这些文件时优先使用它们。
     _download_exact_days(
         client,
         DATASET_PL,
@@ -471,10 +415,9 @@ def run_case(client: cdsapi.Client, case: common.ForecastCase, force: bool = Fal
 
 def main() -> None:
     try:
-        import cdsapi
-    except ImportError as exc:  # keep local build/verify usable without CDS
-        # 中文说明：缺少 cdsapi 时给出友好提示；本地 build/verify 阶段无需 CDS。
-        # English: give a friendly message; the local build/verify stages do not need CDS.
+        import cdsapi # type: ignore
+    except ImportError as exc:  
+        # Give a friendly message; the local build/verify stages do not need CDS.
         raise SystemExit(
             "The download stage requires the 'cdsapi' package; "
             "build/run/verify stages do not."
@@ -488,8 +431,7 @@ def main() -> None:
 
     # Keep transient HTTP errors bounded; the cdsapi default of 500 retries
     # can otherwise sleep for hours after a gateway hiccup.
-    # 中文说明：限制瞬时 HTTP 错误的重试次数；cdsapi 默认重试 500 次，网关
-    # 抖动后可能会休眠数小时。
+    # Give a friendly message; the local build/verify stages do not need CDS.
     client = cdsapi.Client(retry_max=5, sleep_max=30)
     for case in common.CASES:
         if args.cases and case.key not in args.cases:

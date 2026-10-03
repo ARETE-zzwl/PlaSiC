@@ -3,18 +3,20 @@
 
 中文说明：ERA5 初始化的 PlaSiC 预报试验的共享配置模块。
 
-The module centralises the experiment directory layout, the T85/L25 model grid
-and state constants, the ERA5 request configuration and the three forecast
-cases.  Every other script in this folder imports it, so paths, grid sizes and
-case definitions have a single source of truth.
+The module centralises the experiment directory layout, model-grid and state
+constants, ERA5 request configuration and the three forecast cases.  Grid,
+atmospheric-level and ocean settings are read from environment variables so
+the workflow follows the model build it is run with.  Defaults are T85/L25
+with the slab (non-three-dimensional) ocean.
 
-中文说明：本模块集中管理试验目录结构、T85/L25 模式网格与状态常数、ERA5
-下载配置以及三个预报个例。本目录下的其他脚本都导入本模块，因此路径、
-网格尺寸和个例定义只有一个唯一来源，避免各脚本之间出现不一致。
+中文说明：本模块集中管理试验目录结构、模式网格与状态常数、ERA5 下载配置
+以及三个预报个例。网格、大气层数和海洋模式都从环境变量读取，使工作流可以
+跟随实际编译的模式配置；默认配置为 T85/L25 和单层混合层海洋（不启用三维海洋）。
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
+import os
 from pathlib import Path
 
 import numpy as np
@@ -38,19 +40,117 @@ FIGURE_ROOT = EXPERIMENT_ROOT / "figures"                 # 论文图件目录 /
 TOOLS_ROOT = EXPERIMENT_ROOT / "tools"                    # 谱分析辅助工具目录 / spectral helper tools
 
 # ----------------------------------------------------------------------------
-# Model grid / state constants (T85 L25, serial build)
-# 模式网格与状态常数（T85 L25，串行构建）
+# Model grid / build configuration
+# 模式网格与编译配置
 # ----------------------------------------------------------------------------
-NLAT = 128                                  # 高斯网格纬度数 / number of Gaussian latitudes
-NLON = 256                                  # 经度方向格点数 / number of longitude grid points
-NLEV = 25                                   # 垂直 σ 层数 / number of vertical sigma levels
-NTRU = 85                                   # 三角形谱截断波数 / triangular spectral truncation
-NRSP = (NTRU + 1) * (NTRU + 2)              # 每层实球谐系数个数，7482 / real spherical-harmonic coefficients per level
-NTSPD = 96                                  # T85 每天步数（15 min 一步）/ steps per day at T85 (15 min)
-STEPS_PER_6H = NTSPD // 4                   # 每 6 小时步数，24 / steps per 6 h
-STEPS_PER_HOUR = NTSPD // 24                # 每小时步数，4 / steps per hour
+# The experiment follows the model executable selected below.  Set these
+# variables before importing/running the workflow when using another build:
+#   PLASIC_NLAT, PLASIC_NLEV, PLASIC_NPRO, PLASIC_MPI
+#   PLASIC_OCEAN_MODEL=slab|3d, PLASIC_DEEP_OCEAN_LEVELS
+#   PLASIC_BUILD_DIR, PLASIC_TEMPLATE_RESTART, PLASIC_EXECUTABLE
+# 中文说明：运行其他编译配置时，在启动脚本前设置上述环境变量即可。三维海洋
+# 只有在 ``PLASIC_OCEAN_MODEL=3d`` 时启用，层数由 ``PLASIC_DEEP_OCEAN_LEVELS``
+# 单独决定，不再强制为 16 层。
+
+
+def _env_int(name: str, default: int, minimum: int = 1) -> int:
+    """Read a positive integer environment override with a useful error."""
+    raw = os.environ.get(name)
+    if raw is None or not raw.strip():
+        return default
+    try:
+        value = int(raw)
+    except ValueError as exc:
+        raise ValueError(f"{name} must be an integer, got {raw!r}") from exc
+    if value < minimum:
+        raise ValueError(f"{name} must be >= {minimum}, got {value}")
+    return value
+
+
+def _env_bool(name: str, default: bool) -> bool:
+    """Read a conventional boolean environment override."""
+    raw = os.environ.get(name)
+    if raw is None or not raw.strip():
+        return default
+    value = raw.strip().lower()
+    if value in {"1", "true", "yes", "on"}:
+        return True
+    if value in {"0", "false", "no", "off"}:
+        return False
+    raise ValueError(f"{name} must be a boolean, got {raw!r}")
+
+
+# T85 is the default (128 Gaussian latitudes, 256 longitudes).  NLAT is the
+# primary grid setting, matching src/Makefile; PLASIC_NTRU is also accepted as
+# a convenience when NLAT is omitted.
+# 中文说明：默认是 T85（128 个高斯纬圈、256 个经度点）。NLAT 与 src/Makefile
+# 保持一致；未设置 NLAT 时也可以用 PLASIC_NTRU 直接指定谱截断。
+if "PLASIC_NLAT" in os.environ:
+    NLAT = _env_int("PLASIC_NLAT", 128)
+    NTRU = _env_int("PLASIC_NTRU", (2 * NLAT - 1) // 3)
+else:
+    NTRU = _env_int("PLASIC_NTRU", 85)
+    # Gaussian grids use an even number of latitudes; choose the smallest
+    # matching even NLAT for a truncation supplied on its own.
+    NLAT = (3 * NTRU + 2) // 2
+    NLAT += NLAT % 2
+if NTRU != (2 * NLAT - 1) // 3:
+    raise ValueError(
+        "PLASIC_NLAT and PLASIC_NTRU must satisfy the model truncation formula"
+    )
+NLON = 2 * NLAT
+NLEV = _env_int("PLASIC_NLEV", 25)
+NRSP = (NTRU + 1) * (NTRU + 2)
+
+# The model chooses its atmospheric time step from NLAT.  Keep the same rule
+# here so nudge windows, frame intervals and date-to-step conversion stay in
+# sync for resolutions whose model day contains whole-hour intervals.
+# 中文说明：模式根据 NLAT 选择基本时间步；这里复现同一规则，并要求每天的
+# 步数可以整除 24，使松弛窗口、帧间隔和日期到步数的换算保持一致。
+if NLAT <= 32:
+    MINUTES_PER_STEP = 45
+elif NLAT <= 48:
+    MINUTES_PER_STEP = 36
+else:
+    MINUTES_PER_STEP = (30 * 64) // NLAT
+NTSPD = _env_int("PLASIC_STEPS_PER_DAY", int(round(86400 / (MINUTES_PER_STEP * 60))))
+if NTSPD % 2:
+    NTSPD += 1
+STEPS_PER_6H = NTSPD // 4
+STEPS_PER_HOUR = NTSPD // 24
+if NTSPD % 24 != 0:
+    raise ValueError(
+        f"PLASIC_STEPS_PER_DAY={NTSPD} is not divisible by 24; "
+        "the forecast workflow requires whole-hour frame intervals"
+    )
 FORECAST_DAYS = 10                          # 预报天数 / forecast length in days
-FORECAST_STEPS = FORECAST_DAYS * NTSPD      # 预报总步数，960 / total forecast steps
+FORECAST_STEPS = FORECAST_DAYS * NTSPD      # 预报总步数 / total forecast steps
+
+# Ocean/build selection.  The default deliberately matches a T85/L25 slab
+# build; enabling 3-D ocean does not imply any particular layer count.
+# 中文说明：默认使用 T85/L25 单层混合层海洋；开启三维海洋后，层数仍由用户单独设置。
+OCEAN_MODEL = os.environ.get("PLASIC_OCEAN_MODEL", "slab").strip().lower()
+if OCEAN_MODEL not in {"slab", "3d"}:
+    raise ValueError("PLASIC_OCEAN_MODEL must be 'slab' or '3d'")
+USE_DEEP_OCEAN = OCEAN_MODEL == "3d"
+DEEP_OCEAN_LEVELS = _env_int("PLASIC_DEEP_OCEAN_LEVELS", 16)
+MODEL_NPRO = _env_int("PLASIC_NPRO", 4)
+MODEL_MPI = _env_bool("PLASIC_MPI", MODEL_NPRO > 1)
+if not MODEL_MPI and MODEL_NPRO > 1:
+    raise ValueError("PLASIC_NPRO must be 1 when PLASIC_MPI is disabled")
+
+# Match src/Makefile's build-directory convention.  Explicit paths always win,
+# which is useful when a build uses a project-specific directory name.
+_MPI_SUFFIX = f"_MPI_P{MODEL_NPRO}" if MODEL_MPI else ""
+_OCEAN_SUFFIX = f"_O{DEEP_OCEAN_LEVELS}" if USE_DEEP_OCEAN else ""
+_MODEL_BUILD_DEFAULT = PROJECT_ROOT / "build" / (
+    f"T{NTRU}_L{NLEV}{_MPI_SUFFIX}{_OCEAN_SUFFIX}"
+)
+MODEL_BUILD_DIR = Path(os.environ.get("PLASIC_BUILD_DIR", _MODEL_BUILD_DEFAULT))
+TEMPLATE_RESTART = Path(os.environ.get(
+    "PLASIC_TEMPLATE_RESTART",
+    SRC_ROOT / f"data/earth_t{NTRU}_l{NLEV}.restart",
+))
 
 PLARAD = 6371220.0                          # 地球半径（m）/ planetary radius (m)
 SIDEREAL_DAY = 86164.0916                   # 恒星日长度（s）/ sidereal day (s)
@@ -108,7 +208,7 @@ ERA5_VERIF_LEVELS = [
     400, 350, 300, 250, 200, 150, 100, 70, 50, 30, 10,
 ]
 
-ERA5_GRID = 1.5  # 下载网格分辨率（度），接近 T85 模式分辨率 / download grid resolution in degrees
+ERA5_GRID = 1.5  # 下载网格分辨率（度），接近默认目标网格 / download grid resolution in degrees
 
 
 @dataclass(frozen=True)
@@ -180,9 +280,9 @@ def nstep_for_datetime(when, calendar: str = "gregorian") -> int:
 
     中文说明：把公历日期时间换算为模式步数计数器（起算时刻为 0000-01-01 00:00）。
 
-    The counter advances with the T85 integration's 15-minute steps and applies
-    the proleptic Gregorian leap-year rule.
-    中文说明：计数器按 T85 积分使用的 15 分钟时间步递增，并采用推测公历
+    The counter advances with the configured model time step and applies the
+    proleptic Gregorian leap-year rule.
+    中文说明：计数器按当前配置的模式时间步递增，并采用推测公历
     （proleptic Gregorian calendar）的闰年规则。
     """
     import datetime as dt

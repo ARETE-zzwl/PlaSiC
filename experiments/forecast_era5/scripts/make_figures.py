@@ -104,9 +104,9 @@ def add_coastlines(ax, land, color="0.25", linewidth=0.3, alpha=0.9):
 
 
 def plot_global(ax, field, cmap, vmin, vmax, land=None):
-    """Draw a T85 field on a Robinson map with a seam-safe longitude roll.
+    """Draw a model-grid field on a Robinson map with a seam-safe longitude roll.
 
-    中文说明：在 Robinson 投影地图上绘制 T85 场，并通过经度滚动保证接缝连续。
+    中文说明：在 Robinson 投影地图上绘制模式网格场，并通过经度滚动保证接缝连续。
     """
     shifted = np.roll(np.asarray(field), LON.size // 2, axis=-1)
     # 首列再补一次，形成闭合的 pcolormesh 网格 / append the first column to close the mesh

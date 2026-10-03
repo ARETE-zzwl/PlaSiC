@@ -1,13 +1,30 @@
 #!/usr/bin/env python3
 """
-Reproducible ERA5 -> PlaSiC T85/L25 forecast workflow.
+Reproducible ERA5 -> PlaSiC forecast workflow.
+
+The default configuration is T85/L25 with the slab (non-three-dimensional)
+ocean.  Select another model build before starting the script with environment
+variables such as ``PLASIC_NLEV=40`` or
+``PLASIC_OCEAN_MODEL=3d PLASIC_DEEP_OCEAN_LEVELS=12``.  Set
+``PLASIC_BUILD_DIR``/``PLASIC_EXECUTABLE`` and ``PLASIC_TEMPLATE_RESTART`` when
+the build or matching restart uses a custom path.
 
 Examples
 --------
 python run_workflow.py --case-key mycase --init-time 2021-03-12T00 \
     --stages download shock build run verify figures export-wb2
 
-Model/tool binaries must be built separately with the commands shown in README.md.
+PLASIC_NLEV=40 PLASIC_OCEAN_MODEL=3d PLASIC_DEEP_OCEAN_LEVELS=12 \
+    PLASIC_BUILD_DIR=../../build/T85_L40_MPI_P4_O12 \
+    python run_workflow.py --case-key mycase --stages build run
+
+Build the model and helper separately with the same settings, for example:
+
+make -C ../../src all NLAT=128 NLEV=25 NPRO=4 MPI=1 OCEAN_MODEL=slab
+make -C tools NLAT=128 NLEV=25 OCEAN_MODEL=slab
+
+Model/tool binaries must use the same grid, level and ocean settings as the
+workflow environment.
 """
 
 from __future__ import annotations
