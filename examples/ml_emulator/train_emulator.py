@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Train a tiny next-step emulator on PlaSiC output.
 
-中文说明：在 PlaSiC 输出上训练小型 next-step emulator 的示例脚本。
-包含两个基线（持续性预报、气候态）和一个小型 CNN；用 mask 掉掩膜点后的
-MSE 评估。先在合成数据上跑通，再换成真实的 PlaSiC 输出。
+中文说明：在 PlaSiC 输出上训练小型 next-step emulator 的示例。
+含持续性/气候态两个基线和一个小 CNN；只在掩膜外的有效格点上算 MSE。
+先用合成数据跑通，再换成真实的 PlaSiC 输出。
 
-English: baselines (persistence, climatology) + a small CNN emulator,
-train/val split by time, masked MSE. Run on synthetic data first, then on
-real PlaSiC output.
+Baselines (persistence, climatology) + a small CNN emulator,
+chronological train/val split, masked MSE. Run on synthetic data
+first, then on real PlaSiC output.
 """
 from __future__ import annotations
 
@@ -24,8 +24,6 @@ from plasic_dataset import PlasicDataset
 
 
 class TinyCNN(nn.Module):
-    """Small fully-convolutional next-step model. 中文说明：小型全卷积单步模式。"""
-
     def __init__(self, channels: int, hidden: int = 32) -> None:
         super().__init__()
         self.net = nn.Sequential(
@@ -35,41 +33,35 @@ class TinyCNN(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return x + self.net(x)  # residual: predict the increment
+        return x + self.net(x)  # residual: predict the increment, not the state
 
 
 def masked_mse(pred: torch.Tensor, target: torch.Tensor,
                mask: torch.Tensor) -> torch.Tensor:
-    """MSE over valid grid points only. 中文说明：只在有效格点上算 MSE。"""
     se = (pred - target) ** 2
     return (se * mask).sum() / mask.sum().clamp(min=1)
 
 
 @torch.no_grad()
-def evaluate(baseline: str, loader: DataLoader) -> float:
-    """Baseline MSE: 'persistence' (y_hat = x) or 'climatology' (y_hat = mean).
+def evaluate(predictor, loader: DataLoader) -> float:
+    """MSE of a predictor on a loader.
 
-    中文说明：基线评估，persistence 用输入当预测，climatology 用验证集均值。
+    predictor: 'persistence' | 'climatology' | nn.Module.
+    中文说明：基线或模型的验证 MSE；climatology 取验证集时间平均。
     """
-    tot, n = 0.0, 0
-    clim = None
-    if baseline == "climatology":
+    if predictor == "climatology":
         ys = [y for _, y, _ in loader]
         clim = torch.stack(ys).mean(dim=0, keepdim=True)
-    for x, y, m in loader:
-        pred = x if baseline == "persistence" else clim.expand_as(y)
-        tot += masked_mse(pred, y, m).item() * x.shape[0]
-        n += x.shape[0]
-    return tot / max(n, 1)
-
-
-@torch.no_grad()
-def evaluate_model(model: nn.Module, loader: DataLoader) -> float:
-    """Validation MSE of a trained model. 中文说明：已训练模型的验证集 MSE。"""
-    model.eval()
     tot, n = 0.0, 0
     for x, y, m in loader:
-        tot += masked_mse(model(x), y, m).item() * x.shape[0]
+        if predictor == "persistence":
+            pred = x
+        elif predictor == "climatology":
+            pred = clim.expand_as(y)
+        else:
+            predictor.eval()
+            pred = predictor(x)
+        tot += masked_mse(pred, y, m).item() * x.shape[0]
         n += x.shape[0]
     return tot / max(n, 1)
 
@@ -92,18 +84,17 @@ def main() -> None:
 
     full = PlasicDataset(args.data, args.vars, levels=args.levels)
     n_val = max(1, int(len(full) * args.val_frac))
-    # chronological split: validate on the most recent months
-    # 中文说明：按时间顺序划分，验证集取最近的月份（避免未来信息泄漏）
     n_train = len(full) - n_val
-    train_ds = torch.utils.data.Subset(full, range(n_train))
-    val_ds = torch.utils.data.Subset(full, range(n_train, len(full)))
-    train_loader = DataLoader(train_ds, batch_size=args.batch, shuffle=True)
-    val_loader = DataLoader(val_ds, batch_size=args.batch)
+    # Chronological split: validate on the most recent months so no
+    # future information leaks into training.
+    train_loader = DataLoader(torch.utils.data.Subset(full, range(n_train)),
+                              batch_size=args.batch, shuffle=True)
+    val_loader = DataLoader(torch.utils.data.Subset(full, range(n_train, len(full))),
+                            batch_size=args.batch)
 
-    print(f"train pairs: {len(train_ds)}, val pairs: {len(val_ds)}, "
-          f"vars: {args.vars}")
-    for name in ("persistence", "climatology"):
-        print(f"baseline[{name}] val MSE: {evaluate(name, val_loader):.6f}")
+    print(f"train pairs: {n_train}, val pairs: {n_val}, vars: {args.vars}")
+    print(f"baseline[persistence] val MSE: {evaluate('persistence', val_loader):.6f}")
+    print(f"baseline[climatology] val MSE: {evaluate('climatology', val_loader):.6f}")
 
     model = TinyCNN(len(args.vars), hidden=args.hidden)
     opt = torch.optim.Adam(model.parameters(), lr=args.lr)
@@ -117,9 +108,8 @@ def main() -> None:
             opt.step()
             tot += loss.item() * x.shape[0]
             n += x.shape[0]
-        model.eval()
-        val = evaluate_model(model, val_loader)
-        print(f"epoch {epoch:3d} train MSE {tot / n:.6f} | val MSE {val:.6f}")
+        val = evaluate(model, val_loader)
+        print(f"epoch {epoch:3d}  train {tot / n:.6f}  val {val:.6f}")
 
     out = Path(args.data) / "emulator.pt"
     torch.save({"state_dict": model.state_dict(), "vars": args.vars,

@@ -3,12 +3,11 @@
 
 中文说明：生成模仿 PlaSiC 月平均输出的小型合成 NetCDF 文件，
 让 ml_emulator 示例无需真实跑模式即可运行。
-每个变量存为 `<name>.nc`，维度 (time, lat, lon)，CF 规范属性与
-src/tools/monthly_netcdf_writer.c 一致。
+每个变量存为 `<name>.nc`，维度 (time, lat, lon)，CF 属性与
+src/tools/monthly_netcdf_writer.c 的写法一致。
 
-English: each variable -> `<name>.nc` with (time, lat, lon), CF attributes
-matching PlaSiC's writer. The signal is a predictable eastward-propagating
-wave + seasonal cycle + noise, so a learned emulator can beat persistence.
+The signal is an eastward-propagating wave + seasonal cycle + noise,
+so a learned emulator can beat persistence but not trivially.
 """
 from __future__ import annotations
 
@@ -24,11 +23,9 @@ FILL = -1.0e20
 
 def write_var(path: Path, name: str, standard_name: str, long_name: str,
               units: str, data: np.ndarray, mask: np.ndarray) -> None:
-    """Write one (time, lat, lon) variable with CF attributes. 中文说明：写单个变量。"""
     nt, nlat, nlon = data.shape
     lat = np.linspace(-90, 90, nlat, dtype=np.float32)
     lon = np.linspace(0, 360, nlon, dtype=np.float32, endpoint=False)
-    out = np.where(mask[None], data, FILL).astype(np.float32)
     with netCDF4.Dataset(path, "w") as ds:
         ds.createDimension("time", nt)
         ds.createDimension("lat", nlat)
@@ -56,7 +53,7 @@ def write_var(path: Path, name: str, standard_name: str, long_name: str,
         vv.long_name = long_name
         vv.units = units
         vv.cell_methods = "time: mean"
-        vv[:] = out
+        vv[:] = np.where(mask[None], data, FILL).astype(np.float32)
 
 
 def main() -> None:
@@ -76,29 +73,26 @@ def main() -> None:
     lon = np.linspace(0, 360, nlon, endpoint=False)[None, :]
     t = np.arange(nt)[:, None, None]
 
-    # predictable dynamics: eastward-propagating wave + seasonal cycle
-    # 中文说明：可预测的动力：东传波动 + 季节循环 + 噪声
-    wave = np.sin(np.deg2rad(3 * lon - 25 * t) ) * np.cos(np.deg2rad(2 * lat))
+    wave = np.sin(np.deg2rad(3 * lon - 25 * t)) * np.cos(np.deg2rad(2 * lat))
     seasonal = 12.0 * np.sin(2 * np.pi * t / 12.0) * np.cos(np.deg2rad(lat))
     noise = rng.normal(0, 0.8, (nt, nlat, nlon))
 
-    tas = 273.0 + 28.0 * np.cos(np.deg2rad(lat)) + seasonal * 0.4 + 3.0 * wave + noise
+    tas = 273.0 + 28.0 * np.cos(np.deg2rad(lat)) + 0.4 * seasonal + 3.0 * wave + noise
     ps = 101325.0 - 8000.0 * (1 - np.cos(np.deg2rad(lat))) + 300.0 * wave + \
         rng.normal(0, 50, (nt, nlat, nlon))
-    pr_raw = np.maximum(0.0, 2.0 + 4.0 * wave + seasonal * 0.05 +
-                        rng.normal(0, 1.5, (nt, nlat, nlon))) * 1e-5
+    pr = np.maximum(0.0, 2.0 + 4.0 * wave + 0.05 * seasonal +
+                    rng.normal(0, 1.5, (nt, nlat, nlon))) * 1e-5
 
     valid = np.ones((nlat, nlon), bool)
-    valid[:, ::4] = False  # fake masked columns, exercises _FillValue handling
+    valid[:, ::4] = False  # masked columns, so the reader's _FillValue path gets exercised
 
     write_var(out / "tas.nc", "tas", "air_temperature",
               "Near-surface air temperature", "K", tas, valid)
     write_var(out / "ps.nc", "ps", "surface_air_pressure",
               "Surface pressure", "Pa", ps, valid)
     write_var(out / "pr.nc", "pr", "precipitation_flux",
-              "Total precipitation flux", "kg m-2 s-1", pr_raw, valid)
-    print(f"wrote tas.nc ps.nc pr.nc -> {out}  "
-          f"({nt} months, {nlat}x{nlon}, masked cols exercise _FillValue)")
+              "Total precipitation flux", "kg m-2 s-1", pr, valid)
+    print(f"wrote tas.nc ps.nc pr.nc -> {out} ({nt} months, {nlat}x{nlon})")
 
 
 if __name__ == "__main__":
