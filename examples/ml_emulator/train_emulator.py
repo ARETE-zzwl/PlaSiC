@@ -50,8 +50,8 @@ def evaluate(predictor, loader: DataLoader) -> float:
     中文说明：基线或模型的验证 MSE；climatology 取验证集时间平均。
     """
     if predictor == "climatology":
-        ys = [y for _, y, _ in loader]
-        clim = torch.stack(ys).mean(dim=0, keepdim=True)
+        ys = torch.cat([y for _, y, _ in loader], dim=0)
+        clim = ys.mean(dim=0, keepdim=True)  # (1, C, H, W)
     tot, n = 0.0, 0
     for x, y, m in loader:
         if predictor == "persistence":
