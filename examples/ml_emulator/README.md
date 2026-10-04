@@ -24,7 +24,7 @@ try PlaSiC data.
 | File | Purpose |
 |---|---|
 | `plasic_dataset.py` | PyTorch `Dataset` reading PlaSiC monthly NetCDF output (`<var>.nc` files), building `(X_t, X_{t+1})` pairs with per-variable normalization |
-| `train_emulator.py` | Training script: persistence & climatology baselines + a small CNN emulator, train/val split, MSE reporting |
+| `train_emulator.py` | Training script: persistence & climatology baselines + a small CNN emulator, train/val split, masked MSE, per-variable metrics and multi-step rollout evaluation |
 | `make_synthetic_sample.py` | Generates tiny synthetic `<var>.nc` files mimicking PlaSiC output so the example runs without a full model run |
 | `requirements.txt` | Python dependencies |
 
@@ -63,8 +63,7 @@ the synthetic data contains a predictable propagating signal.
   template — for real work you'd want higher-frequency output or the
   restart files (tutorial §6.4).
 - `_FillValue` (land/ocean-masked points) is masked out of the loss.
-- Open directions: more architectures, train/val/test splits by year,
-  multi-step rollout evaluation.
+- Open directions: more architectures, train/val/test splits by year.
 
 ---
 
@@ -87,7 +86,7 @@ X(t) = [tas, ps, pr, ...](t)   →   X̂(t+Δt)
 | 文件 | 用途 |
 |---|---|
 | `plasic_dataset.py` | PyTorch `Dataset`，读取 PlaSiC 月平均 NetCDF 输出（`<var>.nc` 文件），构造 `(X_t, X_{t+1})` 样本对，逐变量标准化 |
-| `train_emulator.py` | 训练脚本：持续性预报 & 气候态基线 + 小型 CNN emulator，训练/验证划分，MSE 评估 |
+| `train_emulator.py` | 训练脚本：持续性预报 & 气候态基线 + 小型 CNN emulator，训练/验证划分，mask MSE，分变量指标和多步 rollout 评估 |
 | `make_synthetic_sample.py` | 生成模仿 PlaSiC 输出的小型合成 `<var>.nc` 文件，无需真实跑模式即可运行示例 |
 | `requirements.txt` | Python 依赖 |
 
@@ -124,5 +123,4 @@ python train_emulator.py --data data/synthetic --epochs 10
 - 月平均资料做天气 emulator 时间分辨率偏粗。这是个起点模板，
   真要做研究得用更高频的输出或重启文件（教程 §6.4）。
 - `_FillValue`（陆/海掩膜点）在 loss 里被 mask 掉了。
-- 可以继续做的方向：更多网络结构、按年划分 train/val/test、
-  多步 rollout 评估。
+- 可以继续做的方向：更多网络结构、按年划分 train/val/test。

@@ -66,6 +66,45 @@ def evaluate(predictor, loader: DataLoader) -> float:
     return tot / max(n, 1)
 
 
+@torch.no_grad()
+def per_variable_mse(model: nn.Module, loader: DataLoader,
+                     variables: list[str]) -> dict[str, float]:
+    """One-step MSE per variable. 中文说明：分变量的单步 MSE。"""
+    model.eval()
+    tot = np.zeros(len(variables))
+    cnt = np.zeros(len(variables))
+    for x, y, m in loader:
+        se = (model(x) - y) ** 2  # (B, C, H, W)
+        for c in range(len(variables)):
+            mc = m[:, c]
+            tot[c] += (se[:, c] * mc).sum().item()
+            cnt[c] += mc.sum().item()
+    return {v: tot[c] / max(cnt[c], 1) for c, v in enumerate(variables)}
+
+
+@torch.no_grad()
+def rollout_mse(model: nn.Module, dataset: PlasicDataset,
+                i_start: int, i_end: int, steps: int = 4) -> list[float]:
+    """Autoregressive rollout MSE per lead step.
+
+    中文说明：自回归多步 rollout：把预测喂回去做下一步输入，
+    看误差随 lead time 怎么涨——这是 emulator 的标准评估。
+    """
+    model.eval()
+    errs = np.zeros(steps)
+    n = 0
+    for i in range(i_start, min(i_end, len(dataset) - steps)):
+        x, _, _ = dataset[i]
+        cur = x.unsqueeze(0)
+        for s in range(1, steps + 1):
+            cur = model(cur)
+            _, y_true, m_true = dataset[i + s - 1]
+            errs[s - 1] += masked_mse(cur, y_true.unsqueeze(0),
+                                      m_true.unsqueeze(0)).item()
+        n += 1
+    return (errs / max(n, 1)).tolist()
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="Train a tiny emulator on PlaSiC output")
     ap.add_argument("--data", required=True, help="dir with <var>.nc files")
@@ -115,6 +154,16 @@ def main() -> None:
     torch.save({"state_dict": model.state_dict(), "vars": args.vars,
                 "stats": full.stats}, out)
     print(f"saved -> {out}")
+
+    # Final report: per-variable one-step MSE + rollout error growth.
+    # 中文说明：最终报告：分变量单步 MSE 和 rollout 误差随 lead time 的增长。
+    print("per-variable val MSE:",
+          {v: f"{e:.6f}" for v, e in
+           per_variable_mse(model, val_loader, args.vars).items()})
+    steps = 4
+    ro = rollout_mse(model, full, n_train, len(full), steps=steps)
+    print("rollout val MSE by lead month:",
+          {f"+{s}m": f"{e:.6f}" for s, e in enumerate(ro, 1)})
 
 
 if __name__ == "__main__":
