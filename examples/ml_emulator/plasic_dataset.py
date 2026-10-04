@@ -14,18 +14,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import netCDF4
 import numpy as np
-
-try:
-    import netCDF4
-except ImportError as exc:  # pragma: no cover
-    raise ImportError("netCDF4 is required: pip install netCDF4") from exc
-
-try:
-    import torch
-    from torch.utils.data import Dataset
-except ImportError as exc:  # pragma: no cover
-    raise ImportError("torch is required: pip install torch") from exc
+import torch
+from torch.utils.data import Dataset
 
 
 def load_variable(data_dir: str | Path, name: str,

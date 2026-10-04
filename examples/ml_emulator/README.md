@@ -8,17 +8,16 @@
 
 ### What is this?
 
-A minimal, self-contained example showing **machine-learning researchers**
-(audience #2 of PlaSiC) how to train a neural-network **emulator** on PlaSiC
-model output. The emulator learns next-step prediction:
+A small working example: train a neural net to do next-step prediction on
+PlaSiC output. Given the model state at month *t*, predict month *t+1*:
 
 ```
 X(t) = [tas, ps, pr, ...](t)   →   X̂(t+Δt)
 ```
 
-i.e. given the model state at month *t*, predict the state at month *t+1*.
-This is the standard "learn the dynamics" setup used in ML-for-weather
-research (cf. NeuralGCM, GraphCast-style next-step training).
+Same idea as NeuralGCM / GraphCast-style next-step training, just much
+smaller — meant as a starting point if you're coming from ML and want to
+try PlaSiC data.
 
 ### Files
 
@@ -60,12 +59,12 @@ the synthetic data contains a predictable propagating signal.
 
 ### Notes / limitations
 
-- Monthly-mean data is coarse for weather emulation; this example is a
-  **template**, not a production emulator. For serious work, use higher-
-  frequency output or the restart files (tutorial §6.4).
+- Monthly means are coarse for weather emulation. This is a starting
+  template — for real work you'd want higher-frequency output or the
+  restart files (tutorial §6.4).
 - `_FillValue` (land/ocean-masked points) is masked out of the loss.
-- Contributions welcome: additional architectures, proper train/val/test
-  splits by year, rollout (multi-step) evaluation.
+- Open directions: more architectures, train/val/test splits by year,
+  multi-step rollout evaluation.
 
 ---
 
@@ -73,16 +72,15 @@ the synthetic data contains a predictable propagating signal.
 
 ### 这是什么？
 
-一个最小可运行的示例，展示**机器学习研究者**（PlaSiC 的第二类目标用户）
-如何在 PlaSiC 模式输出上训练神经网络** emulator**。Emulator 学习单步预测：
+一个能跑通的小例子：在 PlaSiC 模式输出上训练神经网络做单步预测。
+给定第 *t* 个月的模式状态，预测第 *t+1* 个月：
 
 ```
 X(t) = [tas, ps, pr, ...](t)   →   X̂(t+Δt)
 ```
 
-即给定第 *t* 个月的模式状态，预测第 *t+1* 个月。这是 ML-for-weather
-研究的标准 "learn the dynamics" 范式（参见 NeuralGCM、GraphCast 式的
-next-step 训练）。
+思路跟 NeuralGCM / GraphCast 那种 next-step 训练一样，只是小得多——
+给从 ML 过来、想试试 PlaSiC 数据的人当起点。
 
 ### 文件说明
 
@@ -123,7 +121,8 @@ python train_emulator.py --data data/synthetic --epochs 10
 
 ### 说明与局限
 
-- 月平均资料对天气 emulator 来说时间分辨率较粗；本示例是**模板**，
-  不是生产级 emulator。严肃研究请用更高频输出或重启文件（教程 §6.4）。
-- `_FillValue`（陆/海掩膜点）在 loss 中被 mask 掉。
-- 欢迎贡献：更多网络结构、按年划分的 train/val/test、多步 rollout 评估。
+- 月平均资料做天气 emulator 时间分辨率偏粗。这是个起点模板，
+  真要做研究得用更高频的输出或重启文件（教程 §6.4）。
+- `_FillValue`（陆/海掩膜点）在 loss 里被 mask 掉了。
+- 可以继续做的方向：更多网络结构、按年划分 train/val/test、
+  多步 rollout 评估。
