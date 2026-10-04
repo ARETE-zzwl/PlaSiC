@@ -1,24 +1,25 @@
 #!/usr/bin/env python3
 """Train a tiny next-step emulator on PlaSiC output.
 
-中文说明：在 PlaSiC 输出上训练小型 next-step emulator 的示例。
-含持续性/气候态两个基线和一个小 CNN；只在掩膜外的有效格点上算 MSE。
-先用合成数据跑通，再换成真实的 PlaSiC 输出。
+在 PlaSiC 输出上训练小型 next-step emulator 的示例：持续性/气候态
+两个基线加一个小 CNN，只在掩膜外的有效格点上算 MSE。先拿合成数据
+跑通，再换成真实的 PlaSiC 输出。
 
-Baselines (persistence, climatology) + a small CNN emulator,
+Baselines (persistence, climatology) plus a small CNN emulator,
 chronological train/val split, masked MSE. Run on synthetic data
 first, then on real PlaSiC output.
 """
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 
 import numpy as np
 
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset
 
 from plasic_dataset import PlasicDataset
 
@@ -33,7 +34,8 @@ class TinyCNN(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return x + self.net(x)  # residual: predict the increment, not the state
+        # residual: predict the increment, not the full state
+        return x + self.net(x)
 
 
 def masked_mse(pred: torch.Tensor, target: torch.Tensor,
@@ -43,21 +45,24 @@ def masked_mse(pred: torch.Tensor, target: torch.Tensor,
 
 
 @torch.no_grad()
-def evaluate(predictor, loader: DataLoader) -> float:
-    """MSE of a predictor on a loader.
+def evaluate(predictor, loader: DataLoader,
+             device: torch.device | None = None) -> float:
+    """Validation MSE of a baseline or a model.
 
-    predictor: 'persistence' | 'climatology' | nn.Module.
-    中文说明：基线或模型的验证 MSE；climatology 取验证集时间平均。
+    predictor 为 'persistence' / 'climatology' / nn.Module。
+    climatology 取验证集的时间平均。
     """
     if predictor == "climatology":
         ys = torch.cat([y for _, y, _ in loader], dim=0)
         clim = ys.mean(dim=0, keepdim=True)  # (1, C, H, W)
     tot, n = 0.0, 0
     for x, y, m in loader:
+        if device is not None:
+            x, y, m = x.to(device), y.to(device), m.to(device)
         if predictor == "persistence":
             pred = x
         elif predictor == "climatology":
-            pred = clim.expand_as(y)
+            pred = clim.to(x.device).expand_as(y)
         else:
             predictor.eval()
             pred = predictor(x)
@@ -68,12 +73,15 @@ def evaluate(predictor, loader: DataLoader) -> float:
 
 @torch.no_grad()
 def per_variable_mse(model: nn.Module, loader: DataLoader,
-                     variables: list[str]) -> dict[str, float]:
-    """One-step MSE per variable. 中文说明：分变量的单步 MSE。"""
+                     variables: list[str],
+                     device: torch.device | None = None) -> dict[str, float]:
+    """One-step MSE per variable. 分变量的单步 MSE。"""
     model.eval()
     tot = np.zeros(len(variables))
     cnt = np.zeros(len(variables))
     for x, y, m in loader:
+        if device is not None:
+            x, y, m = x.to(device), y.to(device), m.to(device)
         se = (model(x) - y) ** 2  # (B, C, H, W)
         for c in range(len(variables)):
             mc = m[:, c]
@@ -84,11 +92,12 @@ def per_variable_mse(model: nn.Module, loader: DataLoader,
 
 @torch.no_grad()
 def rollout_mse(model: nn.Module, dataset: PlasicDataset,
-                i_start: int, i_end: int, steps: int = 4) -> list[float]:
-    """Autoregressive rollout MSE per lead step.
+                i_start: int, i_end: int, steps: int = 4,
+                device: torch.device | None = None) -> list[float]:
+    """Autoregressive rollout MSE, one value per lead step.
 
-    中文说明：自回归多步 rollout：把预测喂回去做下一步输入，
-    看误差随 lead time 怎么涨——这是 emulator 的标准评估。
+    自回归多步 rollout：把模型输出喂回去当下一步输入，
+    看误差随 lead time 怎么涨。这是 emulator 的常规评估。
     """
     model.eval()
     errs = np.zeros(steps)
@@ -96,9 +105,13 @@ def rollout_mse(model: nn.Module, dataset: PlasicDataset,
     for i in range(i_start, min(i_end, len(dataset) - steps)):
         x, _, _ = dataset[i]
         cur = x.unsqueeze(0)
+        if device is not None:
+            cur = cur.to(device)
         for s in range(1, steps + 1):
             cur = model(cur)
             _, y_true, m_true = dataset[i + s - 1]
+            if device is not None:
+                y_true, m_true = y_true.to(device), m_true.to(device)
             errs[s - 1] += masked_mse(cur, y_true.unsqueeze(0),
                                       m_true.unsqueeze(0)).item()
         n += 1
@@ -116,38 +129,48 @@ def main() -> None:
     ap.add_argument("--lr", type=float, default=1e-3)
     ap.add_argument("--val-frac", type=float, default=0.25)
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--device", default="auto",
+                    help="'auto', 'cpu', or 'cuda'")
     args = ap.parse_args()
 
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
+    device = torch.device(
+        "cuda" if (args.device == "cuda" or
+                   (args.device == "auto" and torch.cuda.is_available()))
+        else "cpu")
+    print(f"device: {device}")
 
     full = PlasicDataset(args.data, args.vars, levels=args.levels)
     n_val = max(1, int(len(full) * args.val_frac))
     n_train = len(full) - n_val
-    # Chronological split: validate on the most recent months so no
+    # Split chronologically: validate on the most recent months, so no
     # future information leaks into training.
-    train_loader = DataLoader(torch.utils.data.Subset(full, range(n_train)),
+    train_loader = DataLoader(Subset(full, range(n_train)),
                               batch_size=args.batch, shuffle=True)
-    val_loader = DataLoader(torch.utils.data.Subset(full, range(n_train, len(full))),
+    val_loader = DataLoader(Subset(full, range(n_train, len(full))),
                             batch_size=args.batch)
 
     print(f"train pairs: {n_train}, val pairs: {n_val}, vars: {args.vars}")
     print(f"baseline[persistence] val MSE: {evaluate('persistence', val_loader):.6f}")
     print(f"baseline[climatology] val MSE: {evaluate('climatology', val_loader):.6f}")
 
-    model = TinyCNN(len(args.vars), hidden=args.hidden)
+    model = TinyCNN(len(args.vars), hidden=args.hidden).to(device)
     opt = torch.optim.Adam(model.parameters(), lr=args.lr)
+    history = []
     for epoch in range(1, args.epochs + 1):
         model.train()
         tot, n = 0.0, 0
         for x, y, m in train_loader:
+            x, y, m = x.to(device), y.to(device), m.to(device)
             opt.zero_grad()
             loss = masked_mse(model(x), y, m)
             loss.backward()
             opt.step()
             tot += loss.item() * x.shape[0]
             n += x.shape[0]
-        val = evaluate(model, val_loader)
+        val = evaluate(model, val_loader, device)
+        history.append({"epoch": epoch, "train": tot / n, "val": val})
         print(f"epoch {epoch:3d}  train {tot / n:.6f}  val {val:.6f}")
 
     out = Path(args.data) / "emulator.pt"
@@ -156,14 +179,26 @@ def main() -> None:
     print(f"saved -> {out}")
 
     # Final report: per-variable one-step MSE + rollout error growth.
-    # 中文说明：最终报告：分变量单步 MSE 和 rollout 误差随 lead time 的增长。
-    print("per-variable val MSE:",
-          {v: f"{e:.6f}" for v, e in
-           per_variable_mse(model, val_loader, args.vars).items()})
+    # 最终报告：分变量单步 MSE，以及 rollout 误差随 lead time 的增长。
+    per_var = per_variable_mse(model, val_loader, args.vars, device)
     steps = 4
-    ro = rollout_mse(model, full, n_train, len(full), steps=steps)
+    ro = rollout_mse(model, full, n_train, len(full), steps=steps, device=device)
+    print("per-variable val MSE:",
+          {v: f"{e:.6f}" for v, e in per_var.items()})
     print("rollout val MSE by lead month:",
           {f"+{s}m": f"{e:.6f}" for s, e in enumerate(ro, 1)})
+
+    metrics = {
+        "vars": args.vars,
+        "n_train": n_train,
+        "n_val": n_val,
+        "history": history,
+        "per_variable_val_mse": per_var,
+        "rollout_val_mse": {f"+{s}m": e for s, e in enumerate(ro, 1)},
+    }
+    mpath = Path(args.data) / "metrics.json"
+    mpath.write_text(json.dumps(metrics, indent=2))
+    print(f"metrics -> {mpath}")
 
 
 if __name__ == "__main__":
